@@ -1,0 +1,22 @@
+{
+  "name": "IMAN MCS - Cooperative Banking System",
+  "short_name": "IMAN MCS",
+  "description": "Integrated Management and Cooperative System for IMAN Cooperative Society",
+  "theme_color": "#0f766e",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "scope": "/",
+  "start_url": "/",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64",
+      "type": "image/x-icon"
+    }
+  ]
+}

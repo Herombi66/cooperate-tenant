@@ -1,0 +1,3 @@
+PSN,NAME,EMAIL,PHONE,HEALTHCARE_FACILITY,ROLE,STATUS
+UNIQUE001,Unique Member 1,unique1@example.com,08077734567,Unique Hospital 1,member,active
+UNIQUE002,Unique Member 2,unique2@example.com,08088845678,Unique Hospital 2,member,active

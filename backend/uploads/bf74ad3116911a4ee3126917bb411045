@@ -1,0 +1,3 @@
+PSN,NAME,EMAIL,PHONE,HEALTHCARE_FACILITY,ROLE,STATUS
+LAST001,Last Test Member 1,last1@example.com,08333345678,Last Hospital 1,member,active
+LAST002,Last Test Member 2,last2@example.com,08344456789,Last Hospital 2,member,active

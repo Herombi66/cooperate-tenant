@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FCNACONSGMCS | Biblically principled operations and investments</title>
+    <meta name="description" content="IMAN Multi-Purpose Cooperative Society: a modern, Sharia-compliant platform for healthcare professionals to save, invest, access loans, and receive support with transparency." />
+    <meta name="keywords" content="IMAN Cooperative, cooperative society, Sharia-compliant, Islamic finance, healthcare workers, savings, investment, loans, profit sharing" />
+    <meta name="author" content="IMAN Cooperative Society" />
+    <meta name="robots" content="index,follow" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://imancooperative.vercel.app/" />
+    <meta property="og:title" content="IMAN Cooperative | Sharia-Compliant Cooperative Platform" />
+    <meta property="og:description" content="A modern, Sharia-compliant cooperative platform for healthcare professionals: savings, investment, loans, and support." />
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://imancooperative.vercel.app/" />
+    <meta property="twitter:title" content="IMAN Cooperative | Sharia-Compliant Cooperative Platform" />
+    <meta property="twitter:description" content="A modern, Sharia-compliant cooperative platform for healthcare professionals: savings, investment, loans, and support." />
+    
+    <!-- Favicon -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    
+    <!-- Theme color for mobile browsers -->
+    <meta name="theme-color" content="#16a34a" />
+    <meta name="msapplication-TileColor" content="#16a34a" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "name": "IMAN Multi-Purpose Cooperative Society",
+            "description": "A Sharia-compliant cooperative platform for healthcare professionals.",
+            "url": "https://imancooperative.vercel.app/"
+          },
+          {
+            "@type": "WebSite",
+            "name": "IMAN Cooperative",
+            "url": "https://imancooperative.vercel.app/"
+          }
+        ]
+      }
+    </script>
+
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('theme');
+          var theme = stored === 'dark' || stored === 'light' ? stored : 'system';
+          var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          var isDark = theme === 'dark' || (theme === 'system' && prefersDark);
+          var root = document.documentElement;
+          root.classList.toggle('dark', isDark);
+          root.style.colorScheme = isDark ? 'dark' : 'light';
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -1,0 +1,30 @@
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0;"> 
+    <h2 style="color: #2a5885;">Welcome to IMAN MCS</h2> 
+    <p style="color: #555;">Islamic Medical Association of Nigeria - Cooperative Society</p> 
+    
+    <p>Dear {{recipient_name}},</p> 
+    
+    <p>Congratulations! Your membership application has been successfully approved. You are now an official member of our cooperative society.</p> 
+    
+    <div style="background: #f9f9f9; padding: 15px; border-left: 4px solid #2a5885; margin: 20px 0;"> 
+        <h3 style="margin-top: 0;">Your Account Details:</h3> 
+        <p><strong>PSN:</strong> {{member_id}}</p> 
+        <p><strong>Email:</strong> {{member_email}}</p> 
+        <p><strong>Default Password:</strong> {{temporary_password}}</p> 
+    </div> 
+    
+    <div style="background: #fff8e1; padding: 15px; border-left: 4px solid #ffc107; margin: 20px 0;"> 
+        <p style="font-weight: bold;">⚠️ Important Security Notice:</p> 
+        <p>For your account security, please change this default password immediately after your first login.</p> 
+    </div> 
+    
+    <a href="{{login_url}}" style="display: inline-block; background: #2a5885; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; margin: 10px 0;">Login to Your Account</a> 
+    
+    <p>If you have any questions or need assistance, please contact our support team at <a href="mailto:{{support_email}}">{{support_email}}</a> or call {{support_phone}}.</p> 
+    
+    <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 20px 0;"> 
+    <p style="font-size: 0.8em; color: #999;"> 
+        This is an automated message from IMAN Cooperative Society.<br> 
+        Please do not reply to this email directly. 
+    </p> 
+</div>

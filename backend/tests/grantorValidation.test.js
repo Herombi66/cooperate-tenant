@@ -1,0 +1,207 @@
+const request = require('supertest');
+const app = require('../app');
+const { sequelize } = require('../db/connection');
+const { User, MembershipApplication, Loan, ActivityLog } = require('../models');
+const jwt = require('jsonwebtoken');
+
+describe('Grantor Validation API', () => {
+  let applicantToken;
+  let applicantUser;
+  let validGrantorUser;
+  let inactiveGrantorUser;
+  let defaultedGrantorUser;
+
+  beforeAll(async () => {
+    process.env.JWT_SECRET = 'test-secret';
+    process.env.NODE_ENV = 'test';
+
+    // Reset DB
+    await sequelize.sync({ force: true });
+
+    // 1. Create Applicant
+    const applicantApp = await MembershipApplication.create({
+      name: 'Applicant User',
+      psn: 'APPLICANT01',
+      email: 'applicant@example.com',
+      phone: '08000000001',
+      facility_name: 'HQ',
+      next_of_kin_name: 'NOK1',
+      next_of_kin_phone: '08000000002',
+      status: 'approved'
+    });
+    applicantUser = await User.create({
+      membership_application_id: applicantApp.id,
+      password_hash: 'hash',
+      role: 'member',
+      status: 'active'
+    });
+    applicantToken = jwt.sign({ id: applicantUser.id, role: 'member' }, process.env.JWT_SECRET);
+
+    // 2. Create Valid Grantor
+    const grantorApp = await MembershipApplication.create({
+      name: 'Valid Grantor',
+      psn: 'GRANTOR01',
+      email: 'grantor@example.com',
+      phone: '08000000003',
+      facility_name: 'HQ',
+      next_of_kin_name: 'NOK2',
+      next_of_kin_phone: '08000000004',
+      status: 'approved'
+    });
+    validGrantorUser = await User.create({
+      membership_application_id: grantorApp.id,
+      password_hash: 'hash',
+      role: 'member',
+      status: 'active'
+    });
+
+    // 3. Create Inactive Grantor
+    const inactiveApp = await MembershipApplication.create({
+      name: 'Inactive Grantor',
+      psn: 'INACTIVE01',
+      email: 'inactive@example.com',
+      phone: '08000000005',
+      facility_name: 'HQ',
+      next_of_kin_name: 'NOK3',
+      next_of_kin_phone: '08000000006',
+      status: 'approved'
+    });
+    inactiveGrantorUser = await User.create({
+      membership_application_id: inactiveApp.id,
+      password_hash: 'hash',
+      role: 'member',
+      status: 'suspended' // Not active
+    });
+
+    // 4. Create Restricted Grantor (Defaulted Loan)
+    const defaultedApp = await MembershipApplication.create({
+      name: 'Defaulted Grantor',
+      psn: 'DEFAULTED01',
+      email: 'defaulted@example.com',
+      phone: '08000000007',
+      facility_name: 'HQ',
+      next_of_kin_name: 'NOK4',
+      next_of_kin_phone: '08000000008',
+      status: 'approved'
+    });
+    defaultedGrantorUser = await User.create({
+      membership_application_id: defaultedApp.id,
+      password_hash: 'hash',
+      role: 'member',
+      status: 'active'
+    });
+    // Create defaulted loan
+    await Loan.create({
+      user_id: defaultedGrantorUser.id,
+      loan_type: 'cash',
+      amount_requested: 1000,
+      repayment_period_months: 6,
+      status: 'defaulted',
+      application_date: new Date(),
+      guarantor_name: 'Someone',
+      guarantor_phone: '123'
+    });
+
+  });
+
+  afterAll(async () => {
+    await sequelize.close();
+  });
+
+  describe('POST /loans/validate-grantor', () => {
+    
+    it('should validate a valid grantor successfully', async () => {
+      const res = await request(app)
+        .post('/loans/validate-grantor')
+        .set('Authorization', `Bearer ${applicantToken}`)
+        .send({ psn: 'GRANTOR01' });
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.message).toBe('Grantor is valid.');
+      expect(res.body.grantor.name).toBe('Valid Grantor');
+    });
+
+    it('should fail if PSN is missing', async () => {
+      const res = await request(app)
+        .post('/loans/validate-grantor')
+        .set('Authorization', `Bearer ${applicantToken}`)
+        .send({});
+
+      expect(res.status).toBe(400);
+      expect(res.body.code).toBe('PSN_REQUIRED');
+    });
+
+    it('should fail if PSN format is invalid (too short)', async () => {
+      const res = await request(app)
+        .post('/loans/validate-grantor')
+        .set('Authorization', `Bearer ${applicantToken}`)
+        .send({ psn: 'AB' });
+
+      expect(res.status).toBe(400);
+      expect(res.body.code).toBe('INVALID_FORMAT');
+    });
+
+    it('should fail if PSN format is invalid (special chars)', async () => {
+      const res = await request(app)
+        .post('/loans/validate-grantor')
+        .set('Authorization', `Bearer ${applicantToken}`)
+        .send({ psn: 'TEST@#$' });
+
+      expect(res.status).toBe(400);
+      expect(res.body.code).toBe('INVALID_FORMAT');
+    });
+
+    it('should fail if PSN does not exist', async () => {
+      const res = await request(app)
+        .post('/loans/validate-grantor')
+        .set('Authorization', `Bearer ${applicantToken}`)
+        .send({ psn: 'UNKNOWN99' });
+
+      expect(res.status).toBe(404);
+      expect(res.body.code).toBe('PSN_NOT_FOUND');
+    });
+
+    it('should fail if Applicant tries to be their own grantor', async () => {
+      const res = await request(app)
+        .post('/loans/validate-grantor')
+        .set('Authorization', `Bearer ${applicantToken}`)
+        .send({ psn: 'APPLICANT01' });
+
+      expect(res.status).toBe(400);
+      expect(res.body.code).toBe('SELF_GRANTOR');
+    });
+
+    it('should allow an inactive user account to act as guarantor if membership is approved', async () => {
+      const res = await request(app)
+        .post('/loans/validate-grantor')
+        .set('Authorization', `Bearer ${applicantToken}`)
+        .send({ psn: 'INACTIVE01' });
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.grantor.psn).toBe('INACTIVE01');
+    });
+
+    it('should allow a member with defaulted loans to act as guarantor (no eligibility restriction)', async () => {
+      const res = await request(app)
+        .post('/loans/validate-grantor')
+        .set('Authorization', `Bearer ${applicantToken}`)
+        .send({ psn: 'DEFAULTED01' });
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.grantor.psn).toBe('DEFAULTED01');
+    });
+
+    it('should log the validation attempt', async () => {
+        const logs = await ActivityLog.findAll({
+            where: { action: 'guarantor_psn_validation_attempt' }
+        });
+        expect(logs.length).toBeGreaterThan(0);
+        const match = logs.find((l) => l?.metadata?.outcome === 'success' && l?.metadata?.psn === 'GRANTOR01');
+        expect(!!match).toBe(true);
+    });
+
+  });
+});

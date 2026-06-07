@@ -1,0 +1,7 @@
+-- Migration: Add membership application fields to users table
+ALTER TABLE users ADD COLUMN IF NOT EXISTS next_of_kin_name VARCHAR(255);
+ALTER TABLE users ADD COLUMN IF NOT EXISTS next_of_kin_phone VARCHAR(20);
+ALTER TABLE users ADD COLUMN IF NOT EXISTS savings DECIMAL(15, 2) DEFAULT 0;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS investment DECIMAL(15, 2) DEFAULT 0;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS target_saving DECIMAL(15, 2) DEFAULT 0;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS target_period INTEGER DEFAULT 12;

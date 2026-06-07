@@ -1,0 +1,55 @@
+<div style="font-family: Arial, sans-serif; line-height: 1.5; color: #111;">
+  <h2 style="margin: 0 0 12px;">Layyah Purchase Request</h2>
+  <p style="margin: 0 0 12px;">Hello {{recipient_name}},</p>
+
+  <p style="margin: 0 0 12px;">
+    Your Layyah purchase request <strong>#{{request_id}}</strong> is currently <strong>{{status}}</strong>.
+  </p>
+
+  <table style="border-collapse: collapse; width: 100%; margin: 12px 0;">
+    <tr>
+      <td style="padding: 8px; border: 1px solid #ddd;"><strong>Member</strong></td>
+      <td style="padding: 8px; border: 1px solid #ddd;">{{member_name}} ({{member_email}})</td>
+    </tr>
+    <tr>
+      <td style="padding: 8px; border: 1px solid #ddd;"><strong>Animal Type</strong></td>
+      <td style="padding: 8px; border: 1px solid #ddd;">{{animal_category}}</td>
+    </tr>
+    <tr>
+      <td style="padding: 8px; border: 1px solid #ddd;"><strong>Quantity</strong></td>
+      <td style="padding: 8px; border: 1px solid #ddd;">{{quantity}}</td>
+    </tr>
+    <tr>
+      <td style="padding: 8px; border: 1px solid #ddd;"><strong>Delivery Window</strong></td>
+      <td style="padding: 8px; border: 1px solid #ddd;">{{delivery_start_date}} to {{delivery_end_date}}</td>
+    </tr>
+  </table>
+
+  <h3 style="margin: 16px 0 8px;">Reason</h3>
+  <div style="padding: 12px; border: 1px solid #ddd; border-radius: 6px; background: #fafafa;">
+    {{{reason_html}}}
+  </div>
+
+  {{#if rejection_reason}}
+    <h3 style="margin: 16px 0 8px;">Rejection Reason</h3>
+    <div style="padding: 12px; border: 1px solid #f1c0c0; border-radius: 6px; background: #fff5f5;">
+      {{rejection_reason}}
+    </div>
+  {{/if}}
+
+  <p style="margin: 16px 0 12px;">
+    Next steps: Please visit the portal for updates and processing details.
+  </p>
+
+  {{#if portal_link}}
+    <p style="margin: 0 0 12px;">
+      <a href="{{portal_link}}" style="display: inline-block; padding: 10px 14px; background: #0ea5e9; color: #fff; text-decoration: none; border-radius: 6px;">
+        Open Portal
+      </a>
+    </p>
+  {{/if}}
+
+  <p style="margin: 24px 0 0; color: #555; font-size: 12px;">
+    This email contains request details. Do not forward if it includes personal data not intended for the recipient.
+  </p>
+</div>
