@@ -36,7 +36,7 @@ class DomainEventBus extends EventEmitter {
    */
   subscribe(eventName, handler) {
     this.on(eventName, handler);
-    return () =&gt; this.unsubscribe(eventName, handler);
+    return () => this.unsubscribe(eventName, handler);
   }
 
   /**

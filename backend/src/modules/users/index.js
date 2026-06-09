@@ -11,7 +11,7 @@ module.exports = {
   services: { UsersService },
   repositories: { UsersRepository },
   events: null,
-  initialize: (tenantSettings) =&gt; {
+  initialize: (tenantSettings) => {
     console.log('Users module initialized');
     usersController.initialize(tenantSettings);
     return {

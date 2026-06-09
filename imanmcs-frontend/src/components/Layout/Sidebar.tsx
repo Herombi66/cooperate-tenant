@@ -19,8 +19,8 @@ const navigationItems: Record<string, Array<{ name: string; href: string; icon: 
     { name: 'Loans', href: '/loans', icon: CreditCard },
     { name: 'Loan Repayments', href: '/loan-repayments', icon: Upload },
     { name: 'Agreements', href: '/agreements', icon: CheckCircle },
-<<<<<<< HEAD
-    // { name: 'Layyah Management', href: '/admin-layyah', icon: Heart },
+    { name: 'Layyah Management', href: '/admin-layyah', icon: Heart },
+    { name: 'Animal Requests', href: '/admin-animal-requests', icon: ShoppingCart },
     { name: 'Expenses', href: '/expenses', icon: Receipt },
     { name: 'Profit Sharing', href: '/profit-sharing', icon: TrendingUp },
     { name: 'Reports', href: '/reports', icon: FileText },
@@ -38,11 +38,8 @@ const navigationItems: Record<string, Array<{ name: string; href: string; icon: 
     { name: 'Loans', href: '/loans', icon: CreditCard },
     { name: 'Loan Repayments', href: '/loan-repayments', icon: Upload },
     { name: 'Agreements', href: '/agreements', icon: CheckCircle },
-    // { name: 'Layyah Management', href: '/admin-layyah', icon: Heart },
-=======
     { name: 'Layyah Management', href: '/admin-layyah', icon: Heart },
     { name: 'Animal Requests', href: '/admin-animal-requests', icon: ShoppingCart },
->>>>>>> c89d2cf068bf46fa699f6d0221ce3e9b0751a166
     { name: 'Expenses', href: '/expenses', icon: Receipt },
     { name: 'Profit Sharing', href: '/profit-sharing', icon: TrendingUp },
     { name: 'Reports', href: '/reports', icon: FileText },

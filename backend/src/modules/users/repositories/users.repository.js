@@ -74,22 +74,22 @@ class UsersRepository extends BaseRepository {
       order: [['psn', 'ASC'], ['id', 'ASC']]
     });
 
-    return Promise.all(applications.map(async (app) =&gt; {
+    return Promise.all(applications.map(async (app) => {
       const allUserAccounts = await User.findAll({
         where: { 
           membership_application_id: app.id,
-          ...(userRole !== 'super_admin' ? { role: { [Op.ne]: 'super_admin' } : {})
+          ...(userRole !== 'super_admin' ? { role: { [Op.ne]: 'super_admin' } } : {})
         },
         attributes: ['id', 'role', 'status']
       });
 
-      if (allUserAccounts.length === 0 &amp;&amp; userRole !== 'super_admin') {
+      if (allUserAccounts.length === 0 && userRole !== 'super_admin') {
         return null;
       }
 
-      const memberAccount = allUserAccounts.find(u =&gt; u.role === 'member');
-      const additionalRoles = allUserAccounts.filter(u =&gt; u.role !== 'member').map(u =&gt; u.role);
-      const additionalRole = additionalRoles.length &gt; 0 ? additionalRoles[0] : null;
+      const memberAccount = allUserAccounts.find(u => u.role === 'member');
+      const additionalRoles = allUserAccounts.filter(u => u.role !== 'member').map(u => u.role);
+      const additionalRole = additionalRoles.length > 0 ? additionalRoles[0] : null;
 
       return {
         id: memberAccount?.id || app.id,
@@ -104,7 +104,7 @@ class UsersRepository extends BaseRepository {
         status: memberAccount?.status || 'inactive',
         allAccounts: allUserAccounts
       };
-    })).then(members =&gt; members.filter(member =&gt; member !== null));
+    })).then(members => members.filter(member => member !== null));
   }
 }
 

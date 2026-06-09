@@ -197,7 +197,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Disable caching for API routes to prevent stale/empty conditional responses
-app.use((req, res, next) =&gt; {
+app.use((req, res, next) => {
   if (req.path.startsWith('/uploads')) return next();
   res.setHeader('Cache-Control', 'no-store');
   return next();

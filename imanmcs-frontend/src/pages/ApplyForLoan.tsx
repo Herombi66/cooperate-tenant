@@ -28,12 +28,8 @@ interface MemberData {
 const ApplyForLoan: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-<<<<<<< HEAD
-  const [loanType, setLoanType] = useState<'cash' | 'venture' | 'emergency'>('cash');
-=======
   const draftKey = 'loan_application_draft_v1';
-  const [loanType, setLoanType] = useState<'cash' | 'investment' | 'educational'>('cash');
->>>>>>> c89d2cf068bf46fa699f6d0221ce3e9b0751a166
+  const [loanType, setLoanType] = useState<'cash' | 'venture' | 'emergency'>('cash');
   const [memberData, setMemberData] = useState<MemberData | null>(null);
   const [loading, setLoading] = useState(true);
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
@@ -64,7 +60,7 @@ const ApplyForLoan: React.FC = () => {
       if (raw) {
         const parsed = JSON.parse(raw) as {
           step?: 1 | 2 | 3 | 4;
-          loanType?: 'cash' | 'investment' | 'educational';
+          loanType?: 'cash' | 'venture' | 'emergency';
           formData?: {
             amount?: string;
             tenure?: string;
@@ -73,7 +69,7 @@ const ApplyForLoan: React.FC = () => {
           };
         };
 
-        if (parsed.loanType && (parsed.loanType === 'cash' || parsed.loanType === 'investment' || parsed.loanType === 'educational')) {
+        if (parsed.loanType && (parsed.loanType === 'cash' || parsed.loanType === 'venture' || parsed.loanType === 'emergency')) {
           setLoanType(parsed.loanType);
         }
 
@@ -916,16 +912,12 @@ const ApplyForLoan: React.FC = () => {
                       placeholder={loanType === 'venture' ? "Describe the venture you intend to embark on (at least 20 characters)..." : "Describe the purpose of this loan (at least 20 characters)..."}
                       aria-invalid={showValidation && (!formData.purpose || formData.purpose.trim().length < 20)}
                     />
-<<<<<<< HEAD
                     <p className="text-sm text-gray-500 mt-1">
                       {loanType === 'venture' ? 'Provide clear details of your venture.' : 'Provide a clear purpose to support faster review.'}
                     </p>
-=======
-                    <p className="text-sm text-gray-500 mt-1">Provide a clear purpose to support faster review.</p>
                     {showValidation && (!formData.purpose || formData.purpose.trim().length < 20) && (
                       <p className="mt-1 text-sm text-red-600">Purpose is required (minimum 20 characters).</p>
                     )}
->>>>>>> c89d2cf068bf46fa699f6d0221ce3e9b0751a166
                   </div>
 
                   <div className="flex items-center justify-between gap-3 pt-2">

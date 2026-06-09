@@ -1,16 +1,10 @@
 const express = require('express');
 const router = express.Router();
-<<<<<<< HEAD:backend/src/modules/loans/loan-repayments.routes.js
 const loanRepaymentController = require('./controllers/loan-repayment.controller');
 const loanRepaymentBulkUploadController = require('./controllers/loan-repayment-bulk.controller');
-const { authenticateToken } = require('../../../middleware/auth');
-=======
-const loanRepaymentController = require('../controllers/loanRepaymentController');
-const loanRepaymentBulkUploadController = require('../controllers/loanRepaymentBulkUploadController');
-const { authenticateToken, authorizeRole } = require('../middleware/auth');
+const { authenticateToken, authorizeRole } = require('../../../middleware/auth');
 
 const VERIFICATION_ROLES = ['admin', 'super_admin', 'treasurer', 'chairman'];
->>>>>>> c89d2cf068bf46fa699f6d0221ce3e9b0751a166:backend/routes/loanRepayments.js
 
 // Admin/Treasurer routes for managing loan repayments
 router.get('/', authenticateToken, loanRepaymentController.getLoanRepayments);
