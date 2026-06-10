@@ -6,7 +6,24 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLayout } from '../../contexts/LayoutContext';
+import { useTenant } from '../../contexts/TenantContext';
 import { cn } from '../../lib/utils';
+
+const featureMap: Record<string, string> = {
+  '/loans': 'loans',
+  '/loan-applications': 'loans',
+  '/loan-repayments': 'loans',
+  '/apply-loan': 'loans',
+  '/my-loans': 'loans',
+  '/agreements': 'loans',
+  '/my-guarantees': 'loans',
+  '/admin-layyah': 'layyah',
+  '/admin-animal-requests': 'layyah',
+  '/expenses': 'expenses',
+  '/profit-sharing': 'profit_sharing',
+  '/my-profit-share': 'profit_sharing',
+  '/withdrawals': 'withdrawals'
+};
 
 const navigationItems: Record<string, Array<{ name: string; href: string; icon: any }>> = {
   admin: [
@@ -14,6 +31,7 @@ const navigationItems: Record<string, Array<{ name: string; href: string; icon: 
     { name: 'Member Applications', href: '/member-applications', icon: UserPlus },
     { name: 'Members', href: '/members', icon: Users },
     { name: 'User Management', href: '/user-management', icon: Shield },
+    { name: 'Roles & Permissions', href: '/roles', icon: Shield },
     { name: 'Contributions', href: '/contributions', icon: DollarSign },
     { name: 'Loan Applications', href: '/loan-applications', icon: CreditCard },
     { name: 'Loans', href: '/loans', icon: CreditCard },
@@ -33,6 +51,7 @@ const navigationItems: Record<string, Array<{ name: string; href: string; icon: 
     { name: 'Member Applications', href: '/member-applications', icon: UserPlus },
     { name: 'Members', href: '/members', icon: Users },
     { name: 'User Management', href: '/user-management', icon: Shield },
+    { name: 'Roles & Permissions', href: '/roles', icon: Shield },
     { name: 'Contributions', href: '/contributions', icon: DollarSign },
     { name: 'Loan Applications', href: '/loan-applications', icon: CreditCard },
     { name: 'Loans', href: '/loans', icon: CreditCard },
@@ -98,12 +117,19 @@ const navigationItems: Record<string, Array<{ name: string; href: string; icon: 
 export const Sidebar: React.FC = () => {
   const { user } = useAuth();
   const { isSidebarOpen, isSidebarCollapsed, toggleSidebarCollapse, closeSidebar } = useLayout();
+  const { tenant, hasFeature } = useTenant();
 
   const rawItems = user ? (navigationItems[user.role] || []) : [];
-  const items =
-    user && user.role === 'admin' && !user.canCreateAnimalRequests
-      ? rawItems.filter((i) => i.href !== '/admin-animal-requests')
-      : rawItems;
+  const items = rawItems.filter(i => {
+    // Role specific overrides
+    if (i.href === '/admin-animal-requests' && user.role === 'admin' && !user.canCreateAnimalRequests) return false;
+    
+    // Feature flag overrides
+    const requiredFeature = featureMap[i.href];
+    if (requiredFeature && !hasFeature(requiredFeature)) return false;
+    
+    return true;
+  });
 
   if (!user) {
     return (
@@ -133,8 +159,8 @@ export const Sidebar: React.FC = () => {
       >
         <div className="p-4 flex items-center justify-between">
           {(!isSidebarCollapsed || isSidebarOpen) && (
-            <h2 className="text-lg font-semibold text-primary-400 truncate">
-              FCNACONSGM Cooperative
+            <h2 className="text-lg font-semibold text-primary-400 truncate uppercase">
+              {tenant?.name || 'Cooperative'}
             </h2>
           )}
 

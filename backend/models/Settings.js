@@ -7,6 +7,11 @@ const Settings = sequelize.define('Settings', {
     primaryKey: true,
     autoIncrement: true
   },
+  tenant_id: {
+    type: DataTypes.STRING(100),
+    allowNull: false,
+    defaultValue: 'default'
+  },
   key: {
     type: DataTypes.STRING(255),
     unique: true,

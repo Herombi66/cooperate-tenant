@@ -100,7 +100,55 @@ const getSequelizeInstance = () => {
   });
 };
 
+const tenantStorage = require('../src/middleware/tenant-storage');
 const sequelize = getSequelizeInstance();
+
+// Add global hooks for multi-tenancy
+const globalModels = ['PlatformAdmin', 'Tenant'];
+
+function applyTenantFilter(options) {
+  const modelName = (options && options.model && options.model.name) || (this && this.name);
+  if (modelName && globalModels.includes(modelName)) return;
+
+  const tenantId = tenantStorage.getStore();
+  // If tenantId exists and we are not explicitly skipping tenant isolation
+  if (tenantId && (!options || !options.skipTenant)) {
+    options.where = options.where || {};
+    // Ensure we don't accidentally override an existing explicit tenant_id query
+    if (options.where.tenant_id === undefined) {
+      options.where.tenant_id = tenantId;
+    }
+  }
+}
+
+function applyTenantCreate(instance, options) {
+  const modelName = (instance && instance.constructor && instance.constructor.name) || (this && this.name);
+  if (modelName && globalModels.includes(modelName)) return;
+
+  const tenantId = tenantStorage.getStore();
+  if (tenantId && (!options || !options.skipTenant)) {
+    instance.tenant_id = tenantId;
+  }
+}
+
+sequelize.addHook('beforeFind', applyTenantFilter);
+sequelize.addHook('beforeCount', applyTenantFilter);
+sequelize.addHook('beforeUpdate', applyTenantFilter);
+sequelize.addHook('beforeDestroy', applyTenantFilter);
+
+sequelize.addHook('beforeCreate', applyTenantCreate);
+sequelize.addHook('beforeBulkCreate', function(instances, options) {
+  if (!instances || !instances.length) return;
+  const modelName = (instances[0] && instances[0].constructor && instances[0].constructor.name) || (this && this.name);
+  if (modelName && globalModels.includes(modelName)) return;
+
+  const tenantId = tenantStorage.getStore();
+  if (tenantId && (!options || !options.skipTenant)) {
+    instances.forEach(instance => {
+      instance.tenant_id = tenantId;
+    });
+  }
+});
 
 module.exports = { sequelize, testConnection: async () => {
   try {

@@ -7,6 +7,16 @@ const Loan = sequelize.define('Loan', {
     primaryKey: true,
     autoIncrement: true
   },
+  metadata: {
+    type: DataTypes.JSON,
+    allowNull: true,
+    comment: 'Flexible schema field for custom tenant data'
+  },
+  tenant_id: {
+    type: DataTypes.STRING(100),
+    allowNull: false,
+    defaultValue: 'default'
+  },
   user_id: {
     type: DataTypes.INTEGER,
     allowNull: false,

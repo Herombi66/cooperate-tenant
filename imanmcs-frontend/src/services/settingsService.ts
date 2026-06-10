@@ -41,7 +41,8 @@ export interface Settings {
 
 export interface SettingsResponse {
   success: boolean;
-  data: Settings;
+  data?: Settings;
+  settings?: Settings;
   metadata?: {
     totalSettings: number;
     categories: number;
@@ -57,7 +58,7 @@ class SettingsService {
     try {
       const response = await api.get<SettingsResponse>(this.apiUrl);
       if (response.data.success) {
-        return response.data.data;
+        return (response.data.settings || response.data.data) as Settings;
       }
       throw new Error('Failed to fetch settings');
     } catch (error) {

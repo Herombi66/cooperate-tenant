@@ -6,6 +6,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { LoadingProvider } from './contexts/LoadingContext';
 import { LayoutProvider } from './contexts/LayoutContext';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { TenantProvider } from './contexts/TenantContext';
 import { AppRoutes } from './AppRoutes';
 import './index.css';
 
@@ -14,18 +15,20 @@ const queryClient = new QueryClient();
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <LoadingProvider>
-          <AuthProvider>
-            <Router>
-              <LayoutProvider>
-                <AppRoutes />
-                <Toaster position="top-right" />
-              </LayoutProvider>
-            </Router>
-          </AuthProvider>
-        </LoadingProvider>
-      </ThemeProvider>
+      <TenantProvider>
+        <ThemeProvider>
+          <LoadingProvider>
+            <AuthProvider>
+              <Router>
+                <LayoutProvider>
+                  <AppRoutes />
+                  <Toaster position="top-right" />
+                </LayoutProvider>
+              </Router>
+            </AuthProvider>
+          </LoadingProvider>
+        </ThemeProvider>
+      </TenantProvider>
     </QueryClientProvider>
   );
 }

@@ -7,6 +7,11 @@ const BroadcastMessage = sequelize.define('BroadcastMessage', {
     primaryKey: true,
     autoIncrement: true
   },
+  tenant_id: {
+    type: DataTypes.STRING(100),
+    allowNull: false,
+    defaultValue: 'default'
+  },
   sender_id: {
     type: DataTypes.INTEGER,
     allowNull: false,

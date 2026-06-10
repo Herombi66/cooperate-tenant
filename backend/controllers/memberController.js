@@ -245,28 +245,27 @@ const createMemberAccount = async (applicationId, password = null, sendEmail = t
   const saltRounds = 10;
   const hashedPassword = await bcrypt.hash(passwordToHash, saltRounds);
 
+  // Get the membership application data for email and metadata
+  const MembershipApplication = require('../models/MembershipApplication');
+  const application = await MembershipApplication.findByPk(applicationId);
+
   // Create user account linked to membership application
   const user = await User.create({
     membership_application_id: applicationId,
     password_hash: hashedPassword,
     is_default_password: !password, // If password was auto-generated
-    status: 'active'
+    status: 'active',
+    metadata: application?.metadata || {}
   });
 
   // Send welcome email if requested
-  if (sendEmail) {
+  if (sendEmail && application) {
     try {
-      // Get the membership application data for email
-      const MembershipApplication = require('../models/MembershipApplication');
-      const application = await MembershipApplication.findByPk(applicationId);
-
-      if (application) {
-        await emailService.sendWelcomeEmail({
-          name: application.name,
-          email: application.email,
-          psn: application.psn
-        }, passwordToHash);
-      }
+      await emailService.sendWelcomeEmail({
+        name: application.name,
+        email: application.email,
+        psn: application.psn
+      }, passwordToHash);
     } catch (emailError) {
       console.error('Failed to send welcome email:', emailError);
       // Don't fail the creation if email fails

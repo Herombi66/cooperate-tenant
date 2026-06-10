@@ -7,6 +7,11 @@ const Complaint = sequelize.define('Complaint', {
     primaryKey: true,
     autoIncrement: true
   },
+  tenant_id: {
+    type: DataTypes.STRING(100),
+    allowNull: false,
+    defaultValue: 'default'
+  },
   tracking_id: {
     type: DataTypes.STRING(20),
     allowNull: false,

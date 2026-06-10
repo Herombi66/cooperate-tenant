@@ -17,6 +17,11 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
       autoIncrement: true
     },
+    tenant_id: {
+      type: DataTypes.STRING(100),
+      allowNull: false,
+      defaultValue: 'default'
+    },
     user_id: {
       type: DataTypes.INTEGER,
       allowNull: false,

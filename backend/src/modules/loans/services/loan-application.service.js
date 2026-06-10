@@ -1,4 +1,5 @@
 const { Loan, User, Contribution, Notification, MembershipApplication, ActivityLog, EducationalDocument } = require('../../../../models');
+const { LoanStrategyFactory } = require('../strategies');
 const emailService = process.env.NODE_ENV === 'test'
   ? { sendGuarantorNotificationEmail: async () => {} }
   : require('../../../../services/emailService');
@@ -155,23 +156,12 @@ const applyForLoan = async (userId, body, uploadedFiles, reqUser, req) => {
   const totalInvestmentVal = parseFloat(
     (await Contribution.sum('investment', { where: { user_id: targetUserId, status: 'approved' } })) || 0
   ) || 0;
-  const totalContributions = totalSavingsVal + totalInvestmentVal;
 
-  if (loanType === 'cash') {
-    const maxCash = Math.min(500000, totalContributions * 0.5 * 3);
-    if (amountNum > maxCash) throw new Error(`Cash loan cannot exceed max limit of ₦${maxCash.toLocaleString()}`);
-  } else if (loanType === 'venture') {
-    const maxVenture = Math.min(1000000, totalContributions * 0.3 * 10);
-    if (amountNum > maxVenture) throw new Error(`Venture loan cannot exceed max limit of ₦${maxVenture.toLocaleString()}`);
-  } else if (loanType === 'emergency') {
-    if (amountNum > 20000) throw new Error(`Emergency loan cannot exceed ₦20,000`);
-  } else if (loanType === 'educational') {
-    const maxEducationalLoan = totalInvestmentVal * 3;
-    if (amountNum > maxEducationalLoan) throw new Error(`Educational loan cannot exceed 3x your total investment (₦${maxEducationalLoan.toLocaleString()})`);
-  } else if (loanType === 'investment') {
-    const maxInvestmentLoan = totalInvestmentVal * 3;
-    if (amountNum > maxInvestmentLoan) throw new Error(`Investment loan cannot exceed 3x your total investment (₦${maxInvestmentLoan.toLocaleString()})`);
-  }
+  // Initialize Strategy
+  const strategy = LoanStrategyFactory.getStrategy(req.tenant, req.tenantSettings);
+  
+  // Validate Strategy Limits
+  strategy.validateLimits(loanType, amountNum, totalSavingsVal, totalInvestmentVal);
 
   const activeStatuses = ['pending', 'waiting_disbursement', 'approved', 'active', 'disbursed', 'defaulted', 'awaiting_admin_review'];
   const activeLoan = await Loan.findOne({
@@ -199,12 +189,14 @@ const applyForLoan = async (userId, body, uploadedFiles, reqUser, req) => {
     riskAssessment = { credit_score: creditScore, provider: 'internal', membership_months: months, totals: { savings: totalSavingsVal, investment: totalInvestmentVal }, flags };
   } catch (e) {}
 
+  const interestRate = strategy.calculateInterestRate(loanType, amountNum, tenureNum);
+
   const newLoan = await Loan.create({
     user_id: targetUserId,
     amount_requested: amountNum,
     repayment_period_months: tenureNum,
     loan_type: loanType || 'cash',
-    interest_rate: loanType === 'venture' ? 5 : 0,
+    interest_rate: interestRate,
     purpose,
     guarantor_name,
     guarantor_phone,

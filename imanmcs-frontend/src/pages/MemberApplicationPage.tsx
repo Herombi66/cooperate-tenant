@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, Briefcase, FileText, CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../services/api';
 
 export const MemberApplicationPage: React.FC = () => {
+  const [customFields, setCustomFields] = useState<any[]>([]);
   const [formData, setFormData] = useState({
     personalInfo: {
       psn: '',
@@ -33,11 +34,35 @@ export const MemberApplicationPage: React.FC = () => {
       initialInvestment: '',
       targetSavings: '',
       reasonForJoining: ''
-    }
+    },
+    customFields: {} as Record<string, any>
   });
 
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    const fetchCustomFields = async () => {
+      try {
+        const response = await api.get('/custom-fields?entity_type=User');
+        if (response.data?.success) {
+          setCustomFields(response.data.fields);
+          // Initialize formData.customFields with default values
+          const initialCustomFields: Record<string, any> = {};
+          response.data.fields.forEach((field: any) => {
+            initialCustomFields[field.field_key] = '';
+          });
+          setFormData(prev => ({
+            ...prev,
+            customFields: { ...initialCustomFields, ...prev.customFields }
+          }));
+        }
+      } catch (error) {
+        console.error('Failed to fetch custom fields:', error);
+      }
+    };
+    fetchCustomFields();
+  }, []);
 
   const normalizePsn = (value: string) => value.trim().toUpperCase();
   const isValidPsn = (value: string) => /^[A-Z0-9]{5,20}$/.test(normalizePsn(value));
@@ -62,6 +87,13 @@ export const MemberApplicationPage: React.FC = () => {
       if (!personalInfo.dateOfBirth) return toast.error('Please select your date of birth'), false;
       if (!personalInfo.gender) return toast.error('Please select your gender'), false;
       if (!personalInfo.address.trim()) return toast.error('Please enter your address'), false;
+      
+      // Validate custom fields
+      for (const field of customFields) {
+        if (field.is_required && !formData.customFields[field.field_key]) {
+          return toast.error(`Please enter a value for ${field.field_label}`), false;
+        }
+      }
       return true;
     }
 
@@ -89,6 +121,17 @@ export const MemberApplicationPage: React.FC = () => {
   };
 
   const handleInputChange = (section: string, field: string, value: string) => {
+    if (section === 'customFields') {
+      setFormData(prev => ({
+        ...prev,
+        customFields: {
+          ...prev.customFields,
+          [field]: value
+        }
+      }));
+      return;
+    }
+
     setFormData(prev => ({
       ...prev,
       [section]: {
@@ -134,6 +177,7 @@ export const MemberApplicationPage: React.FC = () => {
         investment: investment,
         target_saving: parseFloat(cooperativeInfo.targetSavings) || 0,
         target_period: 12, // Default to 12 months
+        metadata: formData.customFields
       };
 
       console.log('Submitting application data:', applicationData);
@@ -198,7 +242,8 @@ export const MemberApplicationPage: React.FC = () => {
           initialInvestment: '',
           targetSavings: '',
           reasonForJoining: ''
-        }
+        },
+        customFields: Object.keys(formData.customFields).reduce((acc, key) => ({...acc, [key]: ''}), {})
       });
 
       // Reset to first step
@@ -338,6 +383,61 @@ export const MemberApplicationPage: React.FC = () => {
           className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
         />
       </div>
+
+      {/* Render Dynamic Custom Fields */}
+      {customFields.length > 0 && (
+        <div className="pt-6 border-t border-gray-200 mt-6">
+          <h4 className="text-md font-medium text-gray-900 mb-4">Additional Information</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {customFields.map((field) => (
+              <div key={field.id}>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {field.field_label} {field.is_required && '*'}
+                </label>
+                {field.field_type === 'text' && (
+                  <input
+                    type="text"
+                    required={field.is_required}
+                    value={formData.customFields[field.field_key] || ''}
+                    onChange={(e) => handleInputChange('customFields', field.field_key, e.target.value)}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  />
+                )}
+                {field.field_type === 'number' && (
+                  <input
+                    type="number"
+                    required={field.is_required}
+                    value={formData.customFields[field.field_key] || ''}
+                    onChange={(e) => handleInputChange('customFields', field.field_key, e.target.value)}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  />
+                )}
+                {field.field_type === 'date' && (
+                  <input
+                    type="date"
+                    required={field.is_required}
+                    value={formData.customFields[field.field_key] || ''}
+                    onChange={(e) => handleInputChange('customFields', field.field_key, e.target.value)}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  />
+                )}
+                {field.field_type === 'boolean' && (
+                  <select
+                    required={field.is_required}
+                    value={formData.customFields[field.field_key] || ''}
+                    onChange={(e) => handleInputChange('customFields', field.field_key, e.target.value)}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  >
+                    <option value="">Select</option>
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                  </select>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
+import { useTenant } from './contexts/TenantContext';
 import { AppLayout } from './components/Layout/AppLayout';
 import { HomePage } from './pages/HomePage';
 import { LoginPage } from './pages/LoginPage';
@@ -39,6 +40,9 @@ import { SupportPage } from './pages/SupportPage';
 import { CommunicationPage } from './pages/CommunicationPage';
 import { WithdrawalsPage } from './pages/WithdrawalsPage';
 import { WithdrawalsAdminPage } from './pages/WithdrawalsAdminPage';
+import { RolesPage } from './pages/RolesPage';
+import { PlatformLoginPage } from './pages/PlatformLoginPage';
+import { PlatformAdminDashboard } from './pages/PlatformAdminDashboard';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, isLoading } = useAuth();
@@ -90,11 +94,15 @@ const WithdrawalsRouter: React.FC = () => {
 };
 
 export const AppRoutes: React.FC = () => {
+  const { hasFeature } = useTenant();
+
   return (
     <Routes>
       {/* Public routes - no layout */}
-      <Route path="/" element={<HomePage />} />
+      <Route path="/" element={hasFeature('landing_page') ? <HomePage /> : <Navigate to="/login" replace />} />
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/platform/login" element={<PlatformLoginPage />} />
+      <Route path="/platform/dashboard" element={<PlatformAdminDashboard />} />
       <Route path="/apply-membership" element={<MemberApplicationPage />} />
 
       {/* Protected routes with layout */}
@@ -405,6 +413,16 @@ export const AppRoutes: React.FC = () => {
           <AppLayout>
             <ProtectedRoute>
               <UserManagementPage />
+            </ProtectedRoute>
+          </AppLayout>
+        }
+      />
+      <Route
+        path="/roles"
+        element={
+          <AppLayout>
+            <ProtectedRoute>
+              <RolesPage />
             </ProtectedRoute>
           </AppLayout>
         }

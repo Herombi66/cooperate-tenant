@@ -7,6 +7,11 @@ const LoanAgreement = sequelize.define('LoanAgreement', {
     primaryKey: true,
     autoIncrement: true
   },
+  tenant_id: {
+    type: DataTypes.STRING(100),
+    allowNull: false,
+    defaultValue: 'default'
+  },
   loan_id: {
     type: DataTypes.INTEGER,
     allowNull: false,

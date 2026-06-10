@@ -7,6 +7,11 @@ const Expense = sequelize.define('Expense', {
     primaryKey: true,
     autoIncrement: true
   },
+  tenant_id: {
+    type: DataTypes.STRING(100),
+    allowNull: false,
+    defaultValue: 'default'
+  },
   description: {
     type: DataTypes.STRING(500),
     allowNull: false

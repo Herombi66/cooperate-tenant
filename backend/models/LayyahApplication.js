@@ -27,6 +27,11 @@ module.exports = (sequelize, DataTypes) => {
       autoIncrement: true,
       allowNull: false
     },
+    tenant_id: {
+      type: DataTypes.STRING(100),
+      allowNull: false,
+      defaultValue: 'default'
+    },
     user_id: {
       type: DataTypes.INTEGER,
       allowNull: false,

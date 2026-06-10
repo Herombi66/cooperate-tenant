@@ -102,6 +102,9 @@ const submitApplication = async (req, res) => {
       auto_approve = false // For admin direct creation
     } = req.body;
 
+    // Handle custom metadata
+    const metadata = req.body.metadata || {};
+
     // Validate required fields
     if (!name || !psn || !email) {
       return res.status(400).json({
@@ -184,7 +187,8 @@ const submitApplication = async (req, res) => {
         target_saving: parseFloat(target_saving) || 0,
         target_period: parseInt(target_period) || 12,
         status: auto_approve ? 'approved' : 'pending',
-        application_date: new Date()
+        application_date: new Date(),
+        metadata
       };
 
       if (auto_approve && req.user) {
@@ -552,7 +556,8 @@ const bulkImportApplications = async (req, res) => {
           savings: parseCurrency(rawSavings) || 0,
           investment: parseCurrency(rawInvestment) || 0,
           target_saving: parseCurrency(rawTargetSaving) || 0,
-          target_period: parseInt(rawTargetPeriod || '12') || 12
+          target_period: parseInt(rawTargetPeriod || '12') || 12,
+          metadata: {}
         };
 
         // Validate required fields

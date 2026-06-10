@@ -4,7 +4,9 @@ import {
   Settings, Save, RefreshCw, DollarSign,
   Percent, CreditCard, Bell, Loader, FileText
 } from 'lucide-react';
-import settingsService, { Settings as SystemSettings } from '../services/settingsService';
+import { Settings as SystemSettings } from '../services/settingsService';
+import settingsService from '../services/settingsService';
+import api from '../services/api'; // Add api for direct tenant theme calls
 import toast from 'react-hot-toast';
 
 export const SettingsPage: React.FC = () => {
@@ -30,12 +32,23 @@ export const SettingsPage: React.FC = () => {
     committee_bonus_percentage: 5,
     bad_debt_reserve_percentage: 3.5,
     general_reserve_percentage: 2.8,
+
     email_notifications: true,
     sms_notifications: true,
     reminder_days: 7,
     agent_agreement_template: '',
     murabaha_contract_template: '',
   });
+
+  const [theme, setTheme] = useState({
+    primaryColor: '#2563eb',
+    secondaryColor: '#ffffff',
+    logoUrl: '/logo.png'
+  });
+  const [originalTheme, setOriginalTheme] = useState({...theme});
+
+  const [customFields, setCustomFields] = useState<any[]>([]);
+  const [newField, setNewField] = useState({ entity_type: 'User', field_name: '', field_key: '', field_type: 'text', is_required: false });
 
   const [originalSettings, setOriginalSettings] = useState<SystemSettings>({} as SystemSettings);
   const [hasChanges, setHasChanges] = useState(false);
@@ -52,6 +65,20 @@ export const SettingsPage: React.FC = () => {
       const loadedSettings = await settingsService.getSettings();
       setSettings(loadedSettings);
       setOriginalSettings({ ...loadedSettings });
+
+      // Load Theme from public endpoint
+      const themeResponse = await api.get('/tenant/config');
+      if (themeResponse.data?.data?.theme) {
+         setTheme(themeResponse.data.data.theme);
+         setOriginalTheme(themeResponse.data.data.theme);
+      }
+
+      // Load Custom Fields
+      const cfResponse = await api.get('/custom-fields/User');
+      if (cfResponse.data?.success) {
+        setCustomFields(cfResponse.data.data || []);
+      }
+
       setHasChanges(false);
     } catch (error: any) {
       console.error('Failed to load settings:', error);
@@ -68,12 +95,15 @@ export const SettingsPage: React.FC = () => {
 
   useEffect(() => {
     if (Object.keys(originalSettings).length > 0) {
-      const hasChangesNow = Object.keys(settings).some(key => {
+      const hasSettingsChanges = Object.keys(settings).some(key => {
         return settings[key as keyof SystemSettings] !== originalSettings[key as keyof SystemSettings];
       });
-      setHasChanges(hasChangesNow);
+      const hasThemeChanges = Object.keys(theme).some(key => {
+        return theme[key as keyof typeof theme] !== originalTheme[key as keyof typeof theme];
+      });
+      setHasChanges(hasSettingsChanges || hasThemeChanges);
     }
-  }, [settings, originalSettings]);
+  }, [settings, originalSettings, theme, originalTheme]);
 
   const handleSave = async () => {
     try {
@@ -86,20 +116,26 @@ export const SettingsPage: React.FC = () => {
         }
       });
 
-      if (Object.keys(changes).length === 0) {
+      const themeChanges = Object.keys(theme).some(key => theme[key as keyof typeof theme] !== originalTheme[key as keyof typeof theme]);
+
+      if (Object.keys(changes).length === 0 && !themeChanges) {
         toast('No changes to save');
         return;
       }
 
-      const result = await settingsService.updateSettings(changes);
-
-      if (result.success) {
-        toast.success('Settings saved successfully!');
-        setOriginalSettings({ ...settings });
-        setHasChanges(false);
-      } else {
-        toast.error(result.message || 'Failed to save settings');
+      if (Object.keys(changes).length > 0) {
+        const result = await settingsService.updateSettings(changes);
+        if (!result.success) throw new Error(result.message);
       }
+
+      if (themeChanges) {
+         await api.post('/tenant/theme', { theme });
+      }
+
+      toast.success('Settings saved successfully!');
+      setOriginalSettings({ ...settings });
+      setOriginalTheme({ ...theme });
+      setHasChanges(false);
     } catch (error: any) {
       console.error('Save error:', error);
       toast.error(error?.message || 'Failed to save settings');
@@ -118,6 +154,36 @@ export const SettingsPage: React.FC = () => {
     } catch (error: any) {
       console.error('Reset error:', error);
       toast.error(error?.message || 'Failed to reset settings');
+    }
+  };
+
+  const handleAddCustomField = async () => {
+    if (!newField.field_name || !newField.field_key) {
+      toast.error('Field name and key are required');
+      return;
+    }
+    try {
+      const res = await api.post('/custom-fields', newField);
+      if (res.data.success) {
+        toast.success('Custom field added!');
+        setCustomFields([...customFields, res.data.data]);
+        setNewField({ entity_type: 'User', field_name: '', field_key: '', field_type: 'text', is_required: false });
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to add custom field');
+    }
+  };
+
+  const handleDeleteCustomField = async (id: number) => {
+    if (!confirm('Are you sure you want to delete this custom field? Existing data will not be shown in forms anymore.')) return;
+    try {
+      const res = await api.delete(`/custom-fields/${id}`);
+      if (res.data.success) {
+        toast.success('Custom field deleted');
+        setCustomFields(customFields.filter(f => f.id !== id));
+      }
+    } catch (error) {
+      toast.error('Failed to delete custom field');
     }
   };
 
@@ -186,6 +252,28 @@ export const SettingsPage: React.FC = () => {
                 {tab.name}
               </button>
             ))}
+            <button
+              onClick={() => setActiveTab('theme')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center ${
+                activeTab === 'theme'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <FileText className="w-4 h-4 mr-2" />
+              Theme
+            </button>
+            <button
+              onClick={() => setActiveTab('custom_fields')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center ${
+                activeTab === 'custom_fields'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <FileText className="w-4 h-4 mr-2" />
+              Custom Fields
+            </button>
           </nav>
         </div>
       </div>
@@ -521,6 +609,167 @@ export const SettingsPage: React.FC = () => {
                   placeholder="Enter HTML content for Murabaha Contract..."
                 />
               </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'theme' && (
+          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <FileText className="w-5 h-5 mr-2 text-blue-500" />
+                  Branding Colors
+                </h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Primary Color (Hex)</label>
+                    <div className="flex space-x-2">
+                      <input
+                        type="color"
+                        value={theme.primaryColor}
+                        onChange={(e) => setTheme({ ...theme, primaryColor: e.target.value })}
+                        className="h-10 w-10 border-0 rounded cursor-pointer"
+                      />
+                      <input
+                        type="text"
+                        value={theme.primaryColor}
+                        onChange={(e) => setTheme({ ...theme, primaryColor: e.target.value })}
+                        className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Secondary Color (Hex)</label>
+                    <div className="flex space-x-2">
+                      <input
+                        type="color"
+                        value={theme.secondaryColor}
+                        onChange={(e) => setTheme({ ...theme, secondaryColor: e.target.value })}
+                        className="h-10 w-10 border-0 rounded cursor-pointer"
+                      />
+                      <input
+                        type="text"
+                        value={theme.secondaryColor}
+                        onChange={(e) => setTheme({ ...theme, secondaryColor: e.target.value })}
+                        className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <FileText className="w-5 h-5 mr-2 text-blue-500" />
+                  Logo Setup
+                </h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Logo Image URL</label>
+                    <input
+                      type="text"
+                      value={theme.logoUrl}
+                      onChange={(e) => setTheme({ ...theme, logoUrl: e.target.value })}
+                      className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                      placeholder="https://example.com/logo.png"
+                    />
+                  </div>
+                  {theme.logoUrl && (
+                    <div className="mt-4 p-4 border rounded-lg bg-gray-50 flex items-center justify-center">
+                      <img src={theme.logoUrl} alt="Preview" className="max-h-16" />
+                    </div>
+                  )}
+                  <p className="text-sm text-gray-500 mt-2">
+                    Changes to the theme will take effect the next time the page is reloaded.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'custom_fields' && (
+          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <FileText className="w-5 h-5 mr-2 text-blue-500" />
+                Dynamic Form Fields
+              </h3>
+              <p className="text-sm text-gray-500 mb-6">
+                Add custom fields to member registration forms. These fields will be collected dynamically and stored safely without requiring system updates.
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6 items-end border p-4 rounded-lg bg-gray-50">
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Entity</label>
+                  <select disabled value={newField.entity_type} className="w-full px-3 py-2 border rounded bg-gray-100">
+                    <option>User</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Field Name (Label)</label>
+                  <input type="text" placeholder="e.g. Next of Kin BVN" value={newField.field_name} onChange={e => setNewField({...newField, field_name: e.target.value})} className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Field Key (JSON)</label>
+                  <input type="text" placeholder="e.g. nok_bvn" value={newField.field_key} onChange={e => setNewField({...newField, field_key: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '')})} className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Type</label>
+                  <select value={newField.field_type} onChange={e => setNewField({...newField, field_type: e.target.value})} className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500">
+                    <option value="text">Text</option>
+                    <option value="number">Number</option>
+                    <option value="date">Date</option>
+                  </select>
+                </div>
+                <div className="flex space-x-2">
+                  <div className="flex-1 flex items-center justify-center">
+                    <label className="flex items-center space-x-2 text-sm text-gray-700 cursor-pointer">
+                      <input type="checkbox" checked={newField.is_required} onChange={e => setNewField({...newField, is_required: e.target.checked})} className="rounded text-blue-600" />
+                      <span>Required</span>
+                    </label>
+                  </div>
+                  <button onClick={handleAddCustomField} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Add</button>
+                </div>
+              </div>
+
+              {customFields.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm text-left">
+                    <thead className="bg-gray-50 text-gray-600 uppercase text-xs">
+                      <tr>
+                        <th className="px-4 py-3 rounded-tl-lg">Entity</th>
+                        <th className="px-4 py-3">Label</th>
+                        <th className="px-4 py-3">Key</th>
+                        <th className="px-4 py-3">Type</th>
+                        <th className="px-4 py-3">Required</th>
+                        <th className="px-4 py-3 rounded-tr-lg text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {customFields.map((field) => (
+                        <tr key={field.id} className="hover:bg-gray-50">
+                          <td className="px-4 py-3 font-medium text-gray-900">{field.entity_type}</td>
+                          <td className="px-4 py-3">{field.field_name}</td>
+                          <td className="px-4 py-3 font-mono text-xs text-gray-500">{field.field_key}</td>
+                          <td className="px-4 py-3"><span className="px-2 py-1 bg-gray-100 rounded text-xs">{field.field_type}</span></td>
+                          <td className="px-4 py-3">
+                            {field.is_required ? <span className="text-red-500 font-medium">Yes</span> : <span className="text-gray-400">No</span>}
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <button onClick={() => handleDeleteCustomField(field.id)} className="text-red-500 hover:text-red-700 text-sm">Delete</button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg border border-dashed">
+                  No custom fields defined yet.
+                </div>
+              )}
             </div>
           </div>
         )}

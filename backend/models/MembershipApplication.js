@@ -138,6 +138,11 @@ const MembershipApplication = sequelize.define('MembershipApplication', {
     allowNull: true,
     defaultValue: null
   },
+  metadata: {
+    type: DataTypes.JSON,
+    allowNull: true,
+    defaultValue: {}
+  },
   created_at: {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW

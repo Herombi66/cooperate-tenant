@@ -28,7 +28,8 @@ export default defineConfig(({ mode }) => {
       },
     },
     server: {
-      host: 'localhost',
+      host: true,
+      allowedHosts: true,
       port: 5174,
       open: true,
       proxy: {

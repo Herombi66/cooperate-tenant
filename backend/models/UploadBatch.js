@@ -7,6 +7,11 @@ const UploadBatch = sequelize.define('UploadBatch', {
     primaryKey: true,
     autoIncrement: true
   },
+  tenant_id: {
+    type: DataTypes.STRING(100),
+    allowNull: false,
+    defaultValue: 'default'
+  },
   type: {
     type: DataTypes.STRING(50),
     allowNull: false

@@ -27,6 +27,11 @@ const UploadBatch = require('./UploadBatch');
 const UploadRecordError = require('./UploadRecordError');
 const UploadBatchBackup = require('./UploadBatchBackup');
 
+// Platform and Tenant Models
+const Tenant = require('./Tenant');
+const CustomField = require('./CustomField');
+const PlatformAdmin = require('./PlatformAdmin');
+
 // Define associations (only once)
 User.belongsTo(MembershipApplication, {
   foreignKey: 'membership_application_id',
@@ -451,6 +456,9 @@ const models = {
   UploadBatchBackup,
   UploadRecordError,
   EmailLog,
+  Tenant,
+  CustomField,
+  PlatformAdmin,
   sequelize
 };
 

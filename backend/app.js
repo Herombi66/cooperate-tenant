@@ -110,6 +110,9 @@ const allowedOrigins = Array.from(new Set([
 ]));
 
 const isAllowedOrigin = (origin) => {
+  // Allow all origins in non-production environments to easily test custom domains
+  if (process.env.NODE_ENV !== 'production') return true;
+
   if (!origin) return true;
   if (allowedOrigins.includes(origin)) return true;
   try {

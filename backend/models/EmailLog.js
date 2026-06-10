@@ -7,6 +7,11 @@ const EmailLog = sequelize.define('EmailLog', {
     primaryKey: true,
     autoIncrement: true
   },
+  tenant_id: {
+    type: DataTypes.STRING(100),
+    allowNull: false,
+    defaultValue: 'default'
+  },
   to_email: {
     type: DataTypes.STRING(255),
     allowNull: false

@@ -1015,20 +1015,21 @@ const updateLoan = async (req, res) => {
         console.log(`💰 Processing disbursement for Loan #${loan.id} (${loan.loan_type})`);
         
         const amountApproved = parseFloat(loan.amount_approved);
-        let totalRepayment = amountApproved;
-        
-        if (loan.loan_type === 'investment') {
-            const profitMargin = amountApproved * 0.10;
-            totalRepayment = amountApproved + profitMargin;
-            console.log(`   - Investment Loan: Adding 10% profit (₦${profitMargin})`);
-        }
-        
         const tenure = loan.repayment_period_months || 12;
-        const monthlyRepayment = totalRepayment / tenure;
+        
+        const { LoanStrategyFactory } = require('../src/modules/loans/strategies');
+        const strategy = LoanStrategyFactory.getStrategy(req.tenant, req.tenantSettings);
+        
+        const scheduleData = strategy.calculateRepaymentSchedule(
+          amountApproved, 
+          tenure, 
+          loan.interest_rate, 
+          new Date()
+        );
 
         const updatePayload = {
-          total_repayment: totalRepayment,
-          monthly_repayment: monthlyRepayment,
+          total_repayment: scheduleData.totalAmount,
+          monthly_repayment: scheduleData.monthlyPayment,
           disbursement_date: new Date()
         };
 
@@ -1040,8 +1041,8 @@ const updateLoan = async (req, res) => {
 
         await loan.update(updatePayload);
         
-        console.log(`   - Total Repayment: ₦${totalRepayment}`);
-        console.log(`   - Monthly Repayment: ₦${monthlyRepayment}`);
+        console.log(`   - Total Repayment: ₦${scheduleData.totalAmount}`);
+        console.log(`   - Monthly Repayment: ₦${scheduleData.monthlyPayment}`);
 
         // 4. Create Notification
         try {
@@ -1053,8 +1054,8 @@ const updateLoan = async (req, res) => {
                 data: { 
                     loan_id: loan.id, 
                     amount: amountApproved,
-                    total_repayment: totalRepayment,
-                    monthly_repayment: monthlyRepayment,
+                    total_repayment: scheduleData.totalAmount,
+                    monthly_repayment: scheduleData.monthlyPayment,
                     disbursement_date: new Date()
                 }
             });
