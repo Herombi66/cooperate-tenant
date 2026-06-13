@@ -1,5 +1,6 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { Op } = require('sequelize');
 const { User, MembershipApplication, ActivityLog } = require('../models');
 
 const buildProfilePayload = (user, application) => {
@@ -96,7 +97,12 @@ const login = async (req, res) => {
       include: [{
         model: MembershipApplication,
         as: 'membershipApplication',
-        where: { psn: basePsn },
+        where: {
+          [Op.or]: [
+            { psn: basePsn },
+            { email: basePsn }
+          ]
+        },
         required: true
       }],
       order: [['created_at', 'DESC']] // Check newest accounts first

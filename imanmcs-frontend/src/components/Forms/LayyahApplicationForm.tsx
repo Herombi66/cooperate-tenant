@@ -275,9 +275,9 @@ export const LayyahApplicationForm: React.FC<LayyahApplicationFormProps> = ({
 
             {/* Group Information */}
             {kind === 'group' && (
-              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <h4 className="font-medium text-blue-900 mb-2">Group Application Information</h4>
-                <ul className="text-sm text-blue-800 space-y-1">
+              <div className="p-4 bg-primary-50 border border-primary-200 rounded-lg">
+                <h4 className="font-medium text-primary-900 mb-2">Group Application Information</h4>
+                <ul className="text-sm text-primary-800 space-y-1">
                   <li>• Maximum group size is 5 members (including you)</li>
                   <li>• You can invite other members after submitting this application</li>
                   <li>• All group members must accept the invitation</li>

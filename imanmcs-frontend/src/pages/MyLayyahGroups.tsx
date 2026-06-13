@@ -120,8 +120,8 @@ export const MyLayyahGroups: React.FC = () => {
       {/* Header */}
       <motion.div variants={itemVariants} className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <div className="p-2 bg-blue-100 rounded-lg">
-            <Users className="h-6 w-6 text-blue-600" />
+          <div className="p-2 bg-primary-100 rounded-lg">
+            <Users className="h-6 w-6 text-primary-600" />
           </div>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">
@@ -168,7 +168,7 @@ export const MyLayyahGroups: React.FC = () => {
                 {/* Group Header */}
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center space-x-2">
-                    <Users className="h-5 w-5 text-blue-600" />
+                    <Users className="h-5 w-5 text-primary-600" />
                     <span className="font-medium">
                       {group.kind === 'group' ? 'Group Leader' : 'Member'}
                     </span>
@@ -217,7 +217,7 @@ export const MyLayyahGroups: React.FC = () => {
                       setSelectedGroup(group);
                       setView('members');
                     }}
-                    className="flex-1 flex items-center justify-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    className="flex-1 flex items-center justify-center space-x-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
                   >
                     <Eye className="h-4 w-4" />
                     <span>View Members</span>
@@ -272,7 +272,7 @@ export const MyLayyahGroups: React.FC = () => {
                     <div className="flex items-center space-x-4">
                       <div className="flex items-center justify-center w-10 h-10 bg-gray-100 rounded-full">
                         {member.is_group_leader ? (
-                          <User className="h-5 w-5 text-blue-600" />
+                          <User className="h-5 w-5 text-primary-600" />
                         ) : (
                           <User className="h-5 w-5 text-gray-600" />
                         )}
@@ -281,7 +281,7 @@ export const MyLayyahGroups: React.FC = () => {
                         <h4 className="font-medium text-gray-900">
                           {member.applicant_name}
                           {member.is_group_leader && (
-                            <span className="ml-2 px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded-full">
+                            <span className="ml-2 px-2 py-1 text-xs bg-primary-100 text-primary-700 rounded-full">
                               Leader
                             </span>
                           )}

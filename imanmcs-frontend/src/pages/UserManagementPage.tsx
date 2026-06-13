@@ -33,7 +33,7 @@ const roleIcons = {
 const roleColors = {
   admin: 'bg-red-100 text-red-800 border-red-200',
   chairman: 'bg-purple-100 text-purple-800 border-purple-200',
-  treasurer: 'bg-blue-100 text-blue-800 border-blue-200',
+  treasurer: 'bg-primary-100 text-primary-800 border-primary-200',
   state_auditor: 'bg-amber-100 text-amber-800 border-amber-200',
   member: 'bg-green-100 text-green-800 border-green-200'
 };
@@ -321,7 +321,7 @@ export const UserManagementPage: React.FC = () => {
                 <div className="text-sm text-gray-500">Chairmen</div>
               </div>
               <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-                <div className="text-2xl font-bold text-blue-600">
+                <div className="text-2xl font-bold text-primary-600">
                   {allUsers.filter(u => u.role === 'treasurer').length}
                 </div>
                 <div className="text-sm text-gray-500">Treasurers</div>
@@ -353,7 +353,7 @@ export const UserManagementPage: React.FC = () => {
                 <div className="flex items-center">
                   <button
                     onClick={() => setShowRoleAssignmentModal(true)}
-                    className="px-4 py-2 bg-blue-500 text-white text-sm rounded-md hover:bg-blue-600"
+                    className="px-4 py-2 bg-primary-500 text-white text-sm rounded-md hover:bg-primary-600"
                   >
                     Assign Roles
                   </button>
@@ -493,7 +493,7 @@ export const UserManagementPage: React.FC = () => {
                                 </button>
                                 <button
                                   onClick={() => {/* Edit user */}}
-                                  className="text-blue-600 hover:text-blue-900 p-1"
+                                  className="text-primary-600 hover:text-primary-900 p-1"
                                   title="Edit User"
                                 >
                                   <Edit className="w-4 h-4" />
@@ -636,14 +636,14 @@ export const UserManagementPage: React.FC = () => {
                 </div>
 
                 {/* Policy Info */}
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <div className="bg-primary-50 border border-primary-200 rounded-lg p-4 mb-6">
                   <div className="flex items-start">
                     <div className="flex-shrink-0">
-                      <Shield className="w-5 h-5 text-blue-600" />
+                      <Shield className="w-5 h-5 text-primary-600" />
                     </div>
                     <div className="ml-3">
-                      <h3 className="text-sm font-medium text-blue-800">Leadership Role Assignment Policy</h3>
-                      <p className="text-sm text-blue-700 mt-1">
+                      <h3 className="text-sm font-medium text-primary-800">Leadership Role Assignment Policy</h3>
+                      <p className="text-sm text-primary-700 mt-1">
                         Members can be assigned leadership roles (Chairman, Treasurer, Admin) which creates separate accounts with enhanced privileges.
                         Members maintain their basic membership status while gaining additional responsibilities. Leadership accounts have their own login credentials.
                       </p>
@@ -676,7 +676,7 @@ export const UserManagementPage: React.FC = () => {
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="border border-gray-200 rounded-lg p-6 bg-gradient-to-r from-blue-50 to-indigo-50 mb-6"
+                    className="border border-gray-200 rounded-lg p-6 bg-gradient-to-r from-primary-50 to-primary-50 mb-6"
                   >
                     <div className="space-y-4 mb-6">
                       <div className="flex items-center justify-between">

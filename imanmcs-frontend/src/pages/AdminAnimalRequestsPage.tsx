@@ -96,7 +96,7 @@ const RichTextEditor: React.FC<{
 
       <div
         ref={ref}
-        className={`min-h-[140px] rounded border p-3 text-sm bg-white ${focused ? 'ring-2 ring-blue-200 border-blue-400' : 'border-gray-300'}`}
+        className={`min-h-[140px] rounded border p-3 text-sm bg-white ${focused ? 'ring-2 ring-primary-200 border-primary-400' : 'border-gray-300'}`}
         contentEditable
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}

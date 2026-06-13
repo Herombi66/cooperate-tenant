@@ -169,7 +169,7 @@ export const RolesPage: React.FC = () => {
               <div className="flex space-x-2">
                 <button
                   onClick={() => openEditModal(role)}
-                  className="text-blue-600 hover:text-blue-800 p-2 hover:bg-blue-50 rounded"
+                  className="text-primary-600 hover:text-primary-800 p-2 hover:bg-primary-50 rounded"
                 >
                   <Edit className="w-5 h-5" />
                 </button>

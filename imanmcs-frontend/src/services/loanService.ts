@@ -170,10 +170,10 @@ export class LoanService {
   static getStatusColor(status: string): string {
     const colors: Record<string, string> = {
       pending: 'text-yellow-600 bg-yellow-100',
-      waiting_disbursement: 'text-blue-600 bg-blue-100',
+      waiting_disbursement: 'text-primary-600 bg-primary-100',
       approved: 'text-green-600 bg-green-100',
       disbursed: 'text-purple-600 bg-purple-100',
-      active: 'text-blue-600 bg-blue-100',
+      active: 'text-primary-600 bg-primary-100',
       rejected: 'text-red-600 bg-red-100',
       completed: 'text-green-600 bg-green-100',
       defaulted: 'text-red-600 bg-red-100'

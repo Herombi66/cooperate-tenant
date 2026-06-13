@@ -117,7 +117,7 @@ export const LoansPage: React.FC = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'approved': return 'bg-blue-100 text-blue-800';
+      case 'approved': return 'bg-primary-100 text-primary-800';
       case 'rejected': return 'bg-red-100 text-red-800';
       case 'disbursed': return 'bg-green-100 text-green-800';
       case 'completed': return 'bg-gray-100 text-gray-800';
@@ -127,7 +127,7 @@ export const LoansPage: React.FC = () => {
 
   const getTypeColor = (type?: string) => {
     switch (type) {
-      case 'cash': return 'bg-blue-100 text-blue-800';
+      case 'cash': return 'bg-primary-100 text-primary-800';
       case 'venture': return 'bg-purple-100 text-purple-800';
       case 'emergency': return 'bg-amber-100 text-amber-800';
       default: return 'bg-gray-100 text-gray-800';
@@ -344,8 +344,8 @@ export const LoansPage: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-6 gap-6">
         <div className="bg-white p-6 rounded-lg shadow">
           <div className="flex items-center">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <CreditCard className="w-6 h-6 text-blue-600" />
+            <div className="p-2 bg-primary-100 rounded-lg">
+              <CreditCard className="w-6 h-6 text-primary-600" />
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Loans</p>
@@ -537,7 +537,7 @@ export const LoansPage: React.FC = () => {
                       {(loan.status === 'waiting_disbursement' || loan.status === 'approved') && (
                         <button
                           onClick={() => handleDisburse(loan)}
-                          className="text-blue-600 hover:text-blue-900 font-medium"
+                          className="text-primary-600 hover:text-primary-900 font-medium"
                           title="Disburse Loan"
                         >
                           Disburse
@@ -801,9 +801,9 @@ export const LoansPage: React.FC = () => {
                 </p>
               </div>
 
-              <div className="bg-blue-50 p-3 rounded-lg">
-                <h4 className="text-sm font-medium text-blue-900 mb-1">Required Columns:</h4>
-                <p className="text-xs text-blue-700">
+              <div className="bg-primary-50 p-3 rounded-lg">
+                <h4 className="text-sm font-medium text-primary-900 mb-1">Required Columns:</h4>
+                <p className="text-xs text-primary-700">
                   PSN, Type, Amount, Purpose, Guarantor1, Guarantor2, Repayment_Period
                 </p>
               </div>
@@ -884,7 +884,7 @@ export const LoansPage: React.FC = () => {
                     <label className="block text-sm font-medium text-gray-700">Status</label>
                     <span className={`px-2 py-1 text-xs rounded-full ${
                       selectedLoan.status === 'completed' ? 'bg-green-100 text-green-800' :
-                      selectedLoan.status === 'disbursed' ? 'bg-blue-100 text-blue-800' :
+                      selectedLoan.status === 'disbursed' ? 'bg-primary-100 text-primary-800' :
                       selectedLoan.status === 'approved' ? 'bg-yellow-100 text-yellow-800' :
                       selectedLoan.status === 'pending' ? 'bg-orange-100 text-orange-800' :
                       'bg-red-100 text-red-800'
@@ -925,7 +925,7 @@ export const LoansPage: React.FC = () => {
                         <label className="block text-sm font-medium text-gray-700">Progress</label>
                         <div className="w-full bg-gray-200 rounded-full h-2">
                           <div
-                            className="bg-blue-600 h-2 rounded-full"
+                            className="bg-primary-600 h-2 rounded-full"
                             style={{
                               width: `${selectedLoan.amount ? ((Math.max(0, selectedLoan.amount - (selectedLoan.remainingBalance || 0))) / selectedLoan.amount) * 100 : 0}%`
                             }}

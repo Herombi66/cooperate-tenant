@@ -169,7 +169,7 @@ export const LoanApprovalsPage: React.FC = () => {
       case 'approved_chairman': return 'bg-green-100 text-green-800';
       case 'rejected_chairman': return 'bg-red-100 text-red-800';
       case 'pending_chairman': return 'bg-yellow-100 text-yellow-800';
-      case 'disbursed': return 'bg-blue-100 text-blue-800';
+      case 'disbursed': return 'bg-primary-100 text-primary-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -228,7 +228,7 @@ export const LoanApprovalsPage: React.FC = () => {
       <motion.div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6" variants={cardVariants}>
         <div className="bg-white p-6 rounded-lg shadow">
           <div className="flex items-center">
-            <FileText className="w-8 h-8 text-blue-500" />
+            <FileText className="w-8 h-8 text-primary-500" />
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Applications</p>
               <p className="text-2xl font-bold text-gray-900">{totalApplications}</p>
@@ -403,7 +403,7 @@ export const LoanApprovalsPage: React.FC = () => {
                           setSelectedLoan(loan);
                           setShowViewModal(true);
                         }}
-                        className="text-blue-600 hover:text-blue-900"
+                        className="text-primary-600 hover:text-primary-900"
                         title="View Details"
                       >
                         <Eye className="w-4 h-4" />
@@ -571,11 +571,11 @@ export const LoanApprovalsPage: React.FC = () => {
               {/* Documents */}
               <div>
                 <h4 className="text-lg font-semibold text-gray-900 mb-3">Documents</h4>
-                <div className="bg-blue-50 p-3 rounded-lg">
+                <div className="bg-primary-50 p-3 rounded-lg">
                   <div className="flex items-center">
-                    <FileText className="w-4 h-4 text-blue-500 mr-2" />
-                    <span className="text-sm text-blue-700">Payslip: {selectedLoan.payslipUrl}</span>
-                    <button className="ml-auto text-blue-600 hover:text-blue-800 text-sm">View</button>
+                    <FileText className="w-4 h-4 text-primary-500 mr-2" />
+                    <span className="text-sm text-primary-700">Payslip: {selectedLoan.payslipUrl}</span>
+                    <button className="ml-auto text-primary-600 hover:text-primary-800 text-sm">View</button>
                   </div>
                 </div>
               </div>

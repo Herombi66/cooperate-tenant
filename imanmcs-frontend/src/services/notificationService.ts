@@ -47,8 +47,8 @@ export class NotificationService {
     const colors: Record<string, string> = {
       loan_approved: 'text-green-600 bg-green-100',
       loan_rejected: 'text-red-600 bg-red-100',
-      loan_disbursed: 'text-blue-600 bg-blue-100',
-      group_join_request: 'text-blue-600 bg-blue-100',
+      loan_disbursed: 'text-primary-600 bg-primary-100',
+      group_join_request: 'text-primary-600 bg-primary-100',
       group_join_approved: 'text-green-600 bg-green-100',
       group_join_rejected: 'text-red-600 bg-red-100',
       guarantor_request: 'text-yellow-600 bg-yellow-100',

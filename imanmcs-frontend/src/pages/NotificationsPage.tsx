@@ -111,8 +111,8 @@ export const NotificationsPage: React.FC = () => {
       {/* Header */}
       <motion.div variants={itemVariants} className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <div className="p-2 bg-blue-100 rounded-lg">
-            <Bell className="h-6 w-6 text-blue-600" />
+          <div className="p-2 bg-primary-100 rounded-lg">
+            <Bell className="h-6 w-6 text-primary-600" />
           </div>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Notifications</h1>
@@ -127,7 +127,7 @@ export const NotificationsPage: React.FC = () => {
             </span>
             <button
               onClick={handleMarkAllAsRead}
-              className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="flex items-center space-x-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
             >
               <CheckCircle className="h-4 w-4" />
               <span>Mark All Read</span>
@@ -142,7 +142,7 @@ export const NotificationsPage: React.FC = () => {
         {unreadNotifications.length > 0 && (
           <div>
             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-              <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+              <span className="w-2 h-2 bg-primary-500 rounded-full mr-2"></span>
               Unread Notifications ({unreadNotifications.length})
             </h3>
             <div className="space-y-3">
@@ -150,11 +150,11 @@ export const NotificationsPage: React.FC = () => {
                 <motion.div
                   key={notification.id}
                   variants={itemVariants}
-                  className="bg-white border-l-4 border-blue-500 rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
+                  className="bg-white border-l-4 border-primary-500 rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex items-start space-x-4">
-                      <div className="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-full text-xl">
+                      <div className="flex items-center justify-center w-10 h-10 bg-primary-100 rounded-full text-xl">
                         {NotificationService.getNotificationTypeIcon(notification.type)}
                       </div>
                       <div className="flex-1">
@@ -178,7 +178,7 @@ export const NotificationsPage: React.FC = () => {
                     <div className="flex items-center space-x-2">
                       <button
                         onClick={() => handleMarkAsRead(notification.id)}
-                        className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                        className="p-2 text-gray-400 hover:text-primary-600 transition-colors"
                         title="Mark as read"
                       >
                         <Check className="h-4 w-4" />
@@ -314,7 +314,7 @@ export const NotificationsPage: React.FC = () => {
                       handleMarkAsRead(selectedNotification.id);
                       setSelectedNotification(null);
                     }}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
                   >
                     Mark as Read
                   </button>

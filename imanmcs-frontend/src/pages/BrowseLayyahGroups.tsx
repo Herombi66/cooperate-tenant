@@ -92,8 +92,8 @@ export const BrowseLayyahGroups: React.FC = () => {
       {/* Header */}
       <motion.div variants={itemVariants} className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <div className="p-2 bg-blue-100 rounded-lg">
-            <Users className="h-6 w-6 text-blue-600" />
+          <div className="p-2 bg-primary-100 rounded-lg">
+            <Users className="h-6 w-6 text-primary-600" />
           </div>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Browse Layyah Groups</h1>
@@ -113,7 +113,7 @@ export const BrowseLayyahGroups: React.FC = () => {
           <select
             value={filter.animal_category || ''}
             onChange={(e) => setFilter(prev => ({ ...prev, animal_category: e.target.value as AnimalCategory || undefined }))}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           >
             <option value="">All Animals</option>
             <option value="ram">Ram 🐏</option>
@@ -125,7 +125,7 @@ export const BrowseLayyahGroups: React.FC = () => {
           <select
             value={filter.price_range || ''}
             onChange={(e) => setFilter(prev => ({ ...prev, price_range: e.target.value || undefined }))}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           >
             <option value="">All Price Ranges</option>
             <option value="0-50000">₦0 - ₦50,000</option>
@@ -167,7 +167,7 @@ export const BrowseLayyahGroups: React.FC = () => {
               {/* Group Header */}
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center space-x-2">
-                  <Users className="h-5 w-5 text-blue-600" />
+                  <Users className="h-5 w-5 text-primary-600" />
                   <span className="font-medium">Group</span>
                 </div>
                 <span className={`px-2 py-1 text-xs font-medium rounded-full ${LayyahService.getStatusColor(group.status)}`}>
@@ -217,7 +217,7 @@ export const BrowseLayyahGroups: React.FC = () => {
                   </div>
                   <div className="flex-1 bg-gray-200 rounded-full h-2">
                     <div 
-                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                      className="bg-primary-600 h-2 rounded-full transition-all duration-300"
                       style={{ width: `${((group.group_member_count || 0) + 1) * 20}%` }}
                     ></div>
                   </div>
@@ -239,7 +239,7 @@ export const BrowseLayyahGroups: React.FC = () => {
               <button
                 onClick={() => handleJoinGroup(group.id)}
                 disabled={(group.group_member_count || 0) >= 4} // Max 4 additional members
-                className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <UserPlus className="h-4 w-4" />
                 <span>

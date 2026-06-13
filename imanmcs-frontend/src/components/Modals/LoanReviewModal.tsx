@@ -119,9 +119,9 @@ export const LoanReviewModal: React.FC<LoanReviewModalProps> = ({ loan, onClose 
               </div>
             </div>
 
-            <div className="bg-blue-50 p-4 rounded-md border border-blue-200">
-              <h4 className="text-sm font-medium text-blue-900 mb-2">Repayment Schedule</h4>
-              <div className="space-y-1 text-sm text-blue-800">
+            <div className="bg-primary-50 p-4 rounded-md border border-primary-200">
+              <h4 className="text-sm font-medium text-primary-900 mb-2">Repayment Schedule</h4>
+              <div className="space-y-1 text-sm text-primary-800">
                 <div className="flex justify-between">
                   <span>Monthly Repayment:</span>
                   <span>₦{monthlyRepayment.toLocaleString()}</span>

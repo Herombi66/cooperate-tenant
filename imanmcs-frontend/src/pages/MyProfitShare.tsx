@@ -66,7 +66,7 @@ export const MyProfitShare: React.FC = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'paid': return 'bg-green-100 text-green-800';
-      case 'approved': return 'bg-blue-100 text-blue-800';
+      case 'approved': return 'bg-primary-100 text-primary-800';
       case 'calculated': return 'bg-yellow-100 text-yellow-800';
       default: return 'bg-gray-100 text-gray-800';
     }
@@ -136,7 +136,7 @@ export const MyProfitShare: React.FC = () => {
 
         <div className="bg-white p-6 rounded-lg shadow">
           <div className="flex items-center">
-            <DollarSign className="w-8 h-8 text-blue-500" />
+            <DollarSign className="w-8 h-8 text-primary-500" />
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Pending</p>
               <p className="text-2xl font-bold text-gray-900">₦{pendingAmount.toLocaleString()}</p>
@@ -289,7 +289,7 @@ export const MyProfitShare: React.FC = () => {
                           <div
                             className={`w-full rounded-t-lg ${
                               normalizeStatus(share.status) === 'paid' ? 'bg-green-500' :
-                              normalizeStatus(share.status) === 'approved' ? 'bg-blue-500' : 'bg-yellow-500'
+                              normalizeStatus(share.status) === 'approved' ? 'bg-primary-500' : 'bg-yellow-500'
                             }`}
                             style={{ height: `${height}%` }}
                             title={`${share.period}: ₦${Number(share.profit_amount || 0).toLocaleString()} (${normalizeStatus(share.status)})`}
@@ -334,7 +334,7 @@ export const MyProfitShare: React.FC = () => {
                   <span className="text-sm">Paid (₦{totalEarned.toLocaleString()})</span>
                 </div>
                 <div className="flex items-center">
-                  <div className="w-4 h-4 bg-blue-500 rounded mr-2"></div>
+                  <div className="w-4 h-4 bg-primary-500 rounded mr-2"></div>
                   <span className="text-sm">Approved</span>
                 </div>
                 <div className="flex items-center">

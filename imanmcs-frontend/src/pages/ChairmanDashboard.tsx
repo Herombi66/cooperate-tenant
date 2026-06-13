@@ -112,7 +112,7 @@ export const ChairmanDashboard: React.FC = () => {
           whileHover="hover"
         >
           <div className="flex items-center">
-            <Users className="w-8 h-8 text-blue-500" />
+            <Users className="w-8 h-8 text-primary-500" />
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Members</p>
               <p className="text-2xl font-bold text-gray-900">{chairmanData.totalMembers}</p>
@@ -179,7 +179,7 @@ export const ChairmanDashboard: React.FC = () => {
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div 
-                  className="bg-blue-500 h-2 rounded-full"
+                  className="bg-primary-500 h-2 rounded-full"
                   style={{ width: `${chairmanData.systemMetrics.loanApprovalRate}%` }}
                 ></div>
               </div>
@@ -218,12 +218,12 @@ export const ChairmanDashboard: React.FC = () => {
           <div className="grid grid-cols-1 gap-3">
             <motion.button
               onClick={() => navigate('/loan-approvals')}
-              className="p-3 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 text-left flex items-center transition-colors"
+              className="p-3 border border-gray-200 rounded-lg hover:bg-primary-50 hover:border-primary-300 text-left flex items-center transition-colors"
               variants={buttonVariants}
               whileHover="hover"
               whileTap="tap"
             >
-              <CreditCard className="w-5 h-5 text-blue-500 mr-3" />
+              <CreditCard className="w-5 h-5 text-primary-500 mr-3" />
               <div>
                 <div className="font-medium text-sm">Review Loan Applications</div>
                 <div className="text-xs text-gray-500">{chairmanData.pendingLoans} pending approvals</div>

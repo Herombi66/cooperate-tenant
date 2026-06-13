@@ -110,8 +110,8 @@ export const AdminGroupManagement: React.FC<AdminGroupManagementProps> = ({ grou
       <div className="p-6 border-b border-gray-200">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="p-2 bg-indigo-100 rounded-lg">
-              <Users className="h-6 w-6 text-indigo-600" />
+            <div className="p-2 bg-primary-100 rounded-lg">
+              <Users className="h-6 w-6 text-primary-600" />
             </div>
             <div>
               <h2 className="text-xl font-bold text-gray-900">Group Management</h2>
@@ -131,7 +131,7 @@ export const AdminGroupManagement: React.FC<AdminGroupManagementProps> = ({ grou
           <button
             onClick={() => setActiveTab('members')}
             className={`flex items-center space-x-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-              activeTab === 'members' ? 'bg-indigo-50 text-indigo-700' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+              activeTab === 'members' ? 'bg-primary-50 text-primary-700' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
             }`}
           >
             <Users className="h-4 w-4" />
@@ -140,7 +140,7 @@ export const AdminGroupManagement: React.FC<AdminGroupManagementProps> = ({ grou
           <button
             onClick={() => setActiveTab('settings')}
             className={`flex items-center space-x-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-              activeTab === 'settings' ? 'bg-indigo-50 text-indigo-700' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+              activeTab === 'settings' ? 'bg-primary-50 text-primary-700' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
             }`}
           >
             <Settings className="h-4 w-4" />
@@ -149,7 +149,7 @@ export const AdminGroupManagement: React.FC<AdminGroupManagementProps> = ({ grou
           <button
             onClick={() => setActiveTab('audit')}
             className={`flex items-center space-x-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-              activeTab === 'audit' ? 'bg-indigo-50 text-indigo-700' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+              activeTab === 'audit' ? 'bg-primary-50 text-primary-700' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
             }`}
           >
             <Activity className="h-4 w-4" />
@@ -171,7 +171,7 @@ export const AdminGroupManagement: React.FC<AdminGroupManagementProps> = ({ grou
             >
               {loading ? (
                 <div className="flex justify-center py-12">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
                 </div>
               ) : members.length === 0 ? (
                 <div className="text-center py-12 bg-white rounded-xl border border-dashed border-gray-300">
@@ -193,7 +193,7 @@ export const AdminGroupManagement: React.FC<AdminGroupManagementProps> = ({ grou
                               <span>Joined: {new Date(member.created_at).toLocaleDateString()}</span>
                               <span>•</span>
                               <span className={`capitalize ${
-                                member.group_role === 'leader' ? 'text-indigo-600 font-bold' : 
+                                member.group_role === 'leader' ? 'text-primary-600 font-bold' : 
                                 member.group_role === 'moderator' ? 'text-purple-600 font-bold' : 'text-gray-500'
                               }`}>
                                 {member.group_role || 'Member'}
@@ -212,7 +212,7 @@ export const AdminGroupManagement: React.FC<AdminGroupManagementProps> = ({ grou
                         <select
                           value={member.group_role || 'member'}
                           onChange={(e) => handleRoleUpdate(member.id, e.target.value as any)}
-                          className="text-xs border-gray-300 rounded-lg focus:ring-indigo-500"
+                          className="text-xs border-gray-300 rounded-lg focus:ring-primary-500"
                           disabled={isUpdating}
                         >
                           <option value="member">Member</option>
@@ -251,7 +251,7 @@ export const AdminGroupManagement: React.FC<AdminGroupManagementProps> = ({ grou
                     <select
                       value={group.status}
                       onChange={(e) => handleGroupStatusUpdate(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
                     >
                       <option value="pending">Pending</option>
                       <option value="under_review">Under Review</option>
@@ -265,7 +265,7 @@ export const AdminGroupManagement: React.FC<AdminGroupManagementProps> = ({ grou
                     <textarea
                       defaultValue={group.notes}
                       onBlur={(e) => handleNotesUpdate(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
                       rows={4}
                       placeholder="Enter administrative notes..."
                       disabled={isUpdating}

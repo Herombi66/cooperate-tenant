@@ -110,7 +110,7 @@ const GroupCard: React.FC<{
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <Users className="h-5 w-5 text-blue-600" />
+          <Users className="h-5 w-5 text-primary-600" />
           <span className="text-sm font-medium text-gray-700">{roleBadge}</span>
         </div>
         <div className="flex items-center gap-2">
@@ -155,7 +155,7 @@ const GroupCard: React.FC<{
           type="button"
           onClick={primaryAction.onClick}
           disabled={primaryAction.disabled}
-          className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
           aria-label={primaryAction.label}
         >
           {primaryAction.icon}
@@ -283,8 +283,8 @@ export const LayyahGroupsHubPage: React.FC<{ defaultTab?: 'browse' | 'my' }> = (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-blue-100 rounded-lg">
-            <Users className="h-6 w-6 text-blue-600" />
+          <div className="p-2 bg-primary-100 rounded-lg">
+            <Users className="h-6 w-6 text-primary-600" />
           </div>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
@@ -317,13 +317,13 @@ export const LayyahGroupsHubPage: React.FC<{ defaultTab?: 'browse' | 'my' }> = (
         <Tabs.List className="inline-flex bg-gray-100 rounded-lg p-1">
           <Tabs.Trigger
             value="browse"
-            className="px-4 py-2 rounded-md text-sm font-medium data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-4 py-2 rounded-md text-sm font-medium data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500"
           >
             {t('tabBrowse')}
           </Tabs.Trigger>
           <Tabs.Trigger
             value="my"
-            className="px-4 py-2 rounded-md text-sm font-medium data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-4 py-2 rounded-md text-sm font-medium data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500"
           >
             {t('tabMyGroups')}
           </Tabs.Trigger>
@@ -339,7 +339,7 @@ export const LayyahGroupsHubPage: React.FC<{ defaultTab?: 'browse' | 'my' }> = (
                   setSearch(e.target.value);
                   setPage(1);
                 }}
-                className="h-10 w-full rounded-md border border-gray-300 bg-white px-3 ps-10 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                className="h-10 w-full rounded-md border border-gray-300 bg-white px-3 ps-10 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
                 placeholder={t('searchPlaceholder')}
                 aria-label={t('searchPlaceholder')}
               />
@@ -408,7 +408,7 @@ export const LayyahGroupsHubPage: React.FC<{ defaultTab?: 'browse' | 'my' }> = (
               <button
                 type="button"
                 onClick={() => groupsQuery.refetch()}
-                className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
+                className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700"
               >
                 {t('retry')}
               </button>
@@ -491,7 +491,7 @@ export const LayyahGroupsHubPage: React.FC<{ defaultTab?: 'browse' | 'my' }> = (
               <button
                 type="button"
                 onClick={() => groupsQuery.refetch()}
-                className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
+                className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700"
               >
                 {t('retry')}
               </button>

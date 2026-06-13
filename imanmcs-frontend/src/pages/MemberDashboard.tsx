@@ -321,33 +321,33 @@ export const MemberDashboard: React.FC = () => {
 
       {/* Deduction Policy Notice */}
       <motion.div 
-        className="bg-blue-50 border-l-4 border-blue-400 mb-6 rounded-r-lg shadow-sm overflow-hidden"
+        className="bg-primary-50 border-l-4 border-primary-400 mb-6 rounded-r-lg shadow-sm overflow-hidden"
         variants={cardVariants}
       >
         <div 
-          className="p-4 flex items-center justify-between cursor-pointer hover:bg-blue-100 transition-colors"
+          className="p-4 flex items-center justify-between cursor-pointer hover:bg-primary-100 transition-colors"
           onClick={() => setShowPolicy(!showPolicy)}
         >
           <div className="flex items-center">
-            <Info className="h-5 w-5 text-blue-400 mr-3" />
-            <h3 className="text-sm font-medium text-blue-800">Membership Fee Policy</h3>
+            <Info className="h-5 w-5 text-primary-400 mr-3" />
+            <h3 className="text-sm font-medium text-primary-800">Membership Fee Policy</h3>
           </div>
           {showPolicy ? (
-            <ChevronDown className="h-5 w-5 text-blue-500" />
+            <ChevronDown className="h-5 w-5 text-primary-500" />
           ) : (
-            <ChevronRight className="h-5 w-5 text-blue-500" />
+            <ChevronRight className="h-5 w-5 text-primary-500" />
           )}
         </div>
         
         {showPolicy && (
           <div className="px-4 pb-4 pl-12">
-            <div className="text-sm text-blue-700">
+            <div className="text-sm text-primary-700">
               <p className="mb-1">Please note the following automatic deductions as per the membership agreement:</p>
               <ul className="list-disc pl-5 space-y-1">
                 <li><strong>Registration Fee:</strong> ₦1,500 (One-time deduction from first contribution)</li>
                 <li><strong>Monthly Admin Fee:</strong> ₦1,000 (Deducted once per month from the first contribution in that month)</li>
               </ul>
-              <p className="mt-2 text-xs text-blue-600">
+              <p className="mt-2 text-xs text-primary-600">
                 These fees support the operational costs of the cooperative. You can view all deductions in your transaction history.
               </p>
             </div>
@@ -383,7 +383,7 @@ export const MemberDashboard: React.FC = () => {
       <motion.div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6" variants={cardVariants}>
         <div className="bg-white p-6 rounded-lg shadow">
           <div className="flex items-center">
-            <PiggyBank className="w-8 h-8 text-blue-500" />
+            <PiggyBank className="w-8 h-8 text-primary-500" />
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Savings</p>
               <p className="text-2xl font-bold text-gray-900">{toCurrency(memberData.totalSavings)}</p>
@@ -436,9 +436,9 @@ export const MemberDashboard: React.FC = () => {
               <span className="text-sm font-medium text-purple-800">Minimum Shares Required</span>
               <span className="font-bold text-purple-900">{toCurrency(memberData.settings.minimum_shares || 20000)}</span>
             </div>
-            <div className="flex justify-between items-center p-3 bg-indigo-50 rounded-lg">
-              <span className="text-sm font-medium text-indigo-800">Maximum Shares Eligibility</span>
-              <span className="font-bold text-indigo-900">{memberData.settings.maximum_shares_percent || 20}% of total</span>
+            <div className="flex justify-between items-center p-3 bg-primary-50 rounded-lg">
+              <span className="text-sm font-medium text-primary-800">Maximum Shares Eligibility</span>
+              <span className="font-bold text-primary-900">{memberData.settings.maximum_shares_percent || 20}% of total</span>
             </div>
           </div>
         </div>
@@ -454,9 +454,9 @@ export const MemberDashboard: React.FC = () => {
               <div className="text-xs text-green-600 font-semibold mb-1">Emergency Loan</div>
               <div className="text-lg font-bold text-green-800">{toCurrency(memberData.settings.emergency_loan_limit || 20000)}</div>
             </div>
-            <div className="p-3 bg-blue-50 rounded-lg border border-blue-100">
-              <div className="text-xs text-blue-600 font-semibold mb-1">Cash Loan</div>
-              <div className="text-lg font-bold text-blue-800">{toCurrency(memberData.settings.cash_loan_limit || 500000)}</div>
+            <div className="p-3 bg-primary-50 rounded-lg border border-primary-100">
+              <div className="text-xs text-primary-600 font-semibold mb-1">Cash Loan</div>
+              <div className="text-lg font-bold text-primary-800">{toCurrency(memberData.settings.cash_loan_limit || 500000)}</div>
             </div>
             <div className="p-3 bg-orange-50 rounded-lg border border-orange-100">
               <div className="text-xs text-orange-600 font-semibold mb-1">Venture Loan</div>
@@ -480,7 +480,7 @@ export const MemberDashboard: React.FC = () => {
             </div>
             <div className="w-full bg-gray-200 rounded-full h-4">
               <div 
-                className="bg-blue-500 h-4 rounded-full flex items-center justify-center text-white text-xs font-medium"
+                className="bg-primary-500 h-4 rounded-full flex items-center justify-center text-white text-xs font-medium"
                 style={{ width: `${Math.min(savingsProgress, 100)}%` }}
               >
                 {savingsProgress.toFixed(1)}%
@@ -593,10 +593,10 @@ export const MemberDashboard: React.FC = () => {
         <div className="bg-white p-6 rounded-lg shadow">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-              <CreditCard className="w-5 h-5 mr-2 text-blue-500" />
+              <CreditCard className="w-5 h-5 mr-2 text-primary-500" />
               LOANS
             </h3>
-            <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+            <button className="text-sm text-primary-600 hover:text-primary-700 font-medium">
               View All Loans
             </button>
           </div>
@@ -612,8 +612,8 @@ export const MemberDashboard: React.FC = () => {
                   <span className="text-sm font-medium text-gray-700">Amount approved:</span>
                   <span className="text-sm font-bold text-green-600">{toCurrency(memberData.activeLoan.amount)}</span>
                 </div>
-                <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg border border-blue-100">
-                  <span className="text-sm font-medium text-blue-900">Outstanding balance:</span>
+                <div className="flex justify-between items-center p-3 bg-primary-50 rounded-lg border border-primary-100">
+                  <span className="text-sm font-medium text-primary-900">Outstanding balance:</span>
                   <span className="text-lg font-bold text-red-600">{toCurrency(memberData.activeLoan.balance)}</span>
                 </div>
               </>
@@ -642,8 +642,8 @@ export const MemberDashboard: React.FC = () => {
               <div className="text-2xl font-bold text-green-600">{memberData.layyahApplications}</div>
               <div className="text-sm text-gray-600">My Applications</div>
             </div>
-            <div className="text-center p-3 bg-blue-50 rounded-lg">
-              <div className="text-2xl font-bold text-blue-600">{memberData.activeLayyahGroups}</div>
+            <div className="text-center p-3 bg-primary-50 rounded-lg">
+              <div className="text-2xl font-bold text-primary-600">{memberData.activeLayyahGroups}</div>
               <div className="text-sm text-gray-600">Active Groups</div>
             </div>
             <div className="text-center p-3 bg-yellow-50 rounded-lg">
@@ -662,7 +662,7 @@ export const MemberDashboard: React.FC = () => {
               <span>New Application</span>
             </button>
             <button
-              className="flex-1 flex items-center justify-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="flex-1 flex items-center justify-center space-x-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
               type="button"
               onClick={() => navigate('/browse-layyah')}
             >
@@ -711,9 +711,9 @@ export const MemberDashboard: React.FC = () => {
 
             {/* Loan Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-              <div className="p-4 bg-blue-50 rounded-lg">
-                <div className="text-sm text-blue-700">Loan Amount</div>
-                <div className="text-xl font-bold text-blue-900">{toCurrency(memberData.activeLoan.amount)}</div>
+              <div className="p-4 bg-primary-50 rounded-lg">
+                <div className="text-sm text-primary-700">Loan Amount</div>
+                <div className="text-xl font-bold text-primary-900">{toCurrency(memberData.activeLoan.amount)}</div>
               </div>
               <div className="p-4 bg-green-50 rounded-lg">
                 <div className="text-sm text-green-700">Amount Paid</div>

@@ -121,13 +121,13 @@ export const NotificationDropdown: React.FC = () => {
       case 'loan_rejected':
         return <XCircle className="w-4 h-4 text-red-500" />;
       case 'loan_disbursed':
-        return <DollarSign className="w-4 h-4 text-blue-500" />;
+        return <DollarSign className="w-4 h-4 text-primary-500" />;
       case 'guarantor_request':
         return <Clock className="w-4 h-4 text-yellow-500" />;
       case 'direct_message':
         return <MessageSquare className="w-4 h-4 text-purple-500" />;
       case 'broadcast':
-        return <Megaphone className="w-4 h-4 text-indigo-500" />;
+        return <Megaphone className="w-4 h-4 text-primary-500" />;
       case 'complaint_update':
       case 'complaint_received':
         return <FileText className="w-4 h-4 text-orange-500" />;
@@ -160,7 +160,7 @@ export const NotificationDropdown: React.FC = () => {
             {unreadCount > 0 && (
               <button
                 onClick={markAllAsRead}
-                className="text-xs text-blue-600 hover:text-blue-800"
+                className="text-xs text-primary-600 hover:text-primary-800"
               >
                 Mark all read
               </button>
@@ -182,7 +182,7 @@ export const NotificationDropdown: React.FC = () => {
                   key={notification.id}
                   onClick={() => handleNotificationClick(notification)}
                   className={`px-4 py-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer ${
-                    !notification.is_read ? 'bg-blue-50' : ''
+                    !notification.is_read ? 'bg-primary-50' : ''
                   }`}
                 >
                   <div className="flex items-start space-x-3">
@@ -202,7 +202,7 @@ export const NotificationDropdown: React.FC = () => {
                     </div>
                     {!notification.is_read && (
                       <div className="flex-shrink-0">
-                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                        <div className="w-2 h-2 bg-primary-500 rounded-full"></div>
                       </div>
                     )}
                   </div>
@@ -218,7 +218,7 @@ export const NotificationDropdown: React.FC = () => {
                   setIsOpen(false);
                   navigate('/notifications');
                 }}
-                className="text-sm text-blue-600 hover:text-blue-800"
+                className="text-sm text-primary-600 hover:text-primary-800"
               >
                 View all notifications
               </button>

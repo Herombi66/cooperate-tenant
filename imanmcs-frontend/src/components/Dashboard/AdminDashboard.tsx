@@ -203,7 +203,7 @@ export const AdminDashboard: React.FC = () => {
   const getResourceTypeColor = (resourceType: string) => {
     switch (resourceType.toLowerCase()) {
       case 'user':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-primary-100 text-primary-800';
       case 'contribution':
         return 'bg-green-100 text-green-800';
       case 'loan':
@@ -587,13 +587,13 @@ export const AdminDashboard: React.FC = () => {
 
         {/* Expense Categories */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="p-4 bg-blue-50 rounded-lg">
+          <div className="p-4 bg-primary-50 rounded-lg">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-blue-600 font-medium">Staff Salaries</p>
-                <p className="text-2xl font-bold text-blue-900">₦350,000</p>
+                <p className="text-sm text-primary-600 font-medium">Staff Salaries</p>
+                <p className="text-2xl font-bold text-primary-900">₦350,000</p>
               </div>
-              <Receipt className="w-8 h-8 text-blue-500" />
+              <Receipt className="w-8 h-8 text-primary-500" />
             </div>
           </div>
           <div className="p-4 bg-green-50 rounded-lg">
@@ -677,7 +677,7 @@ export const AdminDashboard: React.FC = () => {
                                 ) : (
                                     <button
                                         onClick={() => navigate(`/expenses/${expense.id}`)}
-                                        className="text-blue-600 hover:text-blue-900"
+                                        className="text-primary-600 hover:text-primary-900"
                                     >
                                         View
                                     </button>
@@ -775,7 +775,7 @@ export const AdminDashboard: React.FC = () => {
               onClick={() => navigate('/members')}
               className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left"
             >
-              <Users className="w-6 h-6 text-blue-500 mb-2" />
+              <Users className="w-6 h-6 text-primary-500 mb-2" />
               <div className="font-medium">View All Members</div>
               <div className="text-sm text-gray-500">Browse member directory</div>
             </button>
@@ -824,7 +824,7 @@ export const AdminDashboard: React.FC = () => {
               onClick={() => navigate('/reports')}
               className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left"
             >
-              <Users className="w-6 h-6 text-blue-500 mb-2" />
+              <Users className="w-6 h-6 text-primary-500 mb-2" />
               <div className="font-medium">Member Reports</div>
               <div className="text-sm text-gray-500">Activity and engagement</div>
             </button>
@@ -865,7 +865,7 @@ export const AdminDashboard: React.FC = () => {
               onClick={() => navigate('/settings')}
               className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left"
             >
-              <CreditCard className="w-6 h-6 text-blue-500 mb-2" />
+              <CreditCard className="w-6 h-6 text-primary-500 mb-2" />
               <div className="font-medium">Loan Configuration</div>
               <div className="text-sm text-gray-500">Limits and repayment terms</div>
             </button>

@@ -125,7 +125,7 @@ export const SupportPage: React.FC = () => {
 
   const getComplaintBadge = (status: string) => {
     if (status === 'resolved') return { icon: <CheckCircle className="w-4 h-4 text-green-600" />, cls: 'bg-green-100 text-green-800', label: 'Resolved' };
-    if (status === 'in_progress') return { icon: <Clock className="w-4 h-4 text-blue-600" />, cls: 'bg-blue-100 text-blue-800', label: 'In Progress' };
+    if (status === 'in_progress') return { icon: <Clock className="w-4 h-4 text-primary-600" />, cls: 'bg-primary-100 text-primary-800', label: 'In Progress' };
     if (status === 'rejected') return { icon: <AlertTriangle className="w-4 h-4 text-red-600" />, cls: 'bg-red-100 text-red-800', label: 'Rejected' };
     return { icon: <Clock className="w-4 h-4 text-yellow-600" />, cls: 'bg-yellow-100 text-yellow-800', label: 'Pending' };
   };
@@ -277,7 +277,7 @@ export const SupportPage: React.FC = () => {
                           </td>
                           <td className="px-4 py-2 text-sm">
                             {c.attachment_url ? (
-                              <button className="text-blue-600 hover:text-blue-800" onClick={() => openAttachment(c.attachment_url!)}>
+                              <button className="text-primary-600 hover:text-primary-800" onClick={() => openAttachment(c.attachment_url!)}>
                                 View
                               </button>
                             ) : (
@@ -310,7 +310,7 @@ export const SupportPage: React.FC = () => {
                         markRead(m);
                       }}
                       className={`w-full text-left px-4 py-3 border-b border-gray-100 hover:bg-gray-50 ${
-                        !m.read_at && m.status !== 'read' ? 'bg-blue-50' : 'bg-white'
+                        !m.read_at && m.status !== 'read' ? 'bg-primary-50' : 'bg-white'
                       }`}
                     >
                       <div className="flex items-center justify-between">
@@ -334,7 +334,7 @@ export const SupportPage: React.FC = () => {
                         </div>
                       </div>
                       {!selectedMessage.read_at && selectedMessage.status !== 'read' ? (
-                        <span className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-800">Unread</span>
+                        <span className="text-xs px-2 py-1 rounded-full bg-primary-100 text-primary-800">Unread</span>
                       ) : (
                         <span className="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-800">Read</span>
                       )}

@@ -194,7 +194,7 @@ export const SettingsPage: React.FC = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader className="w-8 h-8 animate-spin text-blue-500" />
+        <Loader className="w-8 h-8 animate-spin text-primary-500" />
         <span className="ml-2 text-gray-600">Loading settings...</span>
       </div>
     );
@@ -221,7 +221,7 @@ export const SettingsPage: React.FC = () => {
             disabled={!hasChanges || saving}
             className={`flex items-center px-4 py-2 rounded-lg ${
               hasChanges && !saving
-                ? 'bg-blue-500 text-white hover:bg-blue-600'
+                ? 'bg-primary-500 text-white hover:bg-primary-600'
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
             }`}
           >
@@ -248,7 +248,7 @@ export const SettingsPage: React.FC = () => {
                 onClick={() => setActiveTab(tab.id)}
                 className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center ${
                   activeTab === tab.id
-                    ? 'border-blue-500 text-blue-600'
+                    ? 'border-primary-500 text-primary-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
@@ -260,7 +260,7 @@ export const SettingsPage: React.FC = () => {
               onClick={() => setActiveTab('theme')}
               className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center ${
                 activeTab === 'theme'
-                  ? 'border-blue-500 text-blue-600'
+                  ? 'border-primary-500 text-primary-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
@@ -271,7 +271,7 @@ export const SettingsPage: React.FC = () => {
               onClick={() => setActiveTab('custom_fields')}
               className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center ${
                 activeTab === 'custom_fields'
-                  ? 'border-blue-500 text-blue-600'
+                  ? 'border-primary-500 text-primary-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
@@ -288,7 +288,7 @@ export const SettingsPage: React.FC = () => {
           <div className="space-y-6">
             <div className="space-y-4">
               <h3 className="text-lg font-semibold flex items-center">
-                <Settings className="w-5 h-5 mr-2 text-blue-500" />
+                <Settings className="w-5 h-5 mr-2 text-primary-500" />
                 Cooperative Information
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -298,7 +298,7 @@ export const SettingsPage: React.FC = () => {
                     type="text"
                     value={settings.cooperative_name}
                     onChange={(e) => handleSettingChange('cooperative_name', e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>
                 <div>
@@ -307,7 +307,7 @@ export const SettingsPage: React.FC = () => {
                     type="text"
                     value={settings.registration_number}
                     onChange={(e) => handleSettingChange('registration_number', e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>
                 <div className="md:col-span-2">
@@ -316,7 +316,7 @@ export const SettingsPage: React.FC = () => {
                     value={settings.address}
                     onChange={(e) => handleSettingChange('address', e.target.value)}
                     rows={3}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>
                 <div>
@@ -325,7 +325,7 @@ export const SettingsPage: React.FC = () => {
                     type="email"
                     value={settings.contact_email}
                     onChange={(e) => handleSettingChange('contact_email', e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>
                 <div>
@@ -334,7 +334,7 @@ export const SettingsPage: React.FC = () => {
                     type="tel"
                     value={settings.contact_phone}
                     onChange={(e) => handleSettingChange('contact_phone', e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>
               </div>
@@ -353,7 +353,7 @@ export const SettingsPage: React.FC = () => {
                     type="number"
                     value={settings.minimum_savings}
                     onChange={(e) => handleSettingChange('minimum_savings', parseInt(e.target.value) || 0)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>
                 <div>
@@ -362,7 +362,7 @@ export const SettingsPage: React.FC = () => {
                     type="number"
                     value={settings.minimum_investment}
                     onChange={(e) => handleSettingChange('minimum_investment', parseInt(e.target.value) || 0)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>
                 <div>
@@ -371,7 +371,7 @@ export const SettingsPage: React.FC = () => {
                     type="number"
                     value={settings.minimum_target_savings}
                     onChange={(e) => handleSettingChange('minimum_target_savings', parseInt(e.target.value) || 0)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>
               </div>
@@ -379,7 +379,7 @@ export const SettingsPage: React.FC = () => {
 
             <div className="space-y-4">
               <h3 className="text-lg font-semibold flex items-center">
-                <DollarSign className="w-5 h-5 mr-2 text-blue-500" />
+                <DollarSign className="w-5 h-5 mr-2 text-primary-500" />
                 Administrative Charges
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -389,7 +389,7 @@ export const SettingsPage: React.FC = () => {
                     type="number"
                     value={settings.registration_fee}
                     onChange={(e) => handleSettingChange('registration_fee', parseInt(e.target.value) || 0)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>
                 <div>
@@ -398,7 +398,7 @@ export const SettingsPage: React.FC = () => {
                     type="number"
                     value={settings.monthly_admin_fee}
                     onChange={(e) => handleSettingChange('monthly_admin_fee', parseInt(e.target.value) || 0)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>
               </div>
@@ -410,7 +410,7 @@ export const SettingsPage: React.FC = () => {
           <div className="space-y-6">
             <div className="space-y-4">
               <h3 className="text-lg font-semibold flex items-center">
-                <CreditCard className="w-5 h-5 mr-2 text-blue-500" />
+                <CreditCard className="w-5 h-5 mr-2 text-primary-500" />
                 Loan Configuration
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -420,7 +420,7 @@ export const SettingsPage: React.FC = () => {
                     type="number"
                     value={settings.max_cash_loan}
                     onChange={(e) => handleSettingChange('max_cash_loan', parseInt(e.target.value) || 0)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>
                 <div>
@@ -429,7 +429,7 @@ export const SettingsPage: React.FC = () => {
                     type="number"
                     value={settings.investment_loan_multiplier}
                     onChange={(e) => handleSettingChange('investment_loan_multiplier', parseInt(e.target.value) || 0)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>
                 <div>
@@ -438,7 +438,7 @@ export const SettingsPage: React.FC = () => {
                     type="number"
                     value={settings.default_repayment_period}
                     onChange={(e) => handleSettingChange('default_repayment_period', parseInt(e.target.value) || 0)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>
                 <div>
@@ -448,7 +448,7 @@ export const SettingsPage: React.FC = () => {
                     step="0.1"
                     value={settings.late_payment_fee}
                     onChange={(e) => handleSettingChange('late_payment_fee', parseFloat(e.target.value) || 0)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>
               </div>
@@ -465,7 +465,7 @@ export const SettingsPage: React.FC = () => {
                 <select
                   value={settings.profit_sharing_frequency}
                   onChange={(e) => handleSettingChange('profit_sharing_frequency', e.target.value)}
-                  className="w-full md:w-1/3 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full md:w-1/3 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 >
                   <option value="monthly">Monthly</option>
                   <option value="quarterly">Quarterly</option>
@@ -476,7 +476,7 @@ export const SettingsPage: React.FC = () => {
 
             <div className="space-y-4">
               <h3 className="text-lg font-semibold flex items-center">
-                <Percent className="w-5 h-5 mr-2 text-blue-500" />
+                <Percent className="w-5 h-5 mr-2 text-primary-500" />
                 Profit Deductions & Allocations
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -487,7 +487,7 @@ export const SettingsPage: React.FC = () => {
                     step="0.1"
                     value={settings.reserve_fund_percentage}
                     onChange={(e) => handleSettingChange('reserve_fund_percentage', parseFloat(e.target.value) || 0)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>
                 <div>
@@ -497,7 +497,7 @@ export const SettingsPage: React.FC = () => {
                     step="0.1"
                     value={settings.education_fund_percentage}
                     onChange={(e) => handleSettingChange('education_fund_percentage', parseFloat(e.target.value) || 0)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>
                 <div>
@@ -507,7 +507,7 @@ export const SettingsPage: React.FC = () => {
                     step="0.1"
                     value={settings.committee_bonus_percentage}
                     onChange={(e) => handleSettingChange('committee_bonus_percentage', parseFloat(e.target.value) || 0)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>
                 <div>
@@ -517,7 +517,7 @@ export const SettingsPage: React.FC = () => {
                     step="0.1"
                     value={settings.bad_debt_reserve_percentage}
                     onChange={(e) => handleSettingChange('bad_debt_reserve_percentage', parseFloat(e.target.value) || 0)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>
                 <div>
@@ -527,7 +527,7 @@ export const SettingsPage: React.FC = () => {
                     step="0.1"
                     value={settings.general_reserve_percentage}
                     onChange={(e) => handleSettingChange('general_reserve_percentage', parseFloat(e.target.value) || 0)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>
               </div>
@@ -539,7 +539,7 @@ export const SettingsPage: React.FC = () => {
           <div className="space-y-6">
             <div className="space-y-4">
               <h3 className="text-lg font-semibold flex items-center">
-                <Bell className="w-5 h-5 mr-2 text-blue-500" />
+                <Bell className="w-5 h-5 mr-2 text-primary-500" />
                 Notification Preferences
               </h3>
               <div className="space-y-4">
@@ -552,7 +552,7 @@ export const SettingsPage: React.FC = () => {
                     type="checkbox"
                     checked={settings.email_notifications}
                     onChange={(e) => handleSettingChange('email_notifications', e.target.checked)}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
                   />
                 </div>
                 <div className="flex items-center justify-between">
@@ -564,7 +564,7 @@ export const SettingsPage: React.FC = () => {
                     type="checkbox"
                     checked={settings.sms_notifications}
                     onChange={(e) => handleSettingChange('sms_notifications', e.target.checked)}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
                   />
                 </div>
                 <div>
@@ -573,7 +573,7 @@ export const SettingsPage: React.FC = () => {
                     type="number"
                     value={settings.reminder_days}
                     onChange={(e) => handleSettingChange('reminder_days', parseInt(e.target.value) || 0)}
-                    className="w-full md:w-32 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full md:w-32 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>
               </div>
@@ -585,7 +585,7 @@ export const SettingsPage: React.FC = () => {
           <div className="space-y-6">
             <div className="space-y-4">
               <h3 className="text-lg font-semibold flex items-center">
-                <FileText className="w-5 h-5 mr-2 text-blue-500" />
+                <FileText className="w-5 h-5 mr-2 text-primary-500" />
                 Agreement Templates
               </h3>
               <p className="text-sm text-gray-500">
@@ -598,7 +598,7 @@ export const SettingsPage: React.FC = () => {
                   value={settings.agent_agreement_template || ''}
                   onChange={(e) => handleSettingChange('agent_agreement_template', e.target.value)}
                   rows={10}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent font-mono text-sm"
                   placeholder="Enter HTML content for Agent Agreement..."
                 />
               </div>
@@ -609,7 +609,7 @@ export const SettingsPage: React.FC = () => {
                   value={settings.murabaha_contract_template || ''}
                   onChange={(e) => handleSettingChange('murabaha_contract_template', e.target.value)}
                   rows={10}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent font-mono text-sm"
                   placeholder="Enter HTML content for Murabaha Contract..."
                 />
               </div>
@@ -622,7 +622,7 @@ export const SettingsPage: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                  <FileText className="w-5 h-5 mr-2 text-blue-500" />
+                  <FileText className="w-5 h-5 mr-2 text-primary-500" />
                   Branding Colors
                 </h3>
                 <div className="space-y-4">
@@ -639,7 +639,7 @@ export const SettingsPage: React.FC = () => {
                         type="text"
                         value={theme.primaryColor}
                         onChange={(e) => setTheme({ ...theme, primaryColor: e.target.value })}
-                        className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                        className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
                       />
                     </div>
                   </div>
@@ -656,7 +656,7 @@ export const SettingsPage: React.FC = () => {
                         type="text"
                         value={theme.secondaryColor}
                         onChange={(e) => setTheme({ ...theme, secondaryColor: e.target.value })}
-                        className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                        className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
                       />
                     </div>
                   </div>
@@ -673,7 +673,7 @@ export const SettingsPage: React.FC = () => {
                         type="text"
                         value={theme.accentColor}
                         onChange={(e) => setTheme({ ...theme, accentColor: e.target.value })}
-                        className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                        className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
                       />
                     </div>
                   </div>
@@ -682,7 +682,7 @@ export const SettingsPage: React.FC = () => {
 
               <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                  <FileText className="w-5 h-5 mr-2 text-blue-500" />
+                  <FileText className="w-5 h-5 mr-2 text-primary-500" />
                   Branding Assets
                 </h3>
                 <div className="space-y-4">
@@ -692,7 +692,7 @@ export const SettingsPage: React.FC = () => {
                       type="text"
                       value={theme.customLogoUrl}
                       onChange={(e) => setTheme({ ...theme, customLogoUrl: e.target.value })}
-                      className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                      className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
                       placeholder="https://example.com/logo.png"
                     />
                   </div>
@@ -702,7 +702,7 @@ export const SettingsPage: React.FC = () => {
                       type="text"
                       value={theme.faviconUrl}
                       onChange={(e) => setTheme({ ...theme, faviconUrl: e.target.value })}
-                      className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                      className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
                       placeholder="https://example.com/favicon.ico"
                     />
                   </div>
@@ -716,7 +716,7 @@ export const SettingsPage: React.FC = () => {
 
               <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm md:col-span-2">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                  <FileText className="w-5 h-5 mr-2 text-blue-500" />
+                  <FileText className="w-5 h-5 mr-2 text-primary-500" />
                   Landing Page Content
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -726,7 +726,7 @@ export const SettingsPage: React.FC = () => {
                       type="text"
                       value={theme.landingPageHeroTitle}
                       onChange={(e) => setTheme({ ...theme, landingPageHeroTitle: e.target.value })}
-                      className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                      className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
                     />
                   </div>
                   <div>
@@ -735,7 +735,7 @@ export const SettingsPage: React.FC = () => {
                       type="text"
                       value={theme.landingPageHeroSubtitle}
                       onChange={(e) => setTheme({ ...theme, landingPageHeroSubtitle: e.target.value })}
-                      className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                      className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
                     />
                   </div>
                 </div>
@@ -748,7 +748,7 @@ export const SettingsPage: React.FC = () => {
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <FileText className="w-5 h-5 mr-2 text-blue-500" />
+                <FileText className="w-5 h-5 mr-2 text-primary-500" />
                 Dynamic Form Fields
               </h3>
               <p className="text-sm text-gray-500 mb-6">
@@ -764,15 +764,15 @@ export const SettingsPage: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">Field Name (Label)</label>
-                  <input type="text" placeholder="e.g. Next of Kin BVN" value={newField.field_name} onChange={e => setNewField({...newField, field_name: e.target.value})} className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500" />
+                  <input type="text" placeholder="e.g. Next of Kin BVN" value={newField.field_name} onChange={e => setNewField({...newField, field_name: e.target.value})} className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-primary-500" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">Field Key (JSON)</label>
-                  <input type="text" placeholder="e.g. nok_bvn" value={newField.field_key} onChange={e => setNewField({...newField, field_key: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '')})} className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500" />
+                  <input type="text" placeholder="e.g. nok_bvn" value={newField.field_key} onChange={e => setNewField({...newField, field_key: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '')})} className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-primary-500" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">Type</label>
-                  <select value={newField.field_type} onChange={e => setNewField({...newField, field_type: e.target.value})} className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500">
+                  <select value={newField.field_type} onChange={e => setNewField({...newField, field_type: e.target.value})} className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-primary-500">
                     <option value="text">Text</option>
                     <option value="number">Number</option>
                     <option value="date">Date</option>
@@ -781,11 +781,11 @@ export const SettingsPage: React.FC = () => {
                 <div className="flex space-x-2">
                   <div className="flex-1 flex items-center justify-center">
                     <label className="flex items-center space-x-2 text-sm text-gray-700 cursor-pointer">
-                      <input type="checkbox" checked={newField.is_required} onChange={e => setNewField({...newField, is_required: e.target.checked})} className="rounded text-blue-600" />
+                      <input type="checkbox" checked={newField.is_required} onChange={e => setNewField({...newField, is_required: e.target.checked})} className="rounded text-primary-600" />
                       <span>Required</span>
                     </label>
                   </div>
-                  <button onClick={handleAddCustomField} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Add</button>
+                  <button onClick={handleAddCustomField} className="px-4 py-2 bg-primary-600 text-white rounded hover:bg-primary-700">Add</button>
                 </div>
               </div>
 

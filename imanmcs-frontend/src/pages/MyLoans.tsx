@@ -136,7 +136,7 @@ export const MyLoans: React.FC = () => {
       case 'pending':
         return 'text-yellow-800 bg-yellow-100';
       case 'disbursed':
-        return 'text-blue-800 bg-blue-100';
+        return 'text-primary-800 bg-primary-100';
       default:
         return 'text-gray-800 bg-gray-100';
     }

@@ -544,7 +544,7 @@ export const LoanRepaymentPage: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
         <div className="bg-white p-6 rounded-lg shadow">
           <div className="flex items-center">
-            <DollarSign className="w-8 h-8 text-blue-500" />
+            <DollarSign className="w-8 h-8 text-primary-500" />
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Repayments</p>
               <p className="text-2xl font-bold text-gray-900">₦{totalRepayments.toLocaleString()}</p>
@@ -699,7 +699,7 @@ export const LoanRepaymentPage: React.FC = () => {
       </div>
 
       {bulkOutcome ? (
-        <div className="mb-4 bg-blue-50 border border-blue-200 text-blue-900 rounded-lg p-4">
+        <div className="mb-4 bg-primary-50 border border-primary-200 text-primary-900 rounded-lg p-4">
           Bulk verification summary: Requested {bulkOutcome.requested}, Verified {bulkOutcome.verified}, Skipped {bulkOutcome.skipped}, Failed {bulkOutcome.failed}.
         </div>
       ) : null}
@@ -799,7 +799,7 @@ export const LoanRepaymentPage: React.FC = () => {
                     <div className="flex items-center gap-3">
                       <button
                         onClick={() => viewRepaymentDetails(repayment)}
-                        className="text-blue-600 hover:text-blue-900"
+                        className="text-primary-600 hover:text-primary-900"
                         title="View Details"
                         aria-label="View Details"
                       >
@@ -904,7 +904,7 @@ export const LoanRepaymentPage: React.FC = () => {
                   </div>
                   <button
                     onClick={handleLoanIdLookup}
-                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center"
+                    className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 flex items-center"
                   >
                     <Search className="w-4 h-4 mr-2" />
                     Lookup
@@ -949,8 +949,8 @@ export const LoanRepaymentPage: React.FC = () => {
               )}
 
               {/* Repayment Form */}
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <h4 className="text-sm font-semibold text-blue-900 mb-3">Step 2: Record Repayment</h4>
+              <div className="bg-primary-50 p-4 rounded-lg">
+                <h4 className="text-sm font-semibold text-primary-900 mb-3">Step 2: Record Repayment</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Repayment Amount (₦) *</label>
@@ -1174,9 +1174,9 @@ export const LoanRepaymentPage: React.FC = () => {
 
             <div className="p-6 space-y-6">
               {/* Instructions */}
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <h4 className="text-sm font-semibold text-blue-900 mb-2">Upload Instructions</h4>
-                <ul className="text-sm text-blue-800 space-y-1">
+              <div className="bg-primary-50 p-4 rounded-lg">
+                <h4 className="text-sm font-semibold text-primary-900 mb-2">Upload Instructions</h4>
+                <ul className="text-sm text-primary-800 space-y-1">
                   <li>• Prepare an Excel (.xlsx/.xls) or CSV file</li>
                   <li>• Fill in the repayment data for multiple members</li>
                   <li>• Upload the completed file</li>
@@ -1197,7 +1197,7 @@ export const LoanRepaymentPage: React.FC = () => {
                   </button>
                   <button
                     onClick={downloadRepaymentXlsxTemplate}
-                    className="flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                    className="flex items-center px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600"
                   >
                     <Download className="w-4 h-4 mr-2" />
                     Download XLSX Template

@@ -135,7 +135,7 @@ export const ExpensesPage: React.FC = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'paid': return 'bg-green-100 text-green-800';
-      case 'approved': return 'bg-blue-100 text-blue-800';
+      case 'approved': return 'bg-primary-100 text-primary-800';
       case 'pending': return 'bg-yellow-100 text-yellow-800';
       case 'rejected': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
@@ -244,7 +244,7 @@ export const ExpensesPage: React.FC = () => {
           whileHover="hover"
         >
           <div className="flex items-center">
-            <Receipt className="w-8 h-8 text-blue-500" />
+            <Receipt className="w-8 h-8 text-primary-500" />
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Expenses</p>
                   <p className="text-2xl font-bold text-gray-900">₦{totalExpenses.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
@@ -438,7 +438,7 @@ export const ExpensesPage: React.FC = () => {
                           setSelectedExpense(expense);
                           setShowViewModal(true);
                         }}
-                        className="text-blue-600 hover:text-blue-900"
+                        className="text-primary-600 hover:text-primary-900"
                         title="View Details"
                       >
                         <Eye className="w-4 h-4" />
@@ -622,8 +622,8 @@ export const ExpensesPage: React.FC = () => {
                   {selectedExpense.receiptUrl ? (
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                          <Receipt className="w-5 h-5 text-blue-600" />
+                        <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
+                          <Receipt className="w-5 h-5 text-primary-600" />
                         </div>
                         <div>
                           <p className="text-sm font-medium text-gray-900">Receipt Attached</p>
@@ -632,7 +632,7 @@ export const ExpensesPage: React.FC = () => {
                       </div>
                       <button
                         onClick={() => window.open(`${API_URL}${selectedExpense.receiptUrl}`, '_blank')}
-                        className="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600"
+                        className="px-3 py-1 bg-primary-500 text-white text-sm rounded hover:bg-primary-600"
                       >
                         View Receipt
                       </button>

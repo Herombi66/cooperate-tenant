@@ -631,8 +631,8 @@ export const MemberApplicationPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="bg-blue-50 p-4 rounded-lg">
-        <p className="text-sm text-blue-800">
+      <div className="bg-primary-50 p-4 rounded-lg">
+        <p className="text-sm text-primary-800">
           <strong>Important:</strong> By submitting this application, you agree to the terms and conditions of IMAN Cooperative.
           Your application will be reviewed and you will be contacted within 3-5 business days.
         </p>

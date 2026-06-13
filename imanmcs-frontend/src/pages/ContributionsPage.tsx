@@ -542,7 +542,7 @@ PSN002,target_savings,1500,12,2025,salary deduction`;
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case 'savings': return 'bg-blue-100 text-blue-800';
+      case 'savings': return 'bg-primary-100 text-primary-800';
       case 'investment': return 'bg-purple-100 text-purple-800';
       case 'target_savings': return 'bg-green-100 text-green-800';
       default: return 'bg-gray-100 text-gray-800';
@@ -918,8 +918,8 @@ PSN002,target_savings,1500,12,2025,salary deduction`;
         </div>
         <div className="bg-white p-6 rounded-lg shadow">
           <div className="flex items-center">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Wallet className="w-6 h-6 text-blue-600" />
+            <div className="p-2 bg-primary-100 rounded-lg">
+              <Wallet className="w-6 h-6 text-primary-600" />
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Savings</p>
@@ -1084,7 +1084,7 @@ PSN002,target_savings,1500,12,2025,salary deduction`;
                           setSelectedContribution(contribution);
                           setShowViewModal(true);
                         }}
-                        className="text-blue-600 hover:text-blue-900"
+                        className="text-primary-600 hover:text-primary-900"
                       >
                         View Details
                       </button>
@@ -1241,7 +1241,7 @@ PSN002,target_savings,1500,12,2025,salary deduction`;
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Member PSN <span className="text-red-500">*</span>
-                  {validatingPsn && <span className="ml-2 text-blue-500">Validating...</span>}
+                  {validatingPsn && <span className="ml-2 text-primary-500">Validating...</span>}
                   {validatedMember && !validatingPsn && <span className="ml-2 text-green-500">✓ Found</span>}
                 </label>
                 <input
@@ -1333,9 +1333,9 @@ PSN002,target_savings,1500,12,2025,salary deduction`;
                     </p>
                   </div>
 
-                  <div className="bg-blue-50 p-3 rounded-lg">
-                    <h4 className="text-sm font-medium text-blue-900 mb-1">📊 Auto-Distribution Rules</h4>
-                    <ul className="text-xs text-blue-700 space-y-1">
+                  <div className="bg-primary-50 p-3 rounded-lg">
+                    <h4 className="text-sm font-medium text-primary-900 mb-1">📊 Auto-Distribution Rules</h4>
+                    <ul className="text-xs text-primary-700 space-y-1">
                       <li>• First: Deduct exact configured amounts for each category</li>
                       <li>• Remaining: Distributed proportionally among categories with amounts {'>'} 0</li>
                       <li>• Example: If member configured ₦3000 savings + ₦1000 investment, and you enter ₦5000...</li>
@@ -1479,9 +1479,9 @@ PSN002,target_savings,1500,12,2025,salary deduction`;
                 </p>
               </div>
 
-              <div className="bg-blue-50 p-3 rounded-lg">
-                <h4 className="text-sm font-medium text-blue-900 mb-1">Required Columns:</h4>
-                <p className="text-xs text-blue-700">
+              <div className="bg-primary-50 p-3 rounded-lg">
+                <h4 className="text-sm font-medium text-primary-900 mb-1">Required Columns:</h4>
+                <p className="text-xs text-primary-700">
                   PSN, Type, Amount, Month, Payment_Method
                 </p>
               </div>
@@ -1510,14 +1510,14 @@ PSN002,target_savings,1500,12,2025,salary deduction`;
                 </button>
                 <button
                   onClick={downloadTotalXlsxTemplate}
-                  className="flex items-center px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                  className="flex items-center px-3 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600"
                 >
                   <Download className="w-4 h-4 mr-2" />
                   Download Total XLSX Template
                 </button>
                 <button
                   onClick={downloadTypedXlsxTemplate}
-                  className="flex items-center px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                  className="flex items-center px-3 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600"
                 >
                   <Download className="w-4 h-4 mr-2" />
                   Download Typed XLSX Template
@@ -1976,30 +1976,30 @@ PSN002,target_savings,1500,12,2025,salary deduction`;
                 </div>
               </div>
 
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <h4 className="text-sm font-medium text-blue-900 mb-2">Contribution Breakdown</h4>
+              <div className="bg-primary-50 p-4 rounded-lg">
+                <h4 className="text-sm font-medium text-primary-900 mb-2">Contribution Breakdown</h4>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div>
-                    <label className="block text-xs text-blue-700">Savings</label>
-                    <p className="text-sm font-semibold text-blue-900">₦{selectedContribution.savings.toLocaleString()}</p>
+                    <label className="block text-xs text-primary-700">Savings</label>
+                    <p className="text-sm font-semibold text-primary-900">₦{selectedContribution.savings.toLocaleString()}</p>
                   </div>
                   <div>
-                    <label className="block text-xs text-blue-700">Investment</label>
-                    <p className="text-sm font-semibold text-blue-900">₦{selectedContribution.investment.toLocaleString()}</p>
+                    <label className="block text-xs text-primary-700">Investment</label>
+                    <p className="text-sm font-semibold text-primary-900">₦{selectedContribution.investment.toLocaleString()}</p>
                   </div>
                   <div>
-                    <label className="block text-xs text-blue-700">Fixed Deposit</label>
-                    <p className="text-sm font-semibold text-blue-900">₦{(selectedContribution.fixedDeposit || 0).toLocaleString()}</p>
+                    <label className="block text-xs text-primary-700">Fixed Deposit</label>
+                    <p className="text-sm font-semibold text-primary-900">₦{(selectedContribution.fixedDeposit || 0).toLocaleString()}</p>
                   </div>
                   <div>
-                    <label className="block text-xs text-blue-700">Target Saving</label>
-                    <p className="text-sm font-semibold text-blue-900">₦{(selectedContribution.targetSaving || 0).toLocaleString()}</p>
+                    <label className="block text-xs text-primary-700">Target Saving</label>
+                    <p className="text-sm font-semibold text-primary-900">₦{(selectedContribution.targetSaving || 0).toLocaleString()}</p>
                   </div>
                 </div>
-                <div className="mt-3 pt-3 border-t border-blue-200">
+                <div className="mt-3 pt-3 border-t border-primary-200">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium text-blue-900">Total Amount</span>
-                    <span className="text-lg font-bold text-blue-900">₦{selectedContribution.totalAmount.toLocaleString()}</span>
+                    <span className="text-sm font-medium text-primary-900">Total Amount</span>
+                    <span className="text-lg font-bold text-primary-900">₦{selectedContribution.totalAmount.toLocaleString()}</span>
                   </div>
                 </div>
               </div>

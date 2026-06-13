@@ -85,13 +85,13 @@ const AgentAgreementModal: React.FC<AgentAgreementModalProps> = ({ isOpen, onClo
           exit={{ opacity: 0, scale: 0.95 }}
           className="bg-white rounded-xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]"
         >
-          <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-indigo-50">
+          <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-primary-50">
             <div>
-                <h2 className="text-xl font-bold text-indigo-900 flex items-center gap-2">
+                <h2 className="text-xl font-bold text-primary-900 flex items-center gap-2">
                     <FileText className="w-5 h-5" />
                     Investment Loan Agent Agreement
                 </h2>
-                <p className="text-sm text-indigo-600 mt-1">Please review the terms below carefully.</p>
+                <p className="text-sm text-primary-600 mt-1">Please review the terms below carefully.</p>
             </div>
           </div>
 
@@ -99,7 +99,7 @@ const AgentAgreementModal: React.FC<AgentAgreementModalProps> = ({ isOpen, onClo
             <div className="prose prose-sm max-w-none text-gray-600">
               {fetchingContent ? (
                   <div className="flex justify-center items-center h-32">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
                   </div>
               ) : (
                   <>
@@ -120,7 +120,7 @@ const AgentAgreementModal: React.FC<AgentAgreementModalProps> = ({ isOpen, onClo
               <div className="relative flex items-center pt-1">
                 <input
                   type="checkbox"
-                  className="w-5 h-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                  className="w-5 h-5 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
                   checked={agreed}
                   onChange={(e) => setAgreed(e.target.checked)}
                 />
@@ -141,7 +141,7 @@ const AgentAgreementModal: React.FC<AgentAgreementModalProps> = ({ isOpen, onClo
               <button
                 onClick={() => handleSubmit(true)}
                 disabled={!agreed || loading}
-                className="px-6 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2 shadow-sm"
+                className="px-6 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2 shadow-sm"
               >
                 {loading ? (
                     <>Processing...</>

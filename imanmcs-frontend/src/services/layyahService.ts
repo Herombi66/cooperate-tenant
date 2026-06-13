@@ -578,7 +578,7 @@ export class LayyahService {
   static getStatusColor(status: string): string {
     const colors: Record<string, string> = {
       pending: 'text-yellow-600 bg-yellow-100',
-      submitted: 'text-blue-600 bg-blue-100',
+      submitted: 'text-primary-600 bg-primary-100',
       reviewed: 'text-purple-600 bg-purple-100',
       under_review: 'text-purple-600 bg-purple-100',
       approved: 'text-green-600 bg-green-100',

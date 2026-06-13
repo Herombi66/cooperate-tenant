@@ -137,7 +137,7 @@ const LoanApplicationsPage: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'waiting_disbursement': return 'bg-blue-100 text-blue-800';
+      case 'waiting_disbursement': return 'bg-primary-100 text-primary-800';
       case 'approved': return 'bg-green-100 text-green-800';
       case 'disbursed': return 'bg-green-100 text-green-800';
       case 'rejected': return 'bg-red-100 text-red-800';
@@ -305,7 +305,7 @@ const LoanApplicationsPage: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
         <div className="bg-white p-6 rounded-lg shadow">
           <div className="flex items-center">
-            <FileText className="w-8 h-8 text-blue-500" />
+            <FileText className="w-8 h-8 text-primary-500" />
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Applications</p>
               <p className="text-2xl font-bold text-gray-900">{totalApplications}</p>
@@ -521,7 +521,7 @@ const LoanApplicationsPage: React.FC = () => {
                             setSelectedApplication(application);
                             setShowViewModal(true);
                           }}
-                          className="text-blue-600 hover:text-blue-900"
+                          className="text-primary-600 hover:text-primary-900"
                           title="View Details"
                         >
                           <Eye className="w-4 h-4" />
@@ -547,7 +547,7 @@ const LoanApplicationsPage: React.FC = () => {
                         {application.status === 'waiting_disbursement' && canDisburse && (
                           <button
                             onClick={() => handleDisburse(application)}
-                            className="text-blue-600 hover:text-blue-900"
+                            className="text-primary-600 hover:text-primary-900"
                             title="Disburse Funds"
                           >
                             <DollarSign className="w-4 h-4" />
@@ -755,7 +755,7 @@ const LoanApplicationsPage: React.FC = () => {
                       setShowGuarantorModal(true);
                       setShowViewModal(false);
                     }}
-                    className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                    className="text-primary-600 hover:text-primary-800 text-sm font-medium"
                   >
                     View Guarantor Decision
                   </button>
@@ -786,10 +786,10 @@ const LoanApplicationsPage: React.FC = () => {
               {/* Documents */}
               <div>
                 <h4 className="text-lg font-semibold text-gray-900 mb-3">Documents</h4>
-                <div className="bg-blue-50 p-3 rounded-lg">
+                <div className="bg-primary-50 p-3 rounded-lg">
                   <div className="flex items-center">
-                    <FileText className="w-4 h-4 text-blue-500 mr-2" />
-                    <span className="text-sm text-blue-700">
+                    <FileText className="w-4 h-4 text-primary-500 mr-2" />
+                    <span className="text-sm text-primary-700">
                       Payslip: {selectedApplication.payslipUrl === 'Not uploaded' ? 'Not uploaded' : 'Available'}
                     </span>
                     {selectedApplication.payslipUrl !== 'Not uploaded' && (
@@ -797,7 +797,7 @@ const LoanApplicationsPage: React.FC = () => {
                         onClick={() => {
                           openPayslip(selectedApplication.id);
                         }}
-                        className="ml-auto text-blue-600 hover:text-blue-800 text-sm"
+                        className="ml-auto text-primary-600 hover:text-primary-800 text-sm"
                       >
                         View
                       </button>
@@ -965,8 +965,8 @@ const LoanApplicationsPage: React.FC = () => {
                 <h4 className="text-lg font-semibold text-gray-900 mb-3">Decision Timeline</h4>
                 <div className="space-y-3">
                   <div className="flex items-center space-x-3">
-                    <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                      <FileText className="w-4 h-4 text-blue-600" />
+                    <div className="flex-shrink-0 w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
+                      <FileText className="w-4 h-4 text-primary-600" />
                     </div>
                     <div>
                       <p className="text-sm font-medium text-gray-900">Loan Application Submitted</p>

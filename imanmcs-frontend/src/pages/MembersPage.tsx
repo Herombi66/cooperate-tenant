@@ -397,8 +397,8 @@ const [loadingDetails, setLoadingDetails] = useState(false);
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-white p-6 rounded-lg shadow">
           <div className="flex items-center">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Users className="w-6 h-6 text-blue-600" />
+            <div className="p-2 bg-primary-100 rounded-lg">
+              <Users className="w-6 h-6 text-primary-600" />
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Members</p>
@@ -560,7 +560,7 @@ const [loadingDetails, setLoadingDetails] = useState(false);
                           await fetchMemberDetails(member.id);
                           setShowViewModal(true);
                         }}
-                        className="text-blue-600 hover:text-blue-900"
+                        className="text-primary-600 hover:text-primary-900"
                         title="View Details"
                       >
                         <Eye className="w-4 h-4" />
@@ -574,7 +574,7 @@ const [loadingDetails, setLoadingDetails] = useState(false);
                           setShowFinancialModal(true);
                           await fetchMemberFinancialProfile(member.id);
                         }}
-                        className="text-indigo-600 hover:text-indigo-900"
+                        className="text-primary-600 hover:text-primary-900"
                         title="View Member Information"
                       >
                         <FileText className="w-4 h-4" />
@@ -698,7 +698,7 @@ const [loadingDetails, setLoadingDetails] = useState(false);
                     Choose file
                   </label>
                   {selectedFile && (
-                    <div className="mt-2 p-2 bg-blue-50 rounded text-sm text-blue-700">
+                    <div className="mt-2 p-2 bg-primary-50 rounded text-sm text-primary-700">
                       Selected: {selectedFile.name}
                     </div>
                   )}
@@ -708,12 +708,12 @@ const [loadingDetails, setLoadingDetails] = useState(false);
                 </p>
               </div>
 
-              <div className="bg-blue-50 p-3 rounded-lg">
-                <h4 className="text-sm font-medium text-blue-900 mb-1">Required Columns:</h4>
-                <p className="text-xs text-blue-700">
+              <div className="bg-primary-50 p-3 rounded-lg">
+                <h4 className="text-sm font-medium text-primary-900 mb-1">Required Columns:</h4>
+                <p className="text-xs text-primary-700">
                   PSN, Name, Email, Phone, Facility_Name, Next_Of_Kin_Name, Next_Of_Kin_Phone, Savings, Investment, Target_Saving, Target_Period
                 </p>
-                <p className="text-xs text-blue-700 mt-1">
+                <p className="text-xs text-primary-700 mt-1">
                   <strong>Note:</strong> Combined Savings + Investment must be at least ₦5,000. All membership application fields are required.
                 </p>
               </div>
@@ -783,28 +783,28 @@ const [loadingDetails, setLoadingDetails] = useState(false);
               <>
                 {/* Basic Information */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                  <div className="bg-blue-50 p-4 rounded-lg">
-                    <label className="block text-sm font-medium text-blue-700 mb-1">PSN</label>
-                    <p className="text-lg font-semibold text-blue-900">{memberDetails.membershipApplication?.psn || 'N/A'}</p>
+                  <div className="bg-primary-50 p-4 rounded-lg">
+                    <label className="block text-sm font-medium text-primary-700 mb-1">PSN</label>
+                    <p className="text-lg font-semibold text-primary-900">{memberDetails.membershipApplication?.psn || 'N/A'}</p>
                   </div>
-                  <div className="bg-blue-50 p-4 rounded-lg">
-                    <label className="block text-sm font-medium text-blue-700 mb-1">Full Name</label>
-                    <p className="text-lg font-semibold text-blue-900">{memberDetails.membershipApplication?.name || 'N/A'}</p>
+                  <div className="bg-primary-50 p-4 rounded-lg">
+                    <label className="block text-sm font-medium text-primary-700 mb-1">Full Name</label>
+                    <p className="text-lg font-semibold text-primary-900">{memberDetails.membershipApplication?.name || 'N/A'}</p>
                   </div>
-                  <div className="bg-blue-50 p-4 rounded-lg">
-                    <label className="block text-sm font-medium text-blue-700 mb-1">Email</label>
-                    <p className="text-sm text-blue-800">{memberDetails.membershipApplication?.email || 'N/A'}</p>
+                  <div className="bg-primary-50 p-4 rounded-lg">
+                    <label className="block text-sm font-medium text-primary-700 mb-1">Email</label>
+                    <p className="text-sm text-primary-800">{memberDetails.membershipApplication?.email || 'N/A'}</p>
                   </div>
-                  <div className="bg-blue-50 p-4 rounded-lg">
-                    <label className="block text-sm font-medium text-blue-700 mb-1">Phone</label>
-                    <p className="text-sm text-blue-800">{memberDetails.membershipApplication?.phone || 'N/A'}</p>
+                  <div className="bg-primary-50 p-4 rounded-lg">
+                    <label className="block text-sm font-medium text-primary-700 mb-1">Phone</label>
+                    <p className="text-sm text-primary-800">{memberDetails.membershipApplication?.phone || 'N/A'}</p>
                   </div>
-                  <div className="bg-blue-50 p-4 rounded-lg">
-                    <label className="block text-sm font-medium text-blue-700 mb-1">Role</label>
-                    <p className="text-sm font-medium text-blue-900 capitalize">{memberDetails.role || 'member'}</p>
+                  <div className="bg-primary-50 p-4 rounded-lg">
+                    <label className="block text-sm font-medium text-primary-700 mb-1">Role</label>
+                    <p className="text-sm font-medium text-primary-900 capitalize">{memberDetails.role || 'member'}</p>
                   </div>
-                  <div className="bg-blue-50 p-4 rounded-lg">
-                    <label className="block text-sm font-medium text-blue-700 mb-1">Status</label>
+                  <div className="bg-primary-50 p-4 rounded-lg">
+                    <label className="block text-sm font-medium text-primary-700 mb-1">Status</label>
                     <span className={`px-3 py-1 text-sm rounded-full font-medium ${
                       memberDetails.status === 'active' ? 'bg-green-100 text-green-800' :
                       memberDetails.status === 'inactive' ? 'bg-gray-100 text-gray-800' :
@@ -881,9 +881,9 @@ const [loadingDetails, setLoadingDetails] = useState(false);
                           <span className="text-sm font-medium text-green-700">Initial Savings</span>
                           <span className="text-sm font-semibold text-green-900">₦{(memberDetails.membershipApplication?.savings || 0).toLocaleString()}</span>
                         </div>
-                        <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
-                          <span className="text-sm font-medium text-blue-700">Investment Amount</span>
-                          <span className="text-sm font-semibold text-blue-900">₦{(memberDetails.membershipApplication?.investment || 0).toLocaleString()}</span>
+                        <div className="flex justify-between items-center p-3 bg-primary-50 rounded-lg">
+                          <span className="text-sm font-medium text-primary-700">Investment Amount</span>
+                          <span className="text-sm font-semibold text-primary-900">₦{(memberDetails.membershipApplication?.investment || 0).toLocaleString()}</span>
                         </div>
                         <div className="flex justify-between items-center p-3 bg-purple-50 rounded-lg border-2 border-purple-200">
                           <span className="text-sm font-medium text-purple-700">Total Initial Contribution</span>
@@ -919,7 +919,7 @@ const [loadingDetails, setLoadingDetails] = useState(false);
                       <div className="space-y-3">
                         <div>
                           <label className="block text-sm font-medium text-gray-600">Application Status</label>
-                          <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
+                          <span className="px-2 py-1 text-xs rounded-full bg-primary-100 text-primary-800">
                             {memberDetails.membershipApplication?.status || 'Unknown'}
                           </span>
                         </div>
@@ -1013,9 +1013,9 @@ const [loadingDetails, setLoadingDetails] = useState(false);
                       <div className="text-xs text-green-700">Total Approved Contributions</div>
                       <div className="text-xl font-semibold text-green-900">₦{Number(financialProfile.contributions.total_approved || 0).toLocaleString()}</div>
                     </div>
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                      <div className="text-xs text-blue-700">Outstanding Loan Balance</div>
-                      <div className="text-xl font-semibold text-blue-900">
+                    <div className="bg-primary-50 border border-primary-200 rounded-lg p-4">
+                      <div className="text-xs text-primary-700">Outstanding Loan Balance</div>
+                      <div className="text-xl font-semibold text-primary-900">
                         {financialProfile.loan ? `₦${Number(financialProfile.loan.remaining_balance || 0).toLocaleString()}` : '—'}
                       </div>
                     </div>
@@ -1626,7 +1626,7 @@ const [loadingDetails, setLoadingDetails] = useState(false);
                 }}
                 className="w-full text-left px-4 py-3 rounded-lg hover:bg-gray-50 flex items-center"
               >
-                <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                <div className="w-8 h-8 bg-primary-100 rounded-lg flex items-center justify-center mr-3">
                   🔑
                 </div>
                 <div>

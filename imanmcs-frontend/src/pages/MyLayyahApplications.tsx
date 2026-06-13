@@ -161,7 +161,7 @@ export const MyLayyahApplications: React.FC = () => {
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center space-x-2">
                   {application.kind === 'group' ? (
-                    <Users className="h-5 w-5 text-blue-600" />
+                    <Users className="h-5 w-5 text-primary-600" />
                   ) : (
                     <User className="h-5 w-5 text-green-600" />
                   )}
@@ -259,7 +259,7 @@ export const MyLayyahApplications: React.FC = () => {
                       setInvitePsn('');
                     }}
                     disabled={inviteBusy || ((application.group_member_count || 0) + 1) >= 5}
-                    className="flex items-center justify-center px-3 py-2 text-sm bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
+                    className="flex items-center justify-center px-3 py-2 text-sm bg-primary-100 text-primary-700 rounded-lg hover:bg-primary-200 transition-colors"
                     aria-label="Invite member"
                   >
                     <UserPlus className="h-4 w-4" />
@@ -376,7 +376,7 @@ export const MyLayyahApplications: React.FC = () => {
                   <input
                     value={invitePsn}
                     onChange={(e) => setInvitePsn(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     placeholder="Enter PSN"
                     disabled={inviteBusy}
                   />
@@ -398,7 +398,7 @@ export const MyLayyahApplications: React.FC = () => {
                   <button
                     type="button"
                     onClick={submitInvite}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-60"
+                    className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-60"
                     disabled={inviteBusy}
                   >
                     {inviteBusy ? 'Sending...' : 'Send invite'}

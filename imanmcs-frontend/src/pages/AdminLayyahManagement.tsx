@@ -666,7 +666,7 @@ export const AdminLayyahManagement: React.FC = () => {
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
               <div className="flex items-center space-x-2">
-                <BarChart3 className="h-5 w-5 text-blue-600" />
+                <BarChart3 className="h-5 w-5 text-primary-600" />
                 <span className="text-sm font-medium text-gray-600">Total</span>
               </div>
               <div className="text-2xl font-bold text-gray-900 mt-1">{stats.total_applications}</div>
@@ -687,10 +687,10 @@ export const AdminLayyahManagement: React.FC = () => {
             </div>
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
               <div className="flex items-center space-x-2">
-                <Users className="h-5 w-5 text-indigo-600" />
+                <Users className="h-5 w-5 text-primary-600" />
                 <span className="text-sm font-medium text-gray-600">Groups</span>
               </div>
-              <div className="text-2xl font-bold text-indigo-600 mt-1">{stats.group_applications}</div>
+              <div className="text-2xl font-bold text-primary-600 mt-1">{stats.group_applications}</div>
             </div>
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
               <div className="flex items-center space-x-2">
@@ -734,7 +734,7 @@ export const AdminLayyahManagement: React.FC = () => {
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">Status Breakdown</h3>
-                  <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
+                  <div className="p-2 bg-primary-50 rounded-lg text-primary-600">
                     <BarChart3 className="h-5 w-5" />
                   </div>
                 </div>
@@ -793,7 +793,7 @@ export const AdminLayyahManagement: React.FC = () => {
                     </div>
                     <div className="w-full bg-gray-100 rounded-full h-1.5">
                       <div
-                        className="bg-indigo-500 h-1.5 rounded-full"
+                        className="bg-primary-500 h-1.5 rounded-full"
                         style={{ width: `${(stats.financials.group_total / stats.financials.projected_total) * 100}%` }}
                       ></div>
                     </div>
@@ -1031,7 +1031,7 @@ export const AdminLayyahManagement: React.FC = () => {
                             {(row.email || '—') + (row.phone ? ` • ${row.phone}` : '')}
                           </div>
                           <div className="mt-2">
-                            <span className={`px-2 py-0.5 text-[10px] font-medium rounded-full ${row.kind === 'group' ? 'bg-indigo-100 text-indigo-800' : 'bg-purple-100 text-purple-800'}`}>
+                            <span className={`px-2 py-0.5 text-[10px] font-medium rounded-full ${row.kind === 'group' ? 'bg-primary-100 text-primary-800' : 'bg-purple-100 text-purple-800'}`}>
                               {row.kind === 'group' ? 'Group' : 'Individual'}
                             </span>
                           </div>
@@ -1115,7 +1115,7 @@ export const AdminLayyahManagement: React.FC = () => {
                         {row.status === 'pending' && (
                           <button
                             onClick={() => handleApproval(row.application_id, 'under_review')}
-                            className="px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                            className="px-3 py-2 text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700"
                           >
                             Under Review
                           </button>
@@ -1232,7 +1232,7 @@ export const AdminLayyahManagement: React.FC = () => {
                             </div>
                           </td>
                           <td className="px-6 py-4">
-                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${row.kind === 'group' ? 'bg-indigo-100 text-indigo-800' : 'bg-purple-100 text-purple-800'}`}>
+                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${row.kind === 'group' ? 'bg-primary-100 text-primary-800' : 'bg-purple-100 text-purple-800'}`}>
                               {row.kind === 'group' ? 'Group' : 'Individual'}
                             </span>
                           </td>
@@ -1309,7 +1309,7 @@ export const AdminLayyahManagement: React.FC = () => {
                                   setSelectedApplication(row);
                                   setAdminNotes(row.notes || '');
                                 }}
-                                className="text-blue-600 hover:text-blue-900 transition-colors"
+                                className="text-primary-600 hover:text-primary-900 transition-colors"
                                 aria-label="View details"
                               >
                                 <Eye className="h-4 w-4" />
@@ -1317,7 +1317,7 @@ export const AdminLayyahManagement: React.FC = () => {
                               {row.status === 'pending' && (
                                 <button
                                   onClick={() => handleApproval(row.application_id, 'under_review')}
-                                  className="text-blue-600 hover:text-blue-900 transition-colors"
+                                  className="text-primary-600 hover:text-primary-900 transition-colors"
                                   aria-label="Mark under review"
                                 >
                                   <Clock className="h-4 w-4" />
@@ -1608,7 +1608,7 @@ export const AdminLayyahManagement: React.FC = () => {
                     {selectedApplication.kind === 'group' && (
                       <button
                         onClick={() => setIsManagingGroup(true)}
-                        className="flex items-center gap-2 px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-lg hover:bg-indigo-100 transition-colors text-sm font-medium"
+                        className="flex items-center gap-2 px-3 py-1.5 bg-primary-50 text-primary-700 rounded-lg hover:bg-primary-100 transition-colors text-sm font-medium"
                       >
                         <SettingsIcon className="h-4 w-4" />
                         Manage Group
@@ -1639,7 +1639,7 @@ export const AdminLayyahManagement: React.FC = () => {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Type</label>
-                      <div className="mt-1 capitalize font-medium text-indigo-600">{selectedApplication.kind}</div>
+                      <div className="mt-1 capitalize font-medium text-primary-600">{selectedApplication.kind}</div>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Status</label>
@@ -1698,7 +1698,7 @@ export const AdminLayyahManagement: React.FC = () => {
                       {selectedApplication.status === 'pending' && (
                         <button
                           onClick={() => handleApproval(selectedApplication.application_id, 'under_review')}
-                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                          className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
                         >
                           Under Review
                         </button>

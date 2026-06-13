@@ -342,7 +342,7 @@ export const CommunicationPage: React.FC = () => {
                     <div className="text-sm font-medium text-gray-900">{m.subject}</div>
                     <div className="text-sm text-gray-700 whitespace-pre-wrap">{m.body}</div>
                     {m.attachment_url ? (
-                      <button className="text-sm text-blue-600 hover:text-blue-800 mt-1" onClick={() => openAttachment(m.attachment_url!)}>
+                      <button className="text-sm text-primary-600 hover:text-primary-800 mt-1" onClick={() => openAttachment(m.attachment_url!)}>
                         {m.attachment_name || 'View attachment'}
                       </button>
                     ) : null}
@@ -420,7 +420,7 @@ export const CommunicationPage: React.FC = () => {
                     <td className="px-4 py-2 text-sm text-gray-900 capitalize">{c.status.replace('_', ' ')}</td>
                     <td className="px-4 py-2 text-sm">
                       {c.attachment_url ? (
-                        <button className="text-blue-600 hover:text-blue-800" onClick={() => openAttachment(c.attachment_url!)}>
+                        <button className="text-primary-600 hover:text-primary-800" onClick={() => openAttachment(c.attachment_url!)}>
                           View
                         </button>
                       ) : (
@@ -465,7 +465,7 @@ export const CommunicationPage: React.FC = () => {
             <div className="p-6 space-y-4">
               <div className="text-sm text-gray-800 whitespace-pre-wrap">{selectedComplaint.description}</div>
               {selectedComplaint.attachment_url ? (
-                <button className="text-blue-600 hover:text-blue-800 text-sm" onClick={() => openAttachment(selectedComplaint.attachment_url!)}>
+                <button className="text-primary-600 hover:text-primary-800 text-sm" onClick={() => openAttachment(selectedComplaint.attachment_url!)}>
                   View attachment
                 </button>
               ) : null}

@@ -165,7 +165,7 @@ export const ChairmanDashboard: React.FC = () => {
             <CheckCircle className="w-5 h-5 mr-2" />
             Review Loan Applications
           </button>
-          <button className="flex items-center justify-center p-4 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors">
+          <button className="flex items-center justify-center p-4 bg-primary-50 text-primary-700 rounded-lg hover:bg-primary-100 transition-colors">
             <DollarSign className="w-5 h-5 mr-2" />
             Authorize Payments
           </button>

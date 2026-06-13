@@ -136,7 +136,7 @@ export const LayyahGroupDetailsPage: React.FC = () => {
         <button
           type="button"
           onClick={() => navigate(-1)}
-          className="inline-flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="inline-flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500"
         >
           <ArrowLeft className="h-4 w-4" />
           <span>{t('back')}</span>
@@ -149,7 +149,7 @@ export const LayyahGroupDetailsPage: React.FC = () => {
           <button
             type="button"
             onClick={() => groupQuery.refetch()}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
           >
             {t('retry')}
           </button>
@@ -187,7 +187,7 @@ export const LayyahGroupDetailsPage: React.FC = () => {
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
         <div className="p-4 border-b border-gray-200 flex items-center justify-between">
           <div className="font-semibold text-gray-900 flex items-center gap-2">
-            <Users className="h-5 w-5 text-blue-600" />
+            <Users className="h-5 w-5 text-primary-600" />
             <span>{t('membersTitle')}</span>
           </div>
           {group && canInviteMembers && (
@@ -195,7 +195,7 @@ export const LayyahGroupDetailsPage: React.FC = () => {
               type="button"
               onClick={() => setInviteOpen(true)}
               disabled={inviteMutation.isPending}
-              className="inline-flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-60"
+              className="inline-flex items-center gap-2 px-3 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-60"
               aria-label={t('invite')}
             >
               <UserPlus className="h-4 w-4" />
@@ -209,7 +209,7 @@ export const LayyahGroupDetailsPage: React.FC = () => {
             <button
               type="button"
               onClick={() => membersQuery.refetch()}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
             >
               {t('retry')}
             </button>
@@ -229,14 +229,14 @@ export const LayyahGroupDetailsPage: React.FC = () => {
               return (
                 <div key={m.id} className="p-4 flex items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isLeader ? 'bg-blue-100' : 'bg-gray-100'}`}>
-                      <User className={`h-5 w-5 ${isLeader ? 'text-blue-700' : 'text-gray-700'}`} />
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isLeader ? 'bg-primary-100' : 'bg-gray-100'}`}>
+                      <User className={`h-5 w-5 ${isLeader ? 'text-primary-700' : 'text-gray-700'}`} />
                     </div>
                     <div>
                       <div className="font-medium text-gray-900">
                         {m.applicant_name || '—'}
                         {isLeader && (
-                          <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-blue-100 text-blue-700">{t('leader')}</span>
+                          <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-primary-100 text-primary-700">{t('leader')}</span>
                         )}
                       </div>
                       <div className="text-sm text-gray-600">{m.user_psn ? `PSN: ${m.user_psn}` : ''}</div>
@@ -315,7 +315,7 @@ export const LayyahGroupDetailsPage: React.FC = () => {
                   <input
                     value={invitePsn}
                     onChange={(e) => setInvitePsn(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     placeholder={t('invitePsnPlaceholder')}
                     disabled={inviteMutation.isPending}
                   />
@@ -352,7 +352,7 @@ export const LayyahGroupDetailsPage: React.FC = () => {
                       }
                       inviteMutation.mutate(psn);
                     }}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-60"
+                    className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-60"
                     disabled={inviteMutation.isPending}
                   >
                     {inviteMutation.isPending ? t('sending') : t('sendInvite')}

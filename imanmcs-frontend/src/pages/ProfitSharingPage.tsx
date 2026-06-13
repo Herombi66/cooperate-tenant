@@ -188,7 +188,7 @@ export const ProfitSharingPage: React.FC = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "calculated": return "bg-yellow-100 text-yellow-800";
-      case "approved": return "bg-blue-100 text-blue-800";
+      case "approved": return "bg-primary-100 text-primary-800";
       case "paid": return "bg-green-100 text-green-800";
       default: return "bg-gray-100 text-gray-800";
     }
@@ -294,8 +294,8 @@ export const ProfitSharingPage: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-white p-6 rounded-lg shadow">
           <div className="flex items-center">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <DollarSign className="w-6 h-6 text-blue-600" />
+            <div className="p-2 bg-primary-100 rounded-lg">
+              <DollarSign className="w-6 h-6 text-primary-600" />
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Investment</p>
@@ -407,7 +407,7 @@ export const ProfitSharingPage: React.FC = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                           share.status === 'paid' ? 'bg-green-100 text-green-800' :
-                          share.status === 'approved' ? 'bg-blue-100 text-blue-800' :
+                          share.status === 'approved' ? 'bg-primary-100 text-primary-800' :
                           share.status === 'calculated' ? 'bg-yellow-100 text-yellow-800' :
                           'bg-gray-100 text-gray-800'
                         }`}>
@@ -443,7 +443,7 @@ export const ProfitSharingPage: React.FC = () => {
                           {share.status === 'approved' && (
                             <button
                               onClick={() => handleMarkAsPaid(share.id)}
-                              className="text-blue-600 hover:text-blue-900 font-medium"
+                              className="text-primary-600 hover:text-primary-900 font-medium"
                               disabled={loading}
                             >
                               Mark Paid
@@ -473,7 +473,7 @@ export const ProfitSharingPage: React.FC = () => {
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Period Summary - {mainPagePeriod}</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="text-center">
-            <div className="text-2xl font-bold text-blue-600">${totalInvestment.toLocaleString()}</div>
+            <div className="text-2xl font-bold text-primary-600">${totalInvestment.toLocaleString()}</div>
             <div className="text-sm text-gray-600">Total Investment Pool</div>
           </div>
           <div className="text-center">
@@ -536,8 +536,8 @@ export const ProfitSharingPage: React.FC = () => {
                   </div>
 
                   {/* Financial Data - Auto-Loaded */}
-                  <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-400">
-                    <h4 className="text-sm font-semibold text-blue-900 mb-3">🔒 Auto-Calculated Financial Data</h4>
+                  <div className="bg-primary-50 p-4 rounded-lg border-l-4 border-primary-400">
+                    <h4 className="text-sm font-semibold text-primary-900 mb-3">🔒 Auto-Calculated Financial Data</h4>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Total Investment Pool (From Member Contributions) $
@@ -608,7 +608,7 @@ export const ProfitSharingPage: React.FC = () => {
                         </div>
                         <div>
                           <span className="text-gray-600">Net Profit for Sharing:</span>
-                          <div className="font-semibold text-blue-600">
+                          <div className="font-semibold text-primary-600">
                             ${(periodData.totalProfit || 0).toLocaleString()} (after 24.3% deductions)
                           </div>
                         </div>
@@ -745,7 +745,7 @@ export const ProfitSharingPage: React.FC = () => {
 
               {/* Member Details */}
               <div className="space-y-3">
-                <div className="bg-blue-50 p-4 rounded-lg">
+                <div className="bg-primary-50 p-4 rounded-lg">
                   <h5 className="font-semibold text-gray-900 mb-2">Member Information</h5>
                   <div className="text-sm space-y-1">
                     <p><span className="font-medium">Name:</span> {selectedShare.memberName}</p>
@@ -823,7 +823,7 @@ export const ProfitSharingPage: React.FC = () => {
                   // Print functionality could be added later
                   window.print();
                 }}
-                className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm"
+                className="flex-1 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 text-sm"
               >
                 🖨️ Print Receipt
               </button>

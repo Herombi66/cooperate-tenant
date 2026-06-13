@@ -125,7 +125,7 @@ export const MemberApplicationsPage: React.FC = () => {
     switch (status) {
       case 'approved': return 'bg-green-100 text-green-800';
       case 'rejected': return 'bg-red-100 text-red-800';
-      case 'under_review': return 'bg-blue-100 text-blue-800';
+      case 'under_review': return 'bg-primary-100 text-primary-800';
       case 'pending': return 'bg-yellow-100 text-yellow-800';
       default: return 'bg-gray-100 text-gray-800';
     }
@@ -159,7 +159,7 @@ export const MemberApplicationsPage: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
         <div className="bg-white p-6 rounded-lg shadow">
           <div className="flex items-center">
-            <FileText className="w-8 h-8 text-blue-500" />
+            <FileText className="w-8 h-8 text-primary-500" />
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Applications</p>
               <p className="text-2xl font-bold text-gray-900">{totalApplications}</p>
@@ -345,7 +345,7 @@ export const MemberApplicationsPage: React.FC = () => {
                             setSelectedApplication(application);
                             setShowViewModal(true);
                           }}
-                          className="text-blue-600 hover:text-blue-900 p-1"
+                          className="text-primary-600 hover:text-primary-900 p-1"
                           title="View Details"
                         >
                           <Eye className="w-5 h-5" />
@@ -546,7 +546,7 @@ export const MemberApplicationsPage: React.FC = () => {
 
               {/* Review Information */}
               {(selectedApplication.approved_by || selectedApplication.status !== 'pending') && (
-                <div className="bg-blue-50 p-4 rounded-lg">
+                <div className="bg-primary-50 p-4 rounded-lg">
                   <h4 className="text-lg font-semibold text-gray-900 mb-3">Review Information</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -594,7 +594,7 @@ export const MemberApplicationsPage: React.FC = () => {
                       setShowViewModal(false);
                       setSelectedApplication(null);
                     }}
-                    className="flex items-center px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm"
+                    className="flex items-center px-3 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 text-sm"
                   >
                     <Eye className="w-4 h-4 mr-2" />
                     Mark Under Review

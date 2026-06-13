@@ -51,7 +51,7 @@ export const TreasurerDashboard: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
         <div className="bg-white p-6 rounded-lg shadow">
           <div className="flex items-center">
-            <PiggyBank className="w-8 h-8 text-blue-500" />
+            <PiggyBank className="w-8 h-8 text-primary-500" />
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Contributions</p>
               <p className="text-2xl font-bold text-gray-900">₦{(treasurerData.totalContributions / 1000000).toFixed(1)}M</p>
@@ -66,7 +66,7 @@ export const TreasurerDashboard: React.FC = () => {
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Active Loans</p>
               <p className="text-2xl font-bold text-gray-900">{treasurerData.activeLoans}</p>
-              <p className="text-xs text-blue-600">₦{(treasurerData.totalLoanAmount / 1000000).toFixed(1)}M total</p>
+              <p className="text-xs text-primary-600">₦{(treasurerData.totalLoanAmount / 1000000).toFixed(1)}M total</p>
             </div>
           </div>
         </div>
@@ -106,7 +106,7 @@ export const TreasurerDashboard: React.FC = () => {
             </div>
             <div className="w-full bg-gray-200 rounded-full h-4">
               <div 
-                className="bg-blue-500 h-4 rounded-full"
+                className="bg-primary-500 h-4 rounded-full"
                 style={{ width: '78%' }}
               ></div>
             </div>
@@ -198,7 +198,7 @@ export const TreasurerDashboard: React.FC = () => {
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-medium text-gray-900">₦{item.amount.toLocaleString()}</p>
-                  <button className="text-xs text-blue-600 hover:text-blue-800">Review</button>
+                  <button className="text-xs text-primary-600 hover:text-primary-800">Review</button>
                 </div>
               </div>
             ))}
@@ -211,7 +211,7 @@ export const TreasurerDashboard: React.FC = () => {
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
-            <DollarSign className="w-6 h-6 text-blue-500 mb-2" />
+            <DollarSign className="w-6 h-6 text-primary-500 mb-2" />
             <div className="font-medium">Record Contribution</div>
             <div className="text-sm text-gray-500">Add member contribution</div>
           </button>

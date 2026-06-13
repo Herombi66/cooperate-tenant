@@ -170,7 +170,7 @@ export const WithdrawalsAdminPage: React.FC = () => {
                         {canDisburse(w) && (
                           <button
                             onClick={() => updateStatus(w.id, 'disbursed')}
-                            className="inline-flex items-center px-2 py-1 rounded border border-blue-300 text-blue-700 hover:bg-blue-50"
+                            className="inline-flex items-center px-2 py-1 rounded border border-primary-300 text-primary-700 hover:bg-primary-50"
                             disabled={loading}
                             title="Disburse"
                           >

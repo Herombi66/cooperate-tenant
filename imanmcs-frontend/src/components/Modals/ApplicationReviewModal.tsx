@@ -179,9 +179,9 @@ export const ApplicationReviewModal: React.FC<ApplicationReviewModalProps> = ({
               </div>
             )}
 
-            <div className="bg-blue-50 p-4 rounded-md border border-blue-200">
-              <h4 className="text-sm font-medium text-blue-900 mb-2">Contribution Breakdown</h4>
-              <div className="space-y-1 text-sm text-blue-800">
+            <div className="bg-primary-50 p-4 rounded-md border border-primary-200">
+              <h4 className="text-sm font-medium text-primary-900 mb-2">Contribution Breakdown</h4>
+              <div className="space-y-1 text-sm text-primary-800">
                 <div className="flex justify-between">
                   <span>Total Contribution:</span>
                   <span>₦{totalContribution.toLocaleString()}</span>
@@ -190,7 +190,7 @@ export const ApplicationReviewModal: React.FC<ApplicationReviewModalProps> = ({
                   <span>Entrance Fee:</span>
                   <span>₦1,500</span>
                 </div>
-                <div className="flex justify-between font-medium border-t border-blue-200 pt-1">
+                <div className="flex justify-between font-medium border-t border-primary-200 pt-1">
                   <span>Net Initial Contribution:</span>
                   <span>₦{(totalContribution - 1500).toLocaleString()}</span>
                 </div>

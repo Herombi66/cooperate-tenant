@@ -80,7 +80,7 @@ export const TreasurerDashboard: React.FC = () => {
         <div className="flex space-x-3">
           <button
             onClick={() => setShowBulkUpload(true)}
-            className="flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+            className="flex items-center px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600"
           >
             <Upload className="w-4 h-4 mr-2" />
             Bulk Upload
@@ -101,7 +101,7 @@ export const TreasurerDashboard: React.FC = () => {
           title="Total Members"
           value={stats.totalMembers}
           icon={Users}
-          color="bg-blue-500"
+          color="bg-primary-500"
           change={5}
         />
         <StatCard
@@ -271,7 +271,7 @@ const OverviewTab = () => {
             </button>
             <button className="w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-gray-50">
               <div className="flex items-center">
-                <FileText className="w-5 h-5 text-blue-500 mr-3" />
+                <FileText className="w-5 h-5 text-primary-500 mr-3" />
                 <span className="text-sm font-medium">Generate Statements</span>
               </div>
             </button>

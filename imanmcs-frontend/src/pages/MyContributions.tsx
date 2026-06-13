@@ -180,7 +180,7 @@ export const MyContributions: React.FC = () => {
     switch (status) {
       case 'confirmed': return 'bg-green-100 text-green-800';
       case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'processing': return 'bg-blue-100 text-blue-800';
+      case 'processing': return 'bg-primary-100 text-primary-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -233,7 +233,7 @@ export const MyContributions: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
         <div className="bg-white p-6 rounded-lg shadow">
           <div className="flex items-center">
-            <PiggyBank className="w-8 h-8 text-blue-500" />
+            <PiggyBank className="w-8 h-8 text-primary-500" />
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Savings</p>
               <p className="text-2xl font-bold text-gray-900">₦{totalSavings.toLocaleString()}</p>
@@ -525,7 +525,7 @@ export const MyContributions: React.FC = () => {
                   <div className="w-full bg-gray-200 rounded-full h-6">
                     <div className="flex h-6 rounded-full overflow-hidden">
                       <div 
-                        className="bg-blue-500 flex items-center justify-center text-white text-xs font-medium"
+                        className="bg-primary-500 flex items-center justify-center text-white text-xs font-medium"
                         style={{ width: `${(contribution.savings / contribution.total) * 100}%` }}
                         title={`Savings: ₦${contribution.savings.toLocaleString()}`}
                       >
@@ -577,7 +577,7 @@ export const MyContributions: React.FC = () => {
           {/* Legend */}
           <div className="mt-6 flex justify-center space-x-6 flex-wrap">
             <div className="flex items-center mb-2">
-              <div className="w-4 h-4 bg-blue-500 rounded mr-2"></div>
+              <div className="w-4 h-4 bg-primary-500 rounded mr-2"></div>
               <span className="text-sm">Savings</span>
             </div>
             <div className="flex items-center mb-2">

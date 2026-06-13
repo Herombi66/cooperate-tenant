@@ -96,7 +96,7 @@ export const MyLoanRepayments: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
         <div className="bg-white p-6 rounded-lg shadow">
           <div className="flex items-center">
-            <DollarSign className="w-8 h-8 text-blue-500" />
+            <DollarSign className="w-8 h-8 text-primary-500" />
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Repaid</p>
               <p className="text-2xl font-bold text-gray-900">₦{totalRepayments.toLocaleString()}</p>
@@ -182,7 +182,7 @@ export const MyLoanRepayments: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <button
                         onClick={() => viewRepaymentDetails(repayment)}
-                        className="text-blue-600 hover:text-blue-900 flex items-center"
+                        className="text-primary-600 hover:text-primary-900 flex items-center"
                       >
                         <Eye className="w-4 h-4 mr-1" />
                         View Details
@@ -208,8 +208,8 @@ export const MyLoanRepayments: React.FC = () => {
             <div className="p-6 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Loan Information */}
-                <div className="bg-blue-50 p-4 rounded-lg">
-                  <h4 className="text-sm font-semibold text-blue-900 mb-3 flex items-center">
+                <div className="bg-primary-50 p-4 rounded-lg">
+                  <h4 className="text-sm font-semibold text-primary-900 mb-3 flex items-center">
                     <CreditCard className="w-4 h-4 mr-2" />
                     Loan Information
                   </h4>

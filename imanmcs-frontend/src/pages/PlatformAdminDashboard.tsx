@@ -56,6 +56,12 @@ export const PlatformAdminDashboard: React.FC = () => {
         contactEmail: '',
         contactPhone: ''
       }
+    },
+    admin: {
+      name: '',
+      email: '',
+      phone: '',
+      password: ''
     }
   };
 
@@ -152,7 +158,8 @@ export const PlatformAdminDashboard: React.FC = () => {
       subdomain: tenant.subdomain || '',
       cooperative_type: tenant.cooperative_type,
       features: tenant.features || { ...defaultFeatures },
-      theme: tenant.theme || initialFormState.theme
+      theme: tenant.theme || initialFormState.theme,
+      admin: { name: '', email: '', phone: '', password: '' }
     });
     setShowEditModal(true);
   };
@@ -230,13 +237,13 @@ export const PlatformAdminDashboard: React.FC = () => {
     <div className="min-h-screen bg-slate-50 relative overflow-hidden">
       {/* Decorative background blobs */}
       <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-primary-200/40 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob"></div>
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-200/40 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-2000"></div>
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary-200/40 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-2000"></div>
 
       <nav className="relative bg-white/70 backdrop-blur-xl border-b border-white/20 sticky top-0 z-30 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-20 items-center">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-primary-500/30">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-600 to-primary-600 flex items-center justify-center shadow-lg shadow-primary-500/30">
                 <Shield className="w-5 h-5 text-white" />
               </div>
               <span className="font-bold text-2xl bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600">
@@ -273,7 +280,7 @@ export const PlatformAdminDashboard: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
           <div className="bg-white/60 backdrop-blur-xl border border-white/40 p-6 rounded-2xl shadow-sm">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-blue-100 text-blue-600 rounded-xl">
+              <div className="p-3 bg-primary-100 text-primary-600 rounded-xl">
                 <Box className="w-6 h-6" />
               </div>
               <div>
@@ -328,7 +335,7 @@ export const PlatformAdminDashboard: React.FC = () => {
                     </span>
                     <button 
                       onClick={() => navigate(`/platform/tenants/${tenant.id}/landing-page`)}
-                      className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                      className="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
                       title="Design Landing Page"
                     >
                       <Paintbrush className="w-5 h-5" />
@@ -370,7 +377,7 @@ export const PlatformAdminDashboard: React.FC = () => {
                     <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-3">Active Modules</p>
                     <div className="flex flex-wrap gap-2">
                       {tenant.features?.loans !== false && (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-blue-50 text-blue-700 text-xs font-medium">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-primary-50 text-primary-700 text-xs font-medium">
                           <CreditCard className="w-3 h-3" /> Loans
                         </span>
                       )}
@@ -483,10 +490,64 @@ export const PlatformAdminDashboard: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Section 2: Modular Features */}
+                {/* Section 2: Administrator Details */}
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                     <span className="w-6 h-6 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center text-sm">2</span>
+                    Administrator Details
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">Admin Full Name *</label>
+                      <input
+                        type="text"
+                        required
+                        value={formData.admin?.name || ''}
+                        onChange={(e) => setFormData({...formData, admin: { ...formData.admin, name: e.target.value }})}
+                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all outline-none"
+                        placeholder="e.g. John Doe"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">Admin Password *</label>
+                      <input
+                        type="text"
+                        required
+                        value={formData.admin?.password || ''}
+                        onChange={(e) => setFormData({...formData, admin: { ...formData.admin, password: e.target.value }})}
+                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all outline-none"
+                        placeholder="Enter secure password"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">Admin Email *</label>
+                      <input
+                        type="email"
+                        required
+                        value={formData.admin?.email || ''}
+                        onChange={(e) => setFormData({...formData, admin: { ...formData.admin, email: e.target.value }})}
+                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all outline-none"
+                        placeholder="admin@example.com"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">Admin Phone *</label>
+                      <input
+                        type="text"
+                        required
+                        value={formData.admin?.phone || ''}
+                        onChange={(e) => setFormData({...formData, admin: { ...formData.admin, phone: e.target.value }})}
+                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all outline-none"
+                        placeholder="+234 800 000 0000"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Section 3: Modular Features */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center text-sm">3</span>
                     Enable Modules
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -535,11 +596,11 @@ export const PlatformAdminDashboard: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Section 3: Landing Page Customization */}
+                {/* Section 4: Landing Page Customization */}
                 {formData.features.landing_page && (
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                      <span className="w-6 h-6 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center text-sm">3</span>
+                      <span className="w-6 h-6 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center text-sm">4</span>
                       Landing Page Customization
                     </h3>
                     <div className="grid grid-cols-1 gap-4 bg-gray-50 p-5 rounded-xl border border-gray-100">

@@ -135,7 +135,7 @@ export const ReportsPage: React.FC = () => {
       name: 'Member Activity Report',
       description: 'Member registration, contributions, and engagement statistics',
       icon: Users,
-      color: 'bg-blue-100 text-blue-600',
+      color: 'bg-primary-100 text-primary-600',
     },
     {
       id: 'loans',
@@ -184,7 +184,7 @@ export const ReportsPage: React.FC = () => {
       name: 'Bulk Upload Reports',
       description: 'Contribution imports and loan repayment uploads with error reports and performance metrics',
       icon: Upload,
-      color: 'bg-indigo-100 text-indigo-600',
+      color: 'bg-primary-100 text-primary-600',
     },
   ];
 
@@ -209,8 +209,8 @@ export const ReportsPage: React.FC = () => {
           </div>
           <div className="bg-white p-6 rounded-lg shadow">
             <div className="flex items-center">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <CreditCard className="w-6 h-6 text-blue-600" />
+              <div className="p-2 bg-primary-100 rounded-lg">
+                <CreditCard className="w-6 h-6 text-primary-600" />
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Loans Outstanding</p>
@@ -248,7 +248,7 @@ export const ReportsPage: React.FC = () => {
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Contribution Breakdown</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">₦{(data.savingsContributions / 1000000).toFixed(1)}M</div>
+                <div className="text-2xl font-bold text-primary-600">₦{(data.savingsContributions / 1000000).toFixed(1)}M</div>
                 <div className="text-sm text-gray-600">Savings Contributions</div>
                 <div className="text-xs text-gray-500">{((data.savingsContributions / data.totalContributions) * 100).toFixed(1)}% of total</div>
               </div>
@@ -276,7 +276,7 @@ export const ReportsPage: React.FC = () => {
                 <div className="text-sm text-gray-600">Total Loans</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">₦{(data.loansAmount / 1000000).toFixed(1)}M</div>
+                <div className="text-2xl font-bold text-primary-600">₦{(data.loansAmount / 1000000).toFixed(1)}M</div>
                 <div className="text-sm text-gray-600">Total Disbursed</div>
               </div>
               <div className="text-center">
@@ -306,7 +306,7 @@ export const ReportsPage: React.FC = () => {
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Member Activity Summary</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="text-center">
-            <div className="text-2xl font-bold text-blue-600">{stats.totalMembers}</div>
+            <div className="text-2xl font-bold text-primary-600">{stats.totalMembers}</div>
             <div className="text-sm text-gray-600">Total Members</div>
           </div>
           <div className="text-center">

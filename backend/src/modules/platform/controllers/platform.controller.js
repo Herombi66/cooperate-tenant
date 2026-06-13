@@ -1,7 +1,7 @@
-const { PlatformAdmin, Tenant } = require('../../../../models');
+const { PlatformAdmin, Tenant, MembershipApplication, User, sequelize } = require('../../../../models');
+const emailService = require('../../../../services/emailService');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-
 // Platform Admin Login
 exports.login = async (req, res) => {
   try {
@@ -58,10 +58,14 @@ exports.getTenants = async (req, res) => {
 // Create a new tenant
 exports.createTenant = async (req, res) => {
   try {
-    const { id, name, domain, subdomain, cooperative_type, features, theme } = req.body;
+    const { id, name, domain, subdomain, cooperative_type, features, theme, admin } = req.body;
 
     if (!id || !name || !cooperative_type) {
       return res.status(400).json({ success: false, message: 'id, name, and cooperative_type are required' });
+    }
+
+    if (!admin || !admin.name || !admin.email || !admin.phone || !admin.password) {
+      return res.status(400).json({ success: false, message: 'Administrator details (name, email, phone, password) are required' });
     }
 
     // Check if ID or Domain/Subdomain exists
@@ -124,21 +128,60 @@ exports.createTenant = async (req, res) => {
       }
     };
 
-    const tenant = await Tenant.create({
-      id,
-      name,
-      domain: domain || null,
-      subdomain: subdomain || null,
-      cooperative_type,
-      theme: theme || defaultTheme,
-      features: features || undefined,
-      status: 'active'
+    const result = await sequelize.transaction(async (t) => {
+      const tenant = await Tenant.create({
+        id,
+        name,
+        domain: domain || null,
+        subdomain: subdomain || null,
+        cooperative_type,
+        theme: theme || defaultTheme,
+        features: features || undefined,
+        status: 'active'
+      }, { transaction: t });
+
+      // Create Admin Membership Application
+      const adminPsn = `${id.toUpperCase()}-ADM-001`;
+      
+      const membershipApp = await MembershipApplication.create({
+        psn: adminPsn,
+        name: admin.name,
+        email: admin.email,
+        phone: admin.phone,
+        facility_name: 'Tenant Admin',
+        next_of_kin_name: 'N/A',
+        next_of_kin_phone: 'N/A',
+        status: 'approved'
+      }, { transaction: t, skipTenant: true });
+
+      // Use the manually provided password
+      const tempPassword = admin.password;
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(tempPassword, salt);
+
+      const user = await User.create({
+        membership_application_id: membershipApp.id,
+        tenant_id: id,
+        password_hash: hashedPassword,
+        role: 'admin',
+        status: 'active',
+        is_default_password: true
+      }, { transaction: t, skipTenant: true });
+
+      return { tenant, membershipApp, user, tempPassword };
     });
+
+    // Send Welcome Email
+    try {
+      await emailService.sendWelcomeEmail(result.membershipApp, result.tempPassword);
+    } catch (emailError) {
+      console.error('Failed to send welcome email to tenant admin:', emailError);
+    }
 
     res.status(201).json({
       success: true,
       message: 'Tenant created successfully',
-      tenant
+      tenant: result.tenant
     });
   } catch (error) {
     console.error('Create tenant error:', error);
