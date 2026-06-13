@@ -32,5 +32,6 @@ router.use('/tenants', authenticatePlatformAdmin);
 router.get('/tenants', platformController.getTenants);
 router.post('/tenants', platformController.createTenant);
 router.put('/tenants/:id', platformController.updateTenant);
+router.delete('/tenants/:id', platformController.deleteTenant);
 
 module.exports = router;

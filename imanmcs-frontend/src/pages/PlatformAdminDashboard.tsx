@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Settings, Globe, Shield, LogOut, CheckCircle, XCircle, Layout, Activity, Users, Box, CreditCard, Heart, Receipt, TrendingUp, Percent } from 'lucide-react';
+import { Plus, Settings, Globe, Shield, LogOut, CheckCircle, XCircle, Layout, Activity, Users, Box, CreditCard, Heart, Receipt, TrendingUp, Percent, Paintbrush, Trash2 } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
@@ -22,6 +22,7 @@ interface Tenant {
   status: string;
   created_at: string;
   features?: TenantFeatures;
+  theme?: any;
 }
 
 const defaultFeatures: TenantFeatures = {
@@ -37,14 +38,28 @@ export const PlatformAdminDashboard: React.FC = () => {
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [formData, setFormData] = useState({
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedTenantId, setSelectedTenantId] = useState<string | null>(null);
+
+  const initialFormState = {
     id: '',
     name: '',
     domain: '',
     subdomain: '',
     cooperative_type: 'islamic',
-    features: { ...defaultFeatures }
-  });
+    features: { ...defaultFeatures },
+    theme: {
+      landingPage: {
+        heroTitle: '',
+        heroSubtitle: '',
+        aboutText: '',
+        contactEmail: '',
+        contactPhone: ''
+      }
+    }
+  };
+
+  const [formData, setFormData] = useState(initialFormState);
   
   const navigate = useNavigate();
 
@@ -96,6 +111,19 @@ export const PlatformAdminDashboard: React.FC = () => {
     }));
   };
 
+  const handleLandingPageChange = (field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      theme: {
+        ...(prev.theme || {}),
+        landingPage: {
+          ...(prev.theme?.landingPage || {}),
+          [field]: value
+        }
+      }
+    }));
+  };
+
   const handleCreateTenant = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -108,17 +136,65 @@ export const PlatformAdminDashboard: React.FC = () => {
 
       toast.success('Tenant created successfully');
       setShowAddModal(false);
-      setFormData({
-        id: '',
-        name: '',
-        domain: '',
-        subdomain: '',
-        cooperative_type: 'islamic',
-        features: { ...defaultFeatures }
-      });
+      setFormData(initialFormState);
       fetchTenants();
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Failed to create tenant');
+    }
+  };
+
+  const handleOpenEditModal = (tenant: Tenant) => {
+    setSelectedTenantId(tenant.id);
+    setFormData({
+      id: tenant.id,
+      name: tenant.name,
+      domain: tenant.domain || '',
+      subdomain: tenant.subdomain || '',
+      cooperative_type: tenant.cooperative_type,
+      features: tenant.features || { ...defaultFeatures },
+      theme: tenant.theme || initialFormState.theme
+    });
+    setShowEditModal(true);
+  };
+
+  const handleUpdateTenant = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedTenantId) return;
+
+    try {
+      const token = localStorage.getItem('platformToken');
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      
+      await axios.put(`${API_URL}/platform/tenants/${selectedTenantId}`, formData, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      toast.success('Tenant updated successfully');
+      setShowEditModal(false);
+      setFormData(initialFormState);
+      fetchTenants();
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to update tenant');
+    }
+  };
+
+  const handleDeleteTenant = async (tenantId: string, tenantName: string) => {
+    if (!window.confirm(`Are you sure you want to delete the tenant "${tenantName}"? This action cannot be undone and will permanently remove all associated data.`)) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('platformToken');
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      
+      await axios.delete(`${API_URL}/platform/tenants/${tenantId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      toast.success('Tenant deleted successfully');
+      fetchTenants();
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to delete tenant');
     }
   };
 
@@ -250,8 +326,26 @@ export const PlatformAdminDashboard: React.FC = () => {
                       <span className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-green-500' : 'bg-red-500'}`}></span>
                       {tenant.status}
                     </span>
-                    <button className="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors">
+                    <button 
+                      onClick={() => navigate(`/platform/tenants/${tenant.id}/landing-page`)}
+                      className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                      title="Design Landing Page"
+                    >
+                      <Paintbrush className="w-5 h-5" />
+                    </button>
+                    <button 
+                      onClick={() => handleOpenEditModal(tenant)}
+                      className="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+                      title="Edit Tenant Settings"
+                    >
                       <Settings className="w-5 h-5" />
+                    </button>
+                    <button 
+                      onClick={() => handleDeleteTenant(tenant.id, tenant.name)}
+                      className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      title="Delete Tenant"
+                    >
+                      <Trash2 className="w-5 h-5" />
                     </button>
                   </div>
                   
@@ -440,6 +534,70 @@ export const PlatformAdminDashboard: React.FC = () => {
                     />
                   </div>
                 </div>
+
+                {/* Section 3: Landing Page Customization */}
+                {formData.features.landing_page && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                      <span className="w-6 h-6 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center text-sm">3</span>
+                      Landing Page Customization
+                    </h3>
+                    <div className="grid grid-cols-1 gap-4 bg-gray-50 p-5 rounded-xl border border-gray-100">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Hero Title</label>
+                        <input
+                          type="text"
+                          value={formData.theme?.landingPage?.heroTitle || ''}
+                          onChange={(e) => handleLandingPageChange('heroTitle', e.target.value)}
+                          className="w-full bg-white border border-gray-200 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all outline-none"
+                          placeholder="e.g. Welcome to our Cooperative"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Hero Subtitle</label>
+                        <textarea
+                          rows={2}
+                          value={formData.theme?.landingPage?.heroSubtitle || ''}
+                          onChange={(e) => handleLandingPageChange('heroSubtitle', e.target.value)}
+                          className="w-full bg-white border border-gray-200 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all outline-none resize-none"
+                          placeholder="Short description under the title..."
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">About Text</label>
+                        <textarea
+                          rows={3}
+                          value={formData.theme?.landingPage?.aboutText || ''}
+                          onChange={(e) => handleLandingPageChange('aboutText', e.target.value)}
+                          className="w-full bg-white border border-gray-200 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all outline-none resize-none"
+                          placeholder="Mission and description of the cooperative..."
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1.5">Contact Email</label>
+                          <input
+                            type="email"
+                            value={formData.theme?.landingPage?.contactEmail || ''}
+                            onChange={(e) => handleLandingPageChange('contactEmail', e.target.value)}
+                            className="w-full bg-white border border-gray-200 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all outline-none"
+                            placeholder="support@example.com"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1.5">Contact Phone</label>
+                          <input
+                            type="text"
+                            value={formData.theme?.landingPage?.contactPhone || ''}
+                            onChange={(e) => handleLandingPageChange('contactPhone', e.target.value)}
+                            className="w-full bg-white border border-gray-200 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all outline-none"
+                            placeholder="+234 800 000 0000"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="mt-8 pt-6 border-t border-gray-100 flex justify-end gap-3">
@@ -455,6 +613,160 @@ export const PlatformAdminDashboard: React.FC = () => {
                   className="px-8 py-3 bg-gray-900 text-white rounded-xl font-medium shadow-lg shadow-gray-900/20 hover:bg-gray-800 hover:-translate-y-0.5 transition-all"
                 >
                   Create Workspace
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Tenant Settings Modal */}
+      {showEditModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+          <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" onClick={() => setShowEditModal(false)} />
+          <div className="relative bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <div className="sticky top-0 bg-white/80 backdrop-blur-xl border-b border-gray-100 p-6 flex justify-between items-center z-10 rounded-t-3xl">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">Edit Settings: {formData.name}</h2>
+                <p className="text-sm text-gray-500">Update landing page text and configuration</p>
+              </div>
+              <button onClick={() => setShowEditModal(false)} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors">
+                <XCircle className="w-6 h-6" />
+              </button>
+            </div>
+            
+            <form onSubmit={handleUpdateTenant} className="p-6">
+              <div className="space-y-8">
+                {/* Section 1: Modular Features */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center text-sm">1</span>
+                    Enable Modules
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <ToggleSwitch
+                      label="Public Landing Page"
+                      description="Allow public facing landing page"
+                      icon={Layout}
+                      enabled={formData.features.landing_page}
+                      onChange={() => handleToggleFeature('landing_page')}
+                    />
+                    <ToggleSwitch
+                      label="Loans & Credit"
+                      description="Process loan applications"
+                      icon={CreditCard}
+                      enabled={formData.features.loans}
+                      onChange={() => handleToggleFeature('loans')}
+                    />
+                    <ToggleSwitch
+                      label="Layyah / Animal"
+                      description="Festival animal requests"
+                      icon={Heart}
+                      enabled={formData.features.layyah}
+                      onChange={() => handleToggleFeature('layyah')}
+                    />
+                    <ToggleSwitch
+                      label="Profit Sharing"
+                      description="Calculate and share dividends"
+                      icon={TrendingUp}
+                      enabled={formData.features.profit_sharing}
+                      onChange={() => handleToggleFeature('profit_sharing')}
+                    />
+                    <ToggleSwitch
+                      label="Expenses Management"
+                      description="Track cooperative expenses"
+                      icon={Receipt}
+                      enabled={formData.features.expenses}
+                      onChange={() => handleToggleFeature('expenses')}
+                    />
+                    <ToggleSwitch
+                      label="Withdrawals"
+                      description="Member savings withdrawals"
+                      icon={Percent}
+                      enabled={formData.features.withdrawals}
+                      onChange={() => handleToggleFeature('withdrawals')}
+                    />
+                  </div>
+                </div>
+
+                {/* Section 2: Landing Page Customization */}
+                {formData.features.landing_page && (
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center text-sm">2</span>
+                    Landing Page Configuration
+                  </h3>
+                  <div className="grid grid-cols-1 gap-4 bg-gray-50 p-5 rounded-xl border border-gray-100">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">Hero Title</label>
+                      <input
+                        type="text"
+                        value={formData.theme?.landingPage?.heroTitle || ''}
+                        onChange={(e) => handleLandingPageChange('heroTitle', e.target.value)}
+                        className="w-full bg-white border border-gray-200 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all outline-none"
+                        placeholder="e.g. Welcome to our Cooperative"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">Hero Subtitle</label>
+                      <textarea
+                        rows={2}
+                        value={formData.theme?.landingPage?.heroSubtitle || ''}
+                        onChange={(e) => handleLandingPageChange('heroSubtitle', e.target.value)}
+                        className="w-full bg-white border border-gray-200 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all outline-none resize-none"
+                        placeholder="Short description under the title..."
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">About Text</label>
+                      <textarea
+                        rows={3}
+                        value={formData.theme?.landingPage?.aboutText || ''}
+                        onChange={(e) => handleLandingPageChange('aboutText', e.target.value)}
+                        className="w-full bg-white border border-gray-200 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all outline-none resize-none"
+                        placeholder="Mission and description of the cooperative..."
+                      />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Contact Email</label>
+                        <input
+                          type="email"
+                          value={formData.theme?.landingPage?.contactEmail || ''}
+                          onChange={(e) => handleLandingPageChange('contactEmail', e.target.value)}
+                          className="w-full bg-white border border-gray-200 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all outline-none"
+                          placeholder="support@example.com"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Contact Phone</label>
+                        <input
+                          type="text"
+                          value={formData.theme?.landingPage?.contactPhone || ''}
+                          onChange={(e) => handleLandingPageChange('contactPhone', e.target.value)}
+                          className="w-full bg-white border border-gray-200 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all outline-none"
+                          placeholder="+234 800 000 0000"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                )}
+              </div>
+
+              <div className="mt-8 pt-6 border-t border-gray-100 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowEditModal(false)}
+                  className="px-6 py-3 rounded-xl text-gray-700 font-medium hover:bg-gray-100 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-8 py-3 bg-gray-900 text-white rounded-xl font-medium shadow-lg shadow-gray-900/20 hover:bg-gray-800 hover:-translate-y-0.5 transition-all"
+                >
+                  Save Changes
                 </button>
               </div>
             </form>

@@ -43,7 +43,11 @@ export const SettingsPage: React.FC = () => {
   const [theme, setTheme] = useState({
     primaryColor: '#2563eb',
     secondaryColor: '#ffffff',
-    logoUrl: '/logo.png'
+    accentColor: '#ff6b00',
+    customLogoUrl: '/logo.png',
+    landingPageHeroTitle: 'Welcome to Your Cooperative',
+    landingPageHeroSubtitle: 'Manage your finances, loans, and contributions in one place',
+    faviconUrl: '/favicon.ico'
   });
   const [originalTheme, setOriginalTheme] = useState({...theme});
 
@@ -656,33 +660,84 @@ export const SettingsPage: React.FC = () => {
                       />
                     </div>
                   </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Accent Color (Hex)</label>
+                    <div className="flex space-x-2">
+                      <input
+                        type="color"
+                        value={theme.accentColor}
+                        onChange={(e) => setTheme({ ...theme, accentColor: e.target.value })}
+                        className="h-10 w-10 border-0 rounded cursor-pointer"
+                      />
+                      <input
+                        type="text"
+                        value={theme.accentColor}
+                        onChange={(e) => setTheme({ ...theme, accentColor: e.target.value })}
+                        className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
 
               <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                   <FileText className="w-5 h-5 mr-2 text-blue-500" />
-                  Logo Setup
+                  Branding Assets
                 </h3>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Logo Image URL</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Custom Logo URL</label>
                     <input
                       type="text"
-                      value={theme.logoUrl}
-                      onChange={(e) => setTheme({ ...theme, logoUrl: e.target.value })}
+                      value={theme.customLogoUrl}
+                      onChange={(e) => setTheme({ ...theme, customLogoUrl: e.target.value })}
                       className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
                       placeholder="https://example.com/logo.png"
                     />
                   </div>
-                  {theme.logoUrl && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Favicon URL</label>
+                    <input
+                      type="text"
+                      value={theme.faviconUrl}
+                      onChange={(e) => setTheme({ ...theme, faviconUrl: e.target.value })}
+                      className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                      placeholder="https://example.com/favicon.ico"
+                    />
+                  </div>
+                  {theme.customLogoUrl && (
                     <div className="mt-4 p-4 border rounded-lg bg-gray-50 flex items-center justify-center">
-                      <img src={theme.logoUrl} alt="Preview" className="max-h-16" />
+                      <img src={theme.customLogoUrl} alt="Logo Preview" className="max-h-16" />
                     </div>
                   )}
-                  <p className="text-sm text-gray-500 mt-2">
-                    Changes to the theme will take effect the next time the page is reloaded.
-                  </p>
+                </div>
+              </div>
+
+              <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm md:col-span-2">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <FileText className="w-5 h-5 mr-2 text-blue-500" />
+                  Landing Page Content
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Hero Title</label>
+                    <input
+                      type="text"
+                      value={theme.landingPageHeroTitle}
+                      onChange={(e) => setTheme({ ...theme, landingPageHeroTitle: e.target.value })}
+                      className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Hero Subtitle</label>
+                    <input
+                      type="text"
+                      value={theme.landingPageHeroSubtitle}
+                      onChange={(e) => setTheme({ ...theme, landingPageHeroSubtitle: e.target.value })}
+                      className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                    />
+                  </div>
                 </div>
               </div>
             </div>

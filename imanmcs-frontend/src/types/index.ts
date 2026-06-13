@@ -4,13 +4,9 @@ export interface User {
   name: string;
   email: string;
   phone?: string;
-<<<<<<< HEAD
-  role: 'admin' | 'member' | 'treasurer' | 'chairman' | 'secretary' | 'super_admin';
-=======
   role: 'admin' | 'super_admin' | 'member' | 'treasurer' | 'chairman' | 'secretary' | 'manager' | 'operator' | 'viewer' | 'state_auditor';
   can_create_animal_requests?: boolean;
   canCreateAnimalRequests?: boolean;
->>>>>>> c89d2cf068bf46fa699f6d0221ce3e9b0751a166
   isDefaultPassword?: boolean;
   is_default_password?: boolean;
   status: 'active' | 'inactive' | 'suspended';

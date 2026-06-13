@@ -1,4 +1,3 @@
-
 import axios from 'axios';
 import type { TenantSettings } from '../types';
 
@@ -16,7 +15,7 @@ export const settingsApi = {
   /**
    * Get current tenant settings
    */
-  async getSettings(): Promise&lt;TenantSettings&gt; {
+  async getSettings(): Promise<TenantSettings> {
     const response = await apiClient.get('/settings');
     if (response.data.success) {
       return response.data.settings;
@@ -27,7 +26,7 @@ export const settingsApi = {
   /**
    * Get default settings
    */
-  async getDefaultSettings(): Promise&lt;TenantSettings&gt; {
+  async getDefaultSettings(): Promise<TenantSettings> {
     const response = await apiClient.get('/settings/defaults');
     if (response.data.success) {
       return response.data.settings;
@@ -38,7 +37,7 @@ export const settingsApi = {
   /**
    * Update settings
    */
-  async updateSettings(settings: Partial&lt;TenantSettings&gt;): Promise&lt;TenantSettings&gt; {
+  async updateSettings(settings: Partial<TenantSettings>): Promise<TenantSettings> {
     const response = await apiClient.put('/settings', settings);
     if (response.data.success) {
       return response.data.settings;
@@ -49,7 +48,7 @@ export const settingsApi = {
   /**
    * Reset settings to defaults
    */
-  async resetSettings(): Promise&lt;TenantSettings&gt; {
+  async resetSettings(): Promise<TenantSettings> {
     const response = await apiClient.post('/settings/reset');
     if (response.data.success) {
       return response.data.settings;

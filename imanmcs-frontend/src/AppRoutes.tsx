@@ -3,7 +3,7 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import { useTenant } from './contexts/TenantContext';
 import { AppLayout } from './components/Layout/AppLayout';
-import { HomePage } from './pages/HomePage';
+import { TenantLandingPage } from './components/TenantLandingPage';
 import { LoginPage } from './pages/LoginPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { ExpensesPage } from './pages/ExpensesPage';
@@ -43,6 +43,7 @@ import { WithdrawalsAdminPage } from './pages/WithdrawalsAdminPage';
 import { RolesPage } from './pages/RolesPage';
 import { PlatformLoginPage } from './pages/PlatformLoginPage';
 import { PlatformAdminDashboard } from './pages/PlatformAdminDashboard';
+import { LandingPageEditor } from './pages/LandingPageEditor';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, isLoading } = useAuth();
@@ -99,10 +100,11 @@ export const AppRoutes: React.FC = () => {
   return (
     <Routes>
       {/* Public routes - no layout */}
-      <Route path="/" element={hasFeature('landing_page') ? <HomePage /> : <Navigate to="/login" replace />} />
+      <Route path="/" element={hasFeature('landing_page') ? <TenantLandingPage /> : <Navigate to="/login" replace />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/platform/login" element={<PlatformLoginPage />} />
       <Route path="/platform/dashboard" element={<PlatformAdminDashboard />} />
+      <Route path="/platform/tenants/:tenantId/landing-page" element={<LandingPageEditor />} />
       <Route path="/apply-membership" element={<MemberApplicationPage />} />
 
       {/* Protected routes with layout */}

@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { settingsApi } from '../services/settings-api';
 import type { TenantSettings } from '../types';
@@ -17,22 +16,23 @@ export function useSettings() {
     refetch,
   } = useQuery({
     queryKey: ['settings'],
-    queryFn: () =&gt; settingsApi.getSettings(),
+    queryFn: () => settingsApi.getSettings(),
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   // Update settings mutation
   const updateSettingsMutation = useMutation({
-    mutationFn: (newSettings: Partial&lt;TenantSettings&gt;) =&gt;
+    mutationFn: (newSettings: Partial<TenantSettings>) =>
       settingsApi.updateSettings(newSettings),
+    onSuccess: (updatedSettings) => {
       queryClient.setQueryData(['settings'], updatedSettings);
     },
   });
 
   // Reset settings mutation
   const resetSettingsMutation = useMutation({
-    mutationFn: () =&gt; settingsApi.resetSettings(),
-    onSuccess: (defaultSettings) =&gt; { 
+    mutationFn: () => settingsApi.resetSettings(),
+    onSuccess: (defaultSettings) => { 
       queryClient.setQueryData(['settings'], defaultSettings);
     },
   });

@@ -6,6 +6,13 @@ interface TenantTheme {
   primaryColor?: string;
   secondaryColor?: string;
   logoUrl?: string;
+  landingPage?: {
+    heroTitle?: string;
+    heroSubtitle?: string;
+    aboutText?: string;
+    contactEmail?: string;
+    contactPhone?: string;
+  };
 }
 
 interface TenantConfig {
@@ -66,7 +73,26 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const fetchTenantConfig = async () => {
       try {
         const apiUrl = API_URL || 'http://localhost:3001';
-        const response = await axios.get(`${apiUrl}/tenant/config`, { withCredentials: true });
+        
+        // Check URL for tenant query param to support local preview
+        const urlParams = new URLSearchParams(window.location.search);
+        const tenantParam = urlParams.get('tenant');
+        
+        const headers: Record<string, string> = {};
+        if (tenantParam) {
+          headers['x-tenant-id'] = tenantParam;
+          localStorage.setItem('previewTenantId', tenantParam);
+        } else {
+          const storedTenantId = localStorage.getItem('previewTenantId');
+          if (storedTenantId) {
+            headers['x-tenant-id'] = storedTenantId;
+          }
+        }
+
+        const response = await axios.get(`${apiUrl}/tenant/config`, { 
+          withCredentials: true,
+          headers
+        });
         
         if (response.data.success && response.data.data) {
           const config = response.data.data;

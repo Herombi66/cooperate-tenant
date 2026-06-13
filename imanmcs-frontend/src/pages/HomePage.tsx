@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTenant } from '../contexts/TenantContext';
 import {
   ArrowRight,
   CheckCircle,
@@ -17,6 +18,10 @@ import {
 } from 'lucide-react';
 
 export const HomePage: React.FC = () => {
+  const { tenant } = useTenant();
+  const theme = tenant?.theme?.landingPage || {};
+  const orgName = tenant?.name || 'FCNACONSGMCS Limited';
+  
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [contactOpen, setContactOpen] = useState(false);
@@ -104,8 +109,8 @@ export const HomePage: React.FC = () => {
                 <Heart className="w-5 h-5" aria-hidden="true" />
               </span>
               <div className="leading-tight">
-                <div className="text-sm font-semibold tracking-tight">FCNACONSGMCS Limited</div>
-                <div className="text-xs text-muted-foreground">Biblically-principled finance</div>
+                <div className="text-sm font-semibold tracking-tight">{orgName}</div>
+                <div className="text-xs text-muted-foreground">{theme.heroSubtitle ? theme.heroSubtitle.substring(0, 30) + '...' : 'Cooperative finance'}</div>
               </div>
             </Link>
 
@@ -199,13 +204,17 @@ export const HomePage: React.FC = () => {
                   <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-muted text-foreground">
                     <Shield className="w-4 h-4" aria-hidden="true" />
                   </span>
-                  Trusted, transparent, member-first
+                  {theme.heroTopChip || 'Trusted, transparent, member-first'}
                 </p>
                 <h1 className="mt-4 text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-foreground leading-tight">
-                  Empowering <span className="text-primary">Healthcare Professionals</span> Financially
+                  {theme.heroTitle ? (
+                    theme.heroTitle
+                  ) : (
+                    <>Empowering <span className="text-primary">Healthcare Professionals</span> Financially</>
+                  )}
                 </h1>
                 <p className="mt-5 text-lg text-muted-foreground max-w-2xl leading-relaxed">
-                  Join the Fellowship of Christian Nurses Alumni, College of Nursing Sciences Gombe Multipurpose Cooperative Society Limited. Save, invest, and access loans with competitive rates in a Biblically-principled environment.
+                  {theme.heroSubtitle || `Join ${orgName}. Save, invest, and access loans with competitive rates in a secure environment.`}
                 </p>
 
                 <div className="mt-8 flex flex-col sm:flex-row gap-4">
@@ -225,33 +234,23 @@ export const HomePage: React.FC = () => {
                 </div>
 
                 <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-6 text-sm">
-                  <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                      <CheckCircle className="w-5 h-5 text-primary" aria-hidden="true" />
+                  {(theme.heroFeatures || [
+                    { title: 'Biblically Principled', subtitle: 'Justice, fairness, and financial integrity' },
+                    { title: 'Member Benefits', subtitle: 'High yield investments and tailored loans' },
+                    { title: 'Clear Approvals', subtitle: 'Transparent review and instant notifications' }
+                  ]).map((feat: any, idx: number) => (
+                    <div key={idx} className="flex items-start gap-3">
+                      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        {idx === 0 && <CheckCircle className="w-5 h-5 text-primary" aria-hidden="true" />}
+                        {idx === 1 && <TrendingUp className="w-5 h-5 text-primary" aria-hidden="true" />}
+                        {idx === 2 && <Shield className="w-5 h-5 text-primary" aria-hidden="true" />}
+                      </div>
+                      <div>
+                        <div className="font-semibold text-foreground text-base">{feat.title}</div>
+                        <div className="text-muted-foreground mt-0.5 leading-snug">{feat.subtitle}</div>
+                      </div>
                     </div>
-                    <div>
-                      <div className="font-semibold text-foreground text-base">Biblically Principled</div>
-                      <div className="text-muted-foreground mt-0.5 leading-snug">Justice, fairness, and financial integrity</div>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                      <TrendingUp className="w-5 h-5 text-primary" aria-hidden="true" />
-                    </div>
-                    <div>
-                      <div className="font-semibold text-foreground text-base">Member Benefits</div>
-                      <div className="text-muted-foreground mt-0.5 leading-snug">High yield investments and tailored loans</div>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                      <Shield className="w-5 h-5 text-primary" aria-hidden="true" />
-                    </div>
-                    <div>
-                      <div className="font-semibold text-foreground text-base">Clear Approvals</div>
-                      <div className="text-muted-foreground mt-0.5 leading-snug">Transparent review and instant notifications</div>
-                    </div>
-                  </div>
+                  ))}
                 </div>
 
                 <a
@@ -283,51 +282,31 @@ export const HomePage: React.FC = () => {
           <div className="absolute inset-0 bg-primary/5 skew-y-3 -z-10" />
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="text-center max-w-2xl mx-auto" data-reveal="init">
-              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">Services built for clarity and speed</h2>
+              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">{theme.servicesTitle || 'Services built for clarity and speed'}</h2>
               <p className="mt-4 text-muted-foreground text-lg">
-                A modern cooperative experience: simple onboarding, clear approvals, and a dashboard that keeps members informed at a glance.
+                {theme.servicesDescription || 'A modern cooperative experience: simple onboarding, clear approvals, and a dashboard that keeps members informed at a glance.'}
               </p>
             </div>
 
             <div className="mt-16 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-              <div className="group relative rounded-3xl border border-border/50 bg-background/60 backdrop-blur-md p-8 shadow-xl shadow-primary/5 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300" data-reveal="init">
-                <div className="absolute inset-0 bg-gradient-to-b from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-3xl" />
-                <div className="relative">
-                  <span className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/30 mb-6 group-hover:scale-110 transition-transform duration-300">
-                    <TrendingUp className="w-7 h-7" aria-hidden="true" />
-                  </span>
-                  <div className="text-xl font-bold text-foreground mb-3">Savings & investment</div>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    Contribute monthly and track balances over time. Investment drives transparent profit sharing.
-                  </p>
+              {(theme.services || [
+                { title: 'Savings & investment', description: 'Contribute monthly and track balances over time. Investment drives transparent profit sharing.' },
+                { title: 'Loans & guarantees', description: 'Apply, review, and manage loans with clear statuses. Guarantee requests are tracked with history and instant notifications.' },
+                { title: 'Transparent governance', description: 'Admin workflows include validation, audit trails, and consistent feedback so actions are always traceable and accountable.' }
+              ]).map((svc: any, idx: number) => (
+                <div key={idx} className="group relative rounded-3xl border border-border/50 bg-background/60 backdrop-blur-md p-8 shadow-xl shadow-primary/5 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300" data-reveal="init">
+                  <div className="absolute inset-0 bg-gradient-to-b from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-3xl" />
+                  <div className="relative">
+                    <span className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/30 mb-6 group-hover:scale-110 transition-transform duration-300">
+                      {idx === 0 && <TrendingUp className="w-7 h-7" aria-hidden="true" />}
+                      {idx === 1 && <Users className="w-7 h-7" aria-hidden="true" />}
+                      {idx === 2 && <Shield className="w-7 h-7" aria-hidden="true" />}
+                    </span>
+                    <div className="text-xl font-bold text-foreground mb-3">{svc.title}</div>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{svc.description}</p>
+                  </div>
                 </div>
-              </div>
-
-              <div className="group relative rounded-3xl border border-border/50 bg-background/60 backdrop-blur-md p-8 shadow-xl shadow-primary/5 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300" data-reveal="init">
-                <div className="absolute inset-0 bg-gradient-to-b from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-3xl" />
-                <div className="relative">
-                  <span className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/30 mb-6 group-hover:scale-110 transition-transform duration-300">
-                    <Users className="w-7 h-7" aria-hidden="true" />
-                  </span>
-                  <div className="text-xl font-bold text-foreground mb-3">Loans & guarantees</div>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    Apply, review, and manage loans with clear statuses. Guarantee requests are tracked with history and instant notifications.
-                  </p>
-                </div>
-              </div>
-
-              <div className="group relative rounded-3xl border border-border/50 bg-background/60 backdrop-blur-md p-8 shadow-xl shadow-primary/5 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300" data-reveal="init">
-                <div className="absolute inset-0 bg-gradient-to-b from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-3xl" />
-                <div className="relative">
-                  <span className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/30 mb-6 group-hover:scale-110 transition-transform duration-300">
-                    <Shield className="w-7 h-7" aria-hidden="true" />
-                  </span>
-                  <div className="text-xl font-bold text-foreground mb-3">Transparent governance</div>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    Admin workflows include validation, audit trails, and consistent feedback so actions are always traceable and accountable.
-                  </p>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         </section>
@@ -337,9 +316,9 @@ export const HomePage: React.FC = () => {
             <div className="grid lg:grid-cols-12 gap-16 items-center">
               <div className="lg:col-span-5 relative z-10" data-reveal="init">
                 <div className="absolute -left-10 -top-10 w-40 h-40 bg-primary/10 rounded-full blur-3xl -z-10" />
-                <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-foreground leading-tight">How it works</h2>
+                <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-foreground leading-tight">{theme.howTitle || 'How it works'}</h2>
                 <p className="mt-6 text-lg text-muted-foreground leading-relaxed">
-                  A seamless guided flow from onboarding to contributions, loans, and support—designed to be effortless on mobile and fast on any network.
+                  {theme.howDescription || 'A seamless guided flow from onboarding to contributions, loans, and support—designed to be effortless on mobile and fast on any network.'}
                 </p>
                 <div className="mt-8">
                   <Link
@@ -355,11 +334,11 @@ export const HomePage: React.FC = () => {
                 <div className="absolute left-[2.25rem] top-8 bottom-8 w-px bg-gradient-to-b from-primary/50 via-primary/20 to-transparent hidden sm:block" />
 
                 <ol className="grid gap-8 relative z-10">
-                  {[
+                  {(theme.howSteps || [
                     { title: 'Apply & get verified', body: 'Submit your membership application with accurate details. Our streamlined review process ensures quick verification.' },
                     { title: 'Contribute monthly', body: 'Save and invest on a consistent schedule. Your personalized dashboard instantly reflects approvals and tracks your complete history.' },
                     { title: 'Access support & loans', body: 'Apply for eligible loans, manage guarantees, securely send complaints, and receive official admin communications directly.' }
-                  ].map((s, idx) => (
+                  ]).map((s: any, idx: number) => (
                     <li key={s.title} className="relative group" data-reveal="init">
                       <div className="flex flex-col sm:flex-row items-start gap-6 sm:gap-8 p-6 sm:p-8 rounded-3xl border border-border/50 bg-background/80 backdrop-blur-sm shadow-sm hover:shadow-xl hover:border-primary/30 transition-all duration-300">
                         <div className="relative z-10 flex-shrink-0 w-14 h-14 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-xl shadow-lg shadow-primary/30 group-hover:scale-110 transition-transform duration-300">
@@ -382,16 +361,16 @@ export const HomePage: React.FC = () => {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="grid lg:grid-cols-12 gap-12 items-center">
               <div className="lg:col-span-6" data-reveal="init">
-                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-foreground">About FCNACONSGMCS</h2>
+                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-foreground">About {orgName}</h2>
                 <p className="mt-6 text-lg text-muted-foreground leading-relaxed">
-                  We are the Fellowship of Christian Nurses Alumni, College of Nursing Sciences Gombe Multipurpose Cooperative Society Limited. Our mission is to foster financial independence, mutual support, and wealth creation for nurses and midwives.
+                  {theme.aboutText || `We are ${orgName}. Our mission is to foster financial independence, mutual support, and wealth creation for our members.`}
                 </p>
                 <div className="mt-8 grid gap-4">
-                  {[
+                  {(theme.aboutBullets || [
                     'Empowering Healthcare Professionals through dedicated financial services',
                     'Fostering a Culture of Savings & Investment',
                     'Providing Accessible, Biblically-principled Financial Support'
-                  ].map((t) => (
+                  ]).map((t: string) => (
                     <div key={t} className="flex items-start gap-3">
                       <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center mt-0.5">
                         <CheckCircle className="w-4 h-4 text-primary" aria-hidden="true" />
@@ -408,22 +387,17 @@ export const HomePage: React.FC = () => {
                   <div className="relative p-8 sm:p-10">
                     <div className="text-lg font-bold text-foreground mb-6">Our Core Values</div>
                     <div className="grid sm:grid-cols-2 gap-6">
-                      <div className="rounded-2xl border border-border/50 bg-background/80 p-6 shadow-sm hover:shadow-md transition-shadow">
-                        <div className="text-base font-bold text-foreground mb-2">Integrity</div>
-                        <div className="text-sm text-muted-foreground leading-relaxed">Operating with complete transparency and honesty in all financial dealings.</div>
-                      </div>
-                      <div className="rounded-2xl border border-border/50 bg-background/80 p-6 shadow-sm hover:shadow-md transition-shadow">
-                        <div className="text-base font-bold text-foreground mb-2">Mutual Support</div>
-                        <div className="text-sm text-muted-foreground leading-relaxed">A community of healthcare professionals lifting each other up.</div>
-                      </div>
-                      <div className="rounded-2xl border border-border/50 bg-background/80 p-6 shadow-sm hover:shadow-md transition-shadow">
-                        <div className="text-base font-bold text-foreground mb-2">Excellence</div>
-                        <div className="text-sm text-muted-foreground leading-relaxed">Delivering professional-grade financial services and responsive support.</div>
-                      </div>
-                      <div className="rounded-2xl border border-border/50 bg-background/80 p-6 shadow-sm hover:shadow-md transition-shadow">
-                        <div className="text-base font-bold text-foreground mb-2">Growth</div>
-                        <div className="text-sm text-muted-foreground leading-relaxed">Creating sustainable wealth through strategic investments and profit sharing.</div>
-                      </div>
+                      {(theme.coreValues || [
+                        { title: 'Integrity', body: 'Operating with complete transparency and honesty in all financial dealings.' },
+                        { title: 'Mutual Support', body: 'A community of healthcare professionals lifting each other up.' },
+                        { title: 'Excellence', body: 'Delivering professional-grade financial services and responsive support.' },
+                        { title: 'Growth', body: 'Creating sustainable wealth through strategic investments and profit sharing.' }
+                      ]).map((val: any, idx: number) => (
+                        <div key={idx} className="rounded-2xl border border-border/50 bg-background/80 p-6 shadow-sm hover:shadow-md transition-shadow">
+                          <div className="text-base font-bold text-foreground mb-2">{val.title}</div>
+                          <div className="text-sm text-muted-foreground leading-relaxed">{val.body}</div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>
@@ -435,12 +409,12 @@ export const HomePage: React.FC = () => {
         <section id="faq" className="py-20 sm:py-28 bg-background border-y border-border">
           <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
             <div className="text-center" data-reveal="init">
-              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-foreground">Frequently asked questions</h2>
-              <p className="mt-4 text-lg text-muted-foreground">Quick answers to the most common questions about our cooperative.</p>
+              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-foreground">{theme.faqTitle || 'Frequently asked questions'}</h2>
+              <p className="mt-4 text-lg text-muted-foreground">{theme.faqDescription || 'Quick answers to the most common questions about our cooperative.'}</p>
             </div>
 
             <div className="mt-12 space-y-4">
-              {[
+              {(theme.faqs || [
                 {
                   q: 'Are operations Biblically-principled?',
                   a: 'Yes, all operations strictly follow Biblical principles of Justice, fairness, and financial integrity.'
@@ -457,7 +431,7 @@ export const HomePage: React.FC = () => {
                   q: 'How do withdrawals work?',
                   a: 'Eligible members can request exactly 30% of their contributions once per calendar year, subject to no active loans and administrative approval.'
                 }
-              ].map((item) => (
+              ]).map((item: any) => (
                 <details key={item.q} className="group rounded-2xl border border-border/60 bg-card p-6 shadow-sm hover:shadow-md transition-shadow duration-300" data-reveal="init">
                   <summary className="cursor-pointer list-none flex items-center justify-between gap-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg">
                     <span className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors duration-300">{item.q}</span>
@@ -481,9 +455,9 @@ export const HomePage: React.FC = () => {
 
               <div className="relative z-10 grid lg:grid-cols-12 gap-10 items-center">
                 <div className="lg:col-span-8 text-center lg:text-left">
-                  <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight">Ready to join FCNACONSGMCS?</h2>
+                  <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight">{theme.ctaTitle || `Ready to join ${orgName}?`}</h2>
                   <p className="mt-4 text-lg text-primary-foreground/80 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
-                    Apply in minutes. Track approvals, contributions, loans, messages, and guarantees all from one secure, beautifully crafted dashboard.
+                    {theme.ctaDescription || 'Apply in minutes. Track approvals, contributions, loans, messages, and guarantees all from one secure, beautifully crafted dashboard.'}
                   </p>
                 </div>
                 <div className="lg:col-span-4 flex flex-col sm:flex-row lg:flex-col gap-4 items-center lg:items-end justify-center lg:justify-end">
@@ -516,12 +490,12 @@ export const HomePage: React.FC = () => {
                   <Heart className="w-5 h-5" aria-hidden="true" />
                 </span>
                 <div>
-                  <div className="text-sm font-semibold">FCNACONSGMCS Limited</div>
-                  <div className="text-xs text-muted-foreground">Fellowship of Christian Nurses Alumni College Of Nursing Sciences Gombe Multipurpose Cooperative Society Limited</div>
+                  <div className="text-sm font-semibold">{orgName}</div>
+                  <div className="text-xs text-muted-foreground">{orgName}</div>
                 </div>
               </div>
               <p className="mt-4 text-sm text-muted-foreground max-w-md">
-                A modern cooperative platform for Muslim healthcare professionals. Built for transparency, accessibility, and responsible growth.
+                {theme.footerDescription || 'A modern cooperative platform for healthcare professionals. Built for transparency, accessibility, and responsible growth.'}
               </p>
               <div className="mt-6 flex items-center gap-3">
                 <a href="#" aria-label="Facebook" className="inline-flex items-center justify-center w-10 h-10 rounded-lg border border-border hover:bg-muted transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">
@@ -549,7 +523,7 @@ export const HomePage: React.FC = () => {
                 <div className="text-sm font-semibold">Explore</div>
                 <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
                   <li><a href="#how" className="hover:text-foreground transition-colors">How it works</a></li>
-                  <li><a href="#about" className="hover:text-foreground transition-colors">About FCNACONSGMCS</a></li>
+                  <li><a href="#about" className="hover:text-foreground transition-colors">About {orgName}</a></li>
                   <li><a href="#faq" className="hover:text-foreground transition-colors">FAQ</a></li>
                 </ul>
               </div>
@@ -577,7 +551,7 @@ export const HomePage: React.FC = () => {
           </div>
 
           <div className="mt-10 pt-6 border-t border-border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <div className="text-xs text-muted-foreground">© {new Date().getFullYear()} FCNACONSGMCS Limited. All rights reserved.</div>
+            <div className="text-xs text-muted-foreground">© {new Date().getFullYear()} {orgName}. All rights reserved.</div>
             <div className="text-xs text-muted-foreground">Developed by C&S Company Limited</div>
           </div>
         </div>
@@ -611,7 +585,7 @@ export const HomePage: React.FC = () => {
         >
           <div className="px-6 py-5 border-b border-border flex items-start justify-between gap-4">
             <div>
-              <div className="text-sm font-semibold text-foreground">FCNACONSGMCS Secretariat</div>
+              <div className="text-sm font-semibold text-foreground">{orgName} Secretariat</div>
               <div className="text-xs text-muted-foreground">Office contact details</div>
             </div>
             <button
@@ -637,10 +611,10 @@ export const HomePage: React.FC = () => {
               <div className="rounded-xl border border-border bg-background p-4">
                 <div className="text-xs font-semibold tracking-wide uppercase text-muted-foreground">Phone</div>
                 <a
-                  href="tel:+2348105880201"
+                  href={`tel:${theme.contactPhone || '+2348105880201'}`}
                   className="mt-2 inline-flex text-sm font-semibold text-foreground hover:text-primary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-md"
                 >
-                  12345678901
+                  {theme.contactPhone || '12345678901'}
                 </a>
                 <div className="mt-1 text-xs text-muted-foreground">Mon–Fri during office hours</div>
               </div>
@@ -648,10 +622,10 @@ export const HomePage: React.FC = () => {
               <div className="rounded-xl border border-border bg-background p-4">
                 <div className="text-xs font-semibold tracking-wide uppercase text-muted-foreground">Email</div>
                 <a
-                  href="mailto:imanmcos@gmail.com"
+                  href={`mailto:${theme.contactEmail || 'contact@example.com'}`}
                   className="mt-2 inline-flex text-sm font-semibold text-foreground hover:text-primary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-md break-all"
                 >
-                  fcnaconsgmcs@gmail.com
+                  {theme.contactEmail || 'contact@example.com'}
                 </a>
                 <div className="mt-1 text-xs text-muted-foreground">We typically respond promptly</div>
               </div>
@@ -666,7 +640,7 @@ export const HomePage: React.FC = () => {
                 Close
               </button>
               <a
-                href="mailto:imanmcos@gmail.com"
+                href={`mailto:${theme.contactEmail || 'contact@example.com'}`}
                 className="inline-flex items-center justify-center h-11 px-5 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 Send email
