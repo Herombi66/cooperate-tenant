@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   Users, Search, Filter, Download, Upload, PlusCircle,
-  Edit, Eye, MoreHorizontal, UserCheck, UserX, FileText, RefreshCw
+  Edit, Eye, EyeOff, MoreHorizontal, UserCheck, UserX, FileText, RefreshCw
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
@@ -115,6 +115,7 @@ interface MemberFinancialProfile {
 export const MembersPage: React.FC = () => {
   const { user } = useAuth();
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showAddPassword, setShowAddPassword] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
   const [showFinancialModal, setShowFinancialModal] = useState(false);
@@ -1130,12 +1131,15 @@ const [loadingDetails, setLoadingDetails] = useState(false);
 
       {/* Add Member Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-lg mx-4">
-            <div className="flex items-center justify-between mb-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4 sticky top-0 bg-white pb-2 border-b border-gray-100">
               <h3 className="text-lg font-semibold text-gray-900">Add New Member</h3>
               <button
-                onClick={() => setShowAddModal(false)}
+                onClick={() => {
+                  setShowAddModal(false);
+                  setShowAddPassword(false);
+                }}
                 className="text-gray-400 hover:text-gray-600"
               >
                 ✕
@@ -1191,15 +1195,43 @@ const [loadingDetails, setLoadingDetails] = useState(false);
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Healthcare Facility</label>
-                <input
-                  type="text"
-                  name="facility_name"
-                  placeholder="Enter healthcare facility name"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  required
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Healthcare Facility</label>
+                  <input
+                    type="text"
+                    name="facility_name"
+                    placeholder="Enter healthcare facility name"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-sm font-medium text-gray-700">Password</label>
+                    <span className="text-xs text-gray-500 font-normal">(Optional)</span>
+                  </div>
+                  <div className="relative">
+                    <input
+                      type={showAddPassword ? 'text' : 'password'}
+                      name="password"
+                      placeholder="Leave blank to auto-generate"
+                      className="w-full border border-gray-300 rounded-lg pl-3 pr-10 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
+                      autoComplete="new-password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowAddPassword(!showAddPassword)}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
+                    >
+                      {showAddPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                  <p className="text-[11px] text-gray-500 mt-1">
+                    If left blank, a secure password is automatically generated and emailed to the member.
+                  </p>
+                </div>
               </div>
 
               {/* Next of Kin Information */}
@@ -1286,7 +1318,10 @@ const [loadingDetails, setLoadingDetails] = useState(false);
               <div className="flex space-x-3 pt-4">
                 <button
                   type="button"
-                  onClick={() => setShowAddModal(false)}
+                  onClick={() => {
+                    setShowAddModal(false);
+                    setShowAddPassword(false);
+                  }}
                   className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
                 >
                   Cancel
@@ -1298,7 +1333,9 @@ const [loadingDetails, setLoadingDetails] = useState(false);
                     const form = document.getElementById('addMemberForm') as HTMLFormElement;
                     const formData = new FormData(form);
 
-                    const memberData = {
+                    const passwordVal = (formData.get('password') as string || '').trim();
+
+                    const memberData: any = {
                       psn: formData.get('psn') as string,
                       name: formData.get('name') as string,
                       email: formData.get('email') as string,
@@ -1312,11 +1349,16 @@ const [loadingDetails, setLoadingDetails] = useState(false);
                       target_period: parseInt(formData.get('target_period') as string || '12')
                     };
 
+                    if (passwordVal) {
+                      memberData.password = passwordVal;
+                    }
+
                     try {
                       // Use applications endpoint for admin member creation
                       const response = await api.post('/applications/admin/create-member', memberData);
                       toast.success('Member created successfully!');
                       setShowAddModal(false);
+                      setShowAddPassword(false);
                       fetchMembers(); // Refresh the members list
                     } catch (error: any) {
                       console.error('Error creating member:', error);

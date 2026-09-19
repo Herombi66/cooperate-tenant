@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff, Heart } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useTenant } from '../contexts/TenantContext';
 import toast from 'react-hot-toast';
 
 const loginSchema = z.object({
@@ -49,6 +50,7 @@ export const LoginPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
+  const { tenant } = useTenant();
   const navigate = useNavigate();
 
   const {
@@ -101,7 +103,7 @@ export const LoginPage: React.FC = () => {
             className="mt-2 text-sm text-gray-600"
             variants={itemVariants}
           >
-            Sign in to your FCNACONSGMCS account
+            Sign in to your {tenant?.name || 'Cooperative'} account
           </motion.p>
         </motion.div>
 

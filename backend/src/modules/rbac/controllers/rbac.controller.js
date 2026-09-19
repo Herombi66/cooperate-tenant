@@ -12,7 +12,7 @@ class RBACController {
           attributes: ['id', 'name', 'category_id', 'description']
         }]
       });
-      res.json({ success: true, data: roles });
+      res.json({ success: true, roles, data: roles });
     } catch (error) {
       console.error('Error fetching roles:', error);
       res.status(500).json({ success: false, message: 'Failed to fetch roles' });
@@ -57,14 +57,17 @@ class RBACController {
         return res.status(404).json({ success: false, message: 'Role not found' });
       }
 
-      await role.update({ name, description });
+      if (name) {
+        await role.update({ name, description });
+      }
 
-      if (permission_ids) {
+      const pIds = permission_ids || req.body.permissionIds;
+      if (pIds && Array.isArray(pIds)) {
         // Clear existing permissions
         await RolePermission.destroy({ where: { role_id: role.id } });
         
         // Add new permissions
-        const rolePermissions = permission_ids.map(permId => ({
+        const rolePermissions = pIds.map(permId => ({
           role_id: role.id,
           permission_id: permId
         }));
@@ -75,6 +78,34 @@ class RBACController {
     } catch (error) {
       console.error('Error updating role:', error);
       res.status(500).json({ success: false, message: 'Failed to update role' });
+    }
+  }
+
+  // Update permissions for a role
+  async updateRolePermissions(req, res) {
+    try {
+      const { id } = req.params;
+      const permissionIds = req.body.permissionIds || req.body.permission_ids || [];
+
+      const role = await Role.findByPk(id);
+      if (!role) {
+        return res.status(404).json({ success: false, message: 'Role not found' });
+      }
+
+      await RolePermission.destroy({ where: { role_id: role.id } });
+
+      if (permissionIds.length > 0) {
+        const rolePermissions = permissionIds.map(permId => ({
+          role_id: role.id,
+          permission_id: permId
+        }));
+        await RolePermission.bulkCreate(rolePermissions);
+      }
+
+      res.json({ success: true, message: 'Permissions updated successfully' });
+    } catch (error) {
+      console.error('Error updating role permissions:', error);
+      res.status(500).json({ success: false, message: 'Failed to update permissions' });
     }
   }
 
@@ -112,7 +143,29 @@ class RBACController {
           as: 'permissions'
         }]
       });
-      res.json({ success: true, data: categories });
+
+      // Also flatten permissions with their category name for frontend consumption
+      const flatPermissions = [];
+      categories.forEach(cat => {
+        if (cat.permissions && Array.isArray(cat.permissions)) {
+          cat.permissions.forEach(p => {
+            flatPermissions.push({
+              id: p.id,
+              name: p.name,
+              category: cat.name,
+              category_id: p.category_id,
+              description: p.description
+            });
+          });
+        }
+      });
+
+      res.json({
+        success: true,
+        data: categories,
+        categories,
+        permissions: flatPermissions
+      });
     } catch (error) {
       console.error('Error fetching permissions:', error);
       res.status(500).json({ success: false, message: 'Failed to fetch permissions' });

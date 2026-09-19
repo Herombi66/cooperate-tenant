@@ -1,8 +1,24 @@
 import React, { Suspense, lazy, useMemo } from 'react';
+import { useTenant } from '../contexts/TenantContext';
+
+// Automatically index all tenant landing pages using Vite's glob import
+const landingPageModules = import.meta.glob('./landing-pages/*.tsx');
 
 export const useTenantSlug = () => {
-  const hostname = window.location.hostname;
+  const { tenant } = useTenant();
+  const searchParams = new URLSearchParams(window.location.search);
+  const queryTenant = searchParams.get('tenant');
   
+  if (queryTenant) return queryTenant;
+  
+  const storedTenant = localStorage.getItem('previewTenantId') || localStorage.getItem('tenant_id');
+  if (storedTenant && storedTenant !== 'default') return storedTenant;
+
+  if (tenant?.id && tenant.id !== 'default') {
+    return tenant.id;
+  }
+
+  const hostname = window.location.hostname;
   if (hostname === 'localhost' || hostname === '127.0.0.1') {
     return 'default'; 
   }
@@ -28,15 +44,16 @@ export const TenantLandingPage: React.FC = () => {
   const slug = useTenantSlug();
 
   const LandingPageComponent = useMemo(() => {
-    return lazy(() => 
-      import(`./landing-pages/${slug}.tsx`)
-        .catch((error) => {
-          if (import.meta.env?.DEV || process.env.NODE_ENV === 'development') {
-             console.warn(`[Router] Custom landing page for '${slug}' not found. Loading default template.`);
-          }
-          return import('./landing-pages/DefaultLandingPage.tsx');
-        })
-    );
+    const targetPath = `./landing-pages/${slug}.tsx`;
+    const defaultPath = './landing-pages/DefaultLandingPage.tsx';
+
+    const loader = landingPageModules[targetPath] || landingPageModules[defaultPath];
+
+    if (!loader) {
+      return lazy(() => import('./landing-pages/DefaultLandingPage.tsx'));
+    }
+
+    return lazy(loader as any);
   }, [slug]);
 
   return (

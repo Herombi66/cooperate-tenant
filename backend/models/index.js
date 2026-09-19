@@ -32,6 +32,13 @@ const Tenant = require('./Tenant');
 const CustomField = require('./CustomField');
 const PlatformAdmin = require('./PlatformAdmin');
 
+// RBAC Models
+const Role = require('./Role');
+const Permission = require('./Permission');
+const PermissionCategory = require('./PermissionCategory');
+const RolePermission = require('./RolePermission');
+const UserRole = require('./UserRole');
+
 // Define associations (only once)
 User.belongsTo(MembershipApplication, {
   foreignKey: 'membership_application_id',
@@ -430,6 +437,45 @@ DirectMessage.belongsTo(User, { foreignKey: 'recipient_id', as: 'recipient' });
 User.hasMany(DirectMessage, { foreignKey: 'sender_id', as: 'sentMessages' });
 User.hasMany(DirectMessage, { foreignKey: 'recipient_id', as: 'receivedMessages' });
 
+// RBAC associations
+User.belongsToMany(Role, {
+  through: UserRole,
+  foreignKey: 'user_id',
+  otherKey: 'role_id',
+  as: 'roles'
+});
+
+Role.belongsToMany(User, {
+  through: UserRole,
+  foreignKey: 'role_id',
+  otherKey: 'user_id',
+  as: 'users'
+});
+
+Role.belongsToMany(Permission, {
+  through: RolePermission,
+  foreignKey: 'role_id',
+  otherKey: 'permission_id',
+  as: 'permissions'
+});
+
+Permission.belongsToMany(Role, {
+  through: RolePermission,
+  foreignKey: 'permission_id',
+  otherKey: 'role_id',
+  as: 'roles'
+});
+
+PermissionCategory.hasMany(Permission, {
+  foreignKey: 'category_id',
+  as: 'permissions'
+});
+
+Permission.belongsTo(PermissionCategory, {
+  foreignKey: 'category_id',
+  as: 'category'
+});
+
 // Export models
 const models = {
   User,
@@ -459,6 +505,11 @@ const models = {
   Tenant,
   CustomField,
   PlatformAdmin,
+  Role,
+  Permission,
+  PermissionCategory,
+  RolePermission,
+  UserRole,
   sequelize
 };
 

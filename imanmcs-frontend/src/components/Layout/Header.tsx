@@ -3,11 +3,13 @@ import { ChevronDown, User, Menu, Moon, Sun } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLayout } from '../../contexts/LayoutContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useTenant } from '../../contexts/TenantContext';
 import { NotificationDropdown } from '@/features/notifications/components/NotificationDropdown';
 import { API_URL } from '../../config';
 
 export const Header = () => {
   const { user, logout } = useAuth();
+  const { tenant } = useTenant();
   const { toggleSidebar } = useLayout();
   const { isDark, toggleTheme } = useTheme();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -35,7 +37,7 @@ export const Header = () => {
   return (
     <header className="bg-card shadow-sm border-b border-border px-4 md:px-6 py-4">
       <div className="flex justify-between items-center">
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-3 min-w-0">
           <button
             onClick={toggleSidebar}
             className="md:hidden p-1 rounded hover:bg-muted text-muted-foreground"
@@ -43,8 +45,18 @@ export const Header = () => {
           >
             <Menu className="w-6 h-6" />
           </button>
+          {tenant?.theme?.logoUrl && (
+            <img
+              src={tenant.theme.logoUrl.startsWith('http') ? tenant.theme.logoUrl : `${API_URL}${tenant.theme.logoUrl}`}
+              alt={tenant.name || 'Logo'}
+              className="w-7 h-7 rounded object-contain flex-shrink-0"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+              }}
+            />
+          )}
           <h1 className="text-lg md:text-xl font-semibold text-foreground truncate">
-            FCNACONSGM Cooperative System
+            {tenant?.name || 'Cooperative System'}
           </h1>
         </div>
 

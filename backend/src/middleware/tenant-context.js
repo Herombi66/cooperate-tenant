@@ -1,6 +1,7 @@
 const tenantSettingsService = require('../modules/settings/services/tenant-settings.service');
-const { Tenant } = require('../../models');
+const { Tenant, User } = require('../../models');
 const tenantStorage = require('./tenant-storage');
+const jwt = require('jsonwebtoken');
 
 /**
  * Tenant Context Middleware
@@ -25,11 +26,32 @@ const tenantContext = async (req, res, next) => {
       }
     }
 
-    // 3. Fallback to Header (used for local testing and mobile apps)
+    // 3. Fallback to Header or Query param (used for local testing and preview)
     if (!tenant) {
-      const headerTenantId = req.headers['x-tenant-id'];
+      const headerTenantId = req.headers['x-tenant-id'] || req.headers['X-Tenant-Id'] || req.query?.tenant;
       if (headerTenantId) {
         tenant = await Tenant.findOne({ where: { id: headerTenantId, status: 'active' } });
+      }
+    }
+
+    // 3b. Fallback to JWT Authorization token if user is logged in
+    if (!tenant && req.headers['authorization']) {
+      try {
+        const parts = req.headers['authorization'].split(' ');
+        const token = parts.length === 2 ? parts[1] : null;
+        if (token && process.env.JWT_SECRET) {
+          const decoded = jwt.verify(token, process.env.JWT_SECRET);
+          if (decoded?.tenant_id) {
+            tenant = await Tenant.findOne({ where: { id: decoded.tenant_id, status: 'active' } });
+          } else if (decoded?.id) {
+            const authUser = await User.findByPk(decoded.id);
+            if (authUser?.tenant_id) {
+              tenant = await Tenant.findOne({ where: { id: authUser.tenant_id, status: 'active' } });
+            }
+          }
+        }
+      } catch (jwtErr) {
+        // Auth middleware will handle invalid tokens later
       }
     }
 

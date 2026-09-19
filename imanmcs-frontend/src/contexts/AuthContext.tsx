@@ -9,6 +9,8 @@ interface User {
   name: string;
   email: string;
   role: string;
+  tenant_id?: string;
+  tenantId?: string;
   canCreateAnimalRequests?: boolean;
   isDefaultPassword: boolean;
   status: string;
@@ -49,6 +51,12 @@ axiosInstance.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   if (token) {
     config.headers = config.headers || {};
     config.headers.Authorization = `Bearer ${token}`;
+  }
+
+  const tenantId = localStorage.getItem('previewTenantId') || localStorage.getItem('tenant_id');
+  if (tenantId) {
+    config.headers = config.headers || {};
+    config.headers['x-tenant-id'] = tenantId;
   }
   
   // Log request for debugging
@@ -185,12 +193,15 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
         
         console.log('👤 User profile received:', userData);
         
+        const tenantId = userData.tenant_id || userData.tenantId;
         const userObj = {
           id: userData.id?.toString() || '1',
           psn: userData.psn || 'ADMIN001',
           name: userData.name || 'Admin User',
           email: userData.email || 'admin@example.com',
           role: userData.role || 'admin',
+          tenant_id: tenantId,
+          tenantId: tenantId,
           canCreateAnimalRequests: userData.can_create_animal_requests || userData.canCreateAnimalRequests || false,
           isDefaultPassword: userData.is_default_password || userData.isDefaultPassword || false,
           status: userData.status || 'active',
@@ -202,6 +213,12 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
         
         // Store user in localStorage for persistence
         localStorage.setItem('user', JSON.stringify(userObj));
+        if (tenantId) {
+          localStorage.setItem('tenant_id', tenantId);
+          if (!localStorage.getItem('previewTenantId')) {
+            localStorage.setItem('previewTenantId', tenantId);
+          }
+        }
       } else {
         console.log('⚡ Using mock user data for development');
         // Mock user for development
@@ -266,6 +283,7 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
       localStorage.setItem('token', token);
       console.log('💾 Token stored in localStorage');
       
+      const tenantId = userData?.tenant_id || userData?.tenantId;
       // Create user object
       const userObj = {
         id: userData?.id?.toString() || '1',
@@ -273,6 +291,8 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
         name: userData?.name || 'User',
         email: userData?.email || '',
         role: userData?.role || 'user',
+        tenant_id: tenantId,
+        tenantId: tenantId,
         isDefaultPassword: userData?.is_default_password || userData?.isDefaultPassword || false,
         status: userData?.status || 'active',
         profileImage: userData?.profile_image || userData?.profileImage
@@ -286,6 +306,11 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
       
       // Store user in localStorage
       localStorage.setItem('user', JSON.stringify(userObj));
+      if (tenantId) {
+        localStorage.setItem('tenant_id', tenantId);
+        localStorage.setItem('previewTenantId', tenantId);
+        window.dispatchEvent(new CustomEvent('tenantChanged', { detail: tenantId }));
+      }
       
       toast.success(`Welcome back, ${userData?.name || userObj.name}!`);
       
@@ -318,7 +343,10 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
     } catch {}
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    localStorage.removeItem('tenant_id');
+    localStorage.removeItem('previewTenantId');
     localStorage.removeItem(LAST_ACTIVITY_KEY);
+    window.dispatchEvent(new CustomEvent('tenantChanged', { detail: 'default' }));
     setUser(null);
     setIsAuthenticated(false);
     if (!options?.suppressToast) {

@@ -33,5 +33,8 @@ router.get('/tenants', platformController.getTenants);
 router.post('/tenants', platformController.createTenant);
 router.put('/tenants/:id', platformController.updateTenant);
 router.delete('/tenants/:id', platformController.deleteTenant);
+router.get('/tenants/:id/landing-page-code', platformController.getTenantLandingPageCode);
+router.put('/tenants/:id/landing-page-code', platformController.updateTenantLandingPageCode);
+router.post('/tenants/:id/regenerate-landing-page', platformController.regenerateTenantLandingPage);
 
 module.exports = router;

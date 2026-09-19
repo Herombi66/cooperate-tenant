@@ -51,6 +51,8 @@ const buildProfilePayload = (user, application) => {
     name,
     email,
     role: user.role,
+    tenant_id: user.tenant_id,
+    tenantId: user.tenant_id,
     can_liquidate_loans: user.can_liquidate_loans,
     can_create_animal_requests: user.can_create_animal_requests,
     is_default_password: user.is_default_password,
@@ -187,7 +189,8 @@ const login = async (req, res) => {
       {
         id: user.id,
         psn: application.psn,
-        role: user.role
+        role: user.role,
+        tenant_id: user.tenant_id
       },
       process.env.JWT_SECRET,
       { expiresIn: '24h' }

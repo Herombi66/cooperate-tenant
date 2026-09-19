@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Settings, Globe, Shield, LogOut, CheckCircle, XCircle, Layout, Activity, Users, Box, CreditCard, Heart, Receipt, TrendingUp, Percent, Paintbrush, Trash2 } from 'lucide-react';
+import { Plus, Settings, Globe, Shield, LogOut, CheckCircle, XCircle, Layout, Activity, Users, Box, CreditCard, Heart, Receipt, TrendingUp, Percent, Paintbrush, Trash2, ExternalLink } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
@@ -141,6 +141,8 @@ export const PlatformAdminDashboard: React.FC = () => {
       });
 
       toast.success('Tenant created successfully');
+      localStorage.setItem('previewTenantId', formData.id);
+      window.dispatchEvent(new CustomEvent('tenantChanged', { detail: formData.id }));
       setShowAddModal(false);
       setFormData(initialFormState);
       fetchTenants();
@@ -333,6 +335,17 @@ export const PlatformAdminDashboard: React.FC = () => {
                       <span className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-green-500' : 'bg-red-500'}`}></span>
                       {tenant.status}
                     </span>
+                    <button 
+                      onClick={() => {
+                        localStorage.setItem('previewTenantId', tenant.id);
+                        window.dispatchEvent(new CustomEvent('tenantChanged', { detail: tenant.id }));
+                        window.open(`/?tenant=${tenant.id}`, '_blank');
+                      }}
+                      className="p-1.5 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                      title="Open Tenant Portal / Dashboard"
+                    >
+                      <ExternalLink className="w-5 h-5" />
+                    </button>
                     <button 
                       onClick={() => navigate(`/platform/tenants/${tenant.id}/landing-page`)}
                       className="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Save, Loader2, Layout, Briefcase, ListOrdered,
-  Info, HelpCircle, Megaphone, FileText, Plus, Trash2, Eye, Palette
+  Info, HelpCircle, Megaphone, FileText, Plus, Trash2, Eye, Palette, Code, RefreshCw
 } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
@@ -36,7 +36,7 @@ const defaultConfig: LandingPageConfig = {
   heroTitle: 'Empowering Healthcare Professionals Financially',
   heroSubtitle: 'Join us. Save, invest, and access loans with competitive rates in a secure environment.',
   heroFeatures: [
-    { title: 'Biblically Principled', subtitle: 'Justice, fairness, and financial integrity' },
+    { title: 'Ethical & Transparent', subtitle: 'Justice, fairness, and financial integrity' },
     { title: 'Member Benefits', subtitle: 'High yield investments and tailored loans' },
     { title: 'Clear Approvals', subtitle: 'Transparent review and instant notifications' }
   ],
@@ -58,7 +58,7 @@ const defaultConfig: LandingPageConfig = {
   aboutBullets: [
     'Empowering Healthcare Professionals through dedicated financial services',
     'Fostering a Culture of Savings & Investment',
-    'Providing Accessible, Biblically-principled Financial Support'
+    'Providing Accessible, Ethically Principled Financial Support'
   ],
   coreValues: [
     { title: 'Integrity', body: 'Operating with complete transparency and honesty in all financial dealings.' },
@@ -69,7 +69,7 @@ const defaultConfig: LandingPageConfig = {
   faqTitle: 'Frequently asked questions',
   faqDescription: 'Quick answers to the most common questions about our cooperative.',
   faqs: [
-    { q: 'Are operations Biblically-principled?', a: 'Yes, all operations strictly follow Biblical principles of Justice, fairness, and financial integrity.' },
+    { q: 'What principles guide operations?', a: 'All operations strictly follow ethical cooperative principles of justice, fairness, mutual benefit, and financial integrity.' },
     { q: 'What loans are available?', a: 'We offer Cash loans, Venture loans, and Emergency loans to active members.' },
     { q: 'How do guarantees work?', a: 'Members can receive guarantee requests and securely respond with approval/rejection directly from their dashboard.' },
     { q: 'How do withdrawals work?', a: 'Eligible members can request exactly 30% of their contributions once per calendar year, subject to no active loans and administrative approval.' }
@@ -82,6 +82,7 @@ const defaultConfig: LandingPageConfig = {
 };
 
 const tabs = [
+  { id: 'code', label: 'Code File (.tsx)', icon: Code },
   { id: 'colors', label: 'Theme Colors', icon: Palette },
   { id: 'hero', label: 'Hero Section', icon: Layout },
   { id: 'services', label: 'Services', icon: Briefcase },
@@ -121,7 +122,7 @@ const InputField = ({ label, value, onChange, placeholder, multiline = false, ro
 export const LandingPageEditor: React.FC = () => {
   const { tenantId } = useParams<{ tenantId: string }>();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('colors');
+  const [activeTab, setActiveTab] = useState('code');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [tenantName, setTenantName] = useState('');
@@ -129,6 +130,68 @@ export const LandingPageEditor: React.FC = () => {
   const [secondaryColor, setSecondaryColor] = useState('#38bdf8');
   const [config, setConfig] = useState<LandingPageConfig>(defaultConfig);
   const [hasChanges, setHasChanges] = useState(false);
+
+  // Custom Code (.tsx) States
+  const [codeContent, setCodeContent] = useState('');
+  const [isCodeLoading, setIsCodeLoading] = useState(false);
+  const [isCodeSaving, setIsCodeSaving] = useState(false);
+  const [isRegenerating, setIsRegenerating] = useState(false);
+
+  const fetchCode = async () => {
+    try {
+      setIsCodeLoading(true);
+      const token = localStorage.getItem('platformToken');
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      const res = await axios.get(`${API_URL}/platform/tenants/${tenantId}/landing-page-code`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.data.success) {
+        setCodeContent(res.data.code);
+      }
+    } catch (err) {
+      console.error('Failed to load code:', err);
+    } finally {
+      setIsCodeLoading(false);
+    }
+  };
+
+  const handleSaveCode = async () => {
+    try {
+      setIsCodeSaving(true);
+      const token = localStorage.getItem('platformToken');
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      await axios.put(`${API_URL}/platform/tenants/${tenantId}/landing-page-code`, { code: codeContent }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.success('Landing page code saved successfully!');
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Failed to save code');
+    } finally {
+      setIsCodeSaving(false);
+    }
+  };
+
+  const handleRegenerateCode = async () => {
+    if (!window.confirm('Are you sure you want to regenerate this landing page code file from template? Any manual edits will be overwritten.')) {
+      return;
+    }
+    try {
+      setIsRegenerating(true);
+      const token = localStorage.getItem('platformToken');
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      const res = await axios.post(`${API_URL}/platform/tenants/${tenantId}/regenerate-landing-page`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.data.success) {
+        setCodeContent(res.data.code);
+        toast.success('Landing page code regenerated successfully!');
+      }
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Failed to regenerate code');
+    } finally {
+      setIsRegenerating(false);
+    }
+  };
 
   useEffect(() => {
     const fetchTenant = async () => {
@@ -183,6 +246,7 @@ export const LandingPageEditor: React.FC = () => {
       }
     };
     fetchTenant();
+    fetchCode();
   }, [tenantId, navigate]);
 
   const updateField = (field: keyof LandingPageConfig, value: any) => {
@@ -649,8 +713,73 @@ export const LandingPageEditor: React.FC = () => {
     </div>
   );
 
+  const renderCodeTab = () => (
+    <div className="space-y-6">
+      <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 pb-4 border-b border-gray-100">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className="text-lg font-bold text-gray-900">Custom Landing Page Code</h3>
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                src/components/landing-pages/{tenantId}.tsx
+              </span>
+            </div>
+            <p className="text-xs sm:text-sm text-gray-500">
+              Each cooperative has an independent React TSX file. You can modify the JSX layout, copy, or styling directly.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleRegenerateCode}
+              disabled={isRegenerating || isCodeLoading}
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-50"
+              title="Reset code file back to base template"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isRegenerating ? 'animate-spin' : ''}`} />
+              <span>Regenerate</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleSaveCode}
+              disabled={isCodeSaving || isCodeLoading}
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm transition-colors disabled:opacity-50"
+            >
+              {isCodeSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+              <span>Save Code</span>
+            </button>
+          </div>
+        </div>
+
+        {isCodeLoading ? (
+          <div className="py-20 flex flex-col items-center justify-center">
+            <Loader2 className="w-8 h-8 animate-spin text-primary-600 mb-2" />
+            <span className="text-xs text-gray-500">Loading code file...</span>
+          </div>
+        ) : (
+          <div className="relative">
+            <div className="bg-slate-950 rounded-xl p-4 border border-slate-800 shadow-inner">
+              <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-800 text-xs text-slate-400 font-mono">
+                <span>// React TypeScript Component (Default Export)</span>
+                <span>{codeContent.split('\n').length} lines</span>
+              </div>
+              <textarea
+                value={codeContent}
+                onChange={(e) => setCodeContent(e.target.value)}
+                rows={24}
+                className="w-full bg-transparent text-emerald-400 font-mono text-xs sm:text-sm leading-relaxed outline-none resize-y selection:bg-emerald-800 selection:text-white"
+                spellCheck={false}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
   const renderActiveTab = () => {
     switch (activeTab) {
+      case 'code': return renderCodeTab();
       case 'colors': return renderColorsTab();
       case 'hero': return renderHeroTab();
       case 'services': return renderServicesTab();
@@ -659,7 +788,7 @@ export const LandingPageEditor: React.FC = () => {
       case 'faq': return renderFaqTab();
       case 'cta': return renderCtaTab();
       case 'footer': return renderFooterTab();
-      default: return renderColorsTab();
+      default: return renderCodeTab();
     }
   };
 

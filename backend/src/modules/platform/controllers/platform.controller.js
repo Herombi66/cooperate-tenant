@@ -1,5 +1,6 @@
 const { PlatformAdmin, Tenant, MembershipApplication, User, sequelize } = require('../../../../models');
 const emailService = require('../../../../services/emailService');
+const landingPageGenerator = require('../../../services/landingPageGenerator.service');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 // Platform Admin Login
@@ -178,6 +179,13 @@ exports.createTenant = async (req, res) => {
       console.error('Failed to send welcome email to tenant admin:', emailError);
     }
 
+    // Auto-generate custom landing page code file for this tenant
+    try {
+      landingPageGenerator.writeLandingPageFile(result.tenant);
+    } catch (genError) {
+      console.error('Failed to generate landing page file for tenant:', genError);
+    }
+
     res.status(201).json({
       success: true,
       message: 'Tenant created successfully',
@@ -244,6 +252,83 @@ exports.deleteTenant = async (req, res) => {
     });
   } catch (error) {
     console.error('Delete tenant error:', error);
+    res.status(500).json({ success: false, message: error.message || 'Internal server error' });
+  }
+};
+
+// Get tenant landing page code
+exports.getTenantLandingPageCode = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const tenant = await Tenant.findByPk(id);
+    if (!tenant) {
+      return res.status(404).json({ success: false, message: 'Tenant not found' });
+    }
+
+    let code = landingPageGenerator.readLandingPageFile(id);
+    if (!code) {
+      code = landingPageGenerator.generateLandingPageCode(tenant);
+      landingPageGenerator.writeLandingPageFile(tenant);
+    }
+
+    res.json({
+      success: true,
+      tenantId: id,
+      code
+    });
+  } catch (error) {
+    console.error('Error fetching landing page code:', error);
+    res.status(500).json({ success: false, message: error.message || 'Internal server error' });
+  }
+};
+
+// Update tenant landing page code
+exports.updateTenantLandingPageCode = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { code } = req.body;
+
+    if (!code || typeof code !== 'string') {
+      return res.status(400).json({ success: false, message: 'Code content is required' });
+    }
+
+    const tenant = await Tenant.findByPk(id);
+    if (!tenant) {
+      return res.status(404).json({ success: false, message: 'Tenant not found' });
+    }
+
+    landingPageGenerator.saveLandingPageFile(id, code);
+
+    res.json({
+      success: true,
+      message: 'Landing page code updated successfully'
+    });
+  } catch (error) {
+    console.error('Error updating landing page code:', error);
+    res.status(500).json({ success: false, message: error.message || 'Internal server error' });
+  }
+};
+
+// Regenerate tenant landing page code from template
+exports.regenerateTenantLandingPage = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const tenant = await Tenant.findByPk(id);
+    if (!tenant) {
+      return res.status(404).json({ success: false, message: 'Tenant not found' });
+    }
+
+    const filePath = landingPageGenerator.writeLandingPageFile(tenant);
+    const code = landingPageGenerator.readLandingPageFile(id);
+
+    res.json({
+      success: true,
+      message: 'Landing page regenerated successfully',
+      code,
+      filePath
+    });
+  } catch (error) {
+    console.error('Error regenerating landing page:', error);
     res.status(500).json({ success: false, message: error.message || 'Internal server error' });
   }
 };

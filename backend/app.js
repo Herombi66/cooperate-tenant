@@ -177,7 +177,9 @@ const corsOptions = {
     'X-XSRF-Token',
     'X-Requested-With',
     'If-Match',
-    'If-None-Match'
+    'If-None-Match',
+    'x-tenant-id',
+    'X-Tenant-Id'
   ]
 };
 

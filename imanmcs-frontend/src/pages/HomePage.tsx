@@ -20,7 +20,7 @@ import {
 export const HomePage: React.FC = () => {
   const { tenant } = useTenant();
   const theme = tenant?.theme?.landingPage || {};
-  const orgName = tenant?.name || 'FCNACONSGMCS Limited';
+  const orgName = tenant?.name || 'Cooperative Society';
   
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -235,7 +235,7 @@ export const HomePage: React.FC = () => {
 
                 <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-6 text-sm">
                   {(theme.heroFeatures || [
-                    { title: 'Biblically Principled', subtitle: 'Justice, fairness, and financial integrity' },
+                    { title: 'Ethical & Transparent', subtitle: 'Justice, fairness, and financial integrity' },
                     { title: 'Member Benefits', subtitle: 'High yield investments and tailored loans' },
                     { title: 'Clear Approvals', subtitle: 'Transparent review and instant notifications' }
                   ]).map((feat: any, idx: number) => (
@@ -369,7 +369,7 @@ export const HomePage: React.FC = () => {
                   {(theme.aboutBullets || [
                     'Empowering Healthcare Professionals through dedicated financial services',
                     'Fostering a Culture of Savings & Investment',
-                    'Providing Accessible, Biblically-principled Financial Support'
+                    'Providing Accessible, Ethically Principled Financial Support'
                   ]).map((t: string) => (
                     <div key={t} className="flex items-start gap-3">
                       <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center mt-0.5">
@@ -381,32 +381,31 @@ export const HomePage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="lg:col-span-6" data-reveal="init">
-                <div className="relative rounded-3xl border border-border/50 bg-background/60 backdrop-blur-md shadow-2xl shadow-primary/5 overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-50" />
-                  <div className="relative p-8 sm:p-10">
-                    <div className="text-lg font-bold text-foreground mb-6">Our Core Values</div>
-                    <div className="grid sm:grid-cols-2 gap-6">
-                      {(theme.coreValues || [
-                        { title: 'Integrity', body: 'Operating with complete transparency and honesty in all financial dealings.' },
-                        { title: 'Mutual Support', body: 'A community of healthcare professionals lifting each other up.' },
-                        { title: 'Excellence', body: 'Delivering professional-grade financial services and responsive support.' },
-                        { title: 'Growth', body: 'Creating sustainable wealth through strategic investments and profit sharing.' }
-                      ]).map((val: any, idx: number) => (
-                        <div key={idx} className="rounded-2xl border border-border/50 bg-background/80 p-6 shadow-sm hover:shadow-md transition-shadow">
-                          <div className="text-base font-bold text-foreground mb-2">{val.title}</div>
-                          <div className="text-sm text-muted-foreground leading-relaxed">{val.body}</div>
-                        </div>
-                      ))}
+              <div className="lg:col-span-6 grid grid-cols-1 sm:grid-cols-2 gap-6" data-reveal="init">
+                {(theme.coreValues || [
+                  { title: 'Integrity', body: 'Operating with complete transparency and honesty in all financial dealings.' },
+                  { title: 'Mutual Support', body: 'A community of healthcare professionals lifting each other up.' },
+                  { title: 'Excellence', body: 'Delivering professional-grade financial services and responsive support.' },
+                  { title: 'Growth', body: 'Creating sustainable wealth through strategic investments and profit sharing.' }
+                ]).map((v: any) => (
+                  <div
+                    key={v.title}
+                    className="p-6 rounded-2xl border border-border bg-card shadow-sm hover:shadow-md transition-shadow"
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold">
+                      {v.title.slice(0, 1)}
                     </div>
+                    <div className="mt-4 font-bold text-foreground text-lg">{v.title}</div>
+                    <div className="mt-2 text-sm text-muted-foreground leading-relaxed">{v.body}</div>
                   </div>
-                </div>
+                ))}
               </div>
             </div>
           </div>
         </section>
 
-        <section id="faq" className="py-20 sm:py-28 bg-background border-y border-border">
+        {/* ── FAQ ── */}
+        <section id="faq" className="py-20 border-t border-border bg-background">
           <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
             <div className="text-center" data-reveal="init">
               <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-foreground">{theme.faqTitle || 'Frequently asked questions'}</h2>
@@ -416,8 +415,8 @@ export const HomePage: React.FC = () => {
             <div className="mt-12 space-y-4">
               {(theme.faqs || [
                 {
-                  q: 'Are operations Biblically-principled?',
-                  a: 'Yes, all operations strictly follow Biblical principles of Justice, fairness, and financial integrity.'
+                  q: 'What principles guide operations?',
+                  a: 'All operations strictly follow ethical cooperative principles of justice, fairness, mutual benefit, and financial integrity.'
                 },
                 {
                   q: 'What loans are available?',

@@ -37,13 +37,13 @@
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
+    --background: 222.2 47% 11.2%; /* Slate 900 #0f172a */
+    --foreground: 210 40% 98%;      /* Slate 50 #f8fafc */
+    --card: 217.2 32.6% 17.5%;      /* Slate 800 #1e293b */
     --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
+    --popover: 217.2 32.6% 17.5%;   /* Slate 800 */
     --popover-foreground: 210 40% 98%;
-    --primary: 224 64% 33%; /* Navy Blue */
+    --primary: 221 83% 53%;         /* Accessible Primary Blue */
     --primary-foreground: 210 40% 98%;
     --primary-50: 214 100% 97%;
     --primary-100: 214 100% 93%;
@@ -55,17 +55,17 @@
     --primary-700: 224 76% 48%;
     --primary-800: 226 71% 40%;
     --primary-900: 226 65% 32%;
-    --secondary: 217.2 32.6% 17.5%;
+    --secondary: 215 25% 27%;       /* Slate 700 #334155 */
     --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
+    --muted: 215 25% 22%;           /* Slate 750 */
+    --muted-foreground: 215 20.2% 70%; /* Slate 400 with high contrast */
+    --accent: 215 25% 27%;
     --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 62.8% 45%;
     --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224 64% 33%;
+    --border: 215 25% 27%;          /* Slate 700 border */
+    --input: 215 25% 27%;
+    --ring: 221 83% 53%;
   }
 }
 
@@ -113,38 +113,60 @@
   }
 
   .dark .bg-white {
-    @apply bg-card;
+    background-color: hsl(var(--card)) !important;
   }
 
   .dark .bg-gray-50,
   .dark .hover\:bg-gray-50:hover {
-    @apply bg-secondary;
+    background-color: hsl(var(--secondary)) !important;
   }
 
   .dark .bg-gray-100,
   .dark .hover\:bg-gray-100:hover {
-    @apply bg-muted;
+    background-color: hsl(var(--muted)) !important;
   }
 
   .dark .text-gray-900,
   .dark .hover\:text-gray-900:hover {
-    @apply text-foreground;
+    color: hsl(var(--foreground)) !important;
+  }
+
+  .dark .text-gray-800 {
+    color: hsl(var(--foreground) / 0.9) !important;
   }
 
   .dark .text-gray-700,
   .dark .text-gray-600,
   .dark .text-gray-500 {
-    @apply text-muted-foreground;
+    color: hsl(var(--muted-foreground)) !important;
   }
 
   .dark .text-gray-400 {
-    @apply text-muted-foreground;
-    opacity: 0.8;
+    color: hsl(var(--muted-foreground) / 0.8) !important;
   }
 
+  .dark .border-gray-100,
   .dark .border-gray-200,
   .dark .border-gray-300 {
-    @apply border-border;
+    border-color: hsl(var(--border)) !important;
+  }
+
+  .dark .divide-gray-100 > :not([hidden]) ~ :not([hidden]),
+  .dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) {
+    border-color: hsl(var(--border)) !important;
+  }
+
+  .dark input:not([type="checkbox"]):not([type="radio"]),
+  .dark select,
+  .dark textarea {
+    background-color: hsl(var(--card));
+    color: hsl(var(--foreground));
+    border-color: hsl(var(--border));
+  }
+
+  .dark input::placeholder,
+  .dark textarea::placeholder {
+    color: hsl(var(--muted-foreground) / 0.7);
   }
 
   .dark .ring-black\/5 {

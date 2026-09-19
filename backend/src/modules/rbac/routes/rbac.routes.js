@@ -8,6 +8,7 @@ const { can } = require('../../../../middleware/rbac');
 router.get('/roles', authenticateToken, can('manage_roles'), rbacController.getRoles);
 router.post('/roles', authenticateToken, can('manage_roles'), rbacController.createRole);
 router.put('/roles/:id', authenticateToken, can('manage_roles'), rbacController.updateRole);
+router.post('/roles/:id/permissions', authenticateToken, can('manage_roles'), rbacController.updateRolePermissions);
 router.delete('/roles/:id', authenticateToken, can('manage_roles'), rbacController.deleteRole);
 
 // Permissions

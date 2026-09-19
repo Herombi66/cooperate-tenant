@@ -28,6 +28,8 @@ interface TenantContextValue {
   isLoading: boolean;
   error: string | null;
   hasFeature: (featureName: string) => boolean;
+  refreshTenant: (tenantId?: string) => Promise<void>;
+  setTenantId: (tenantId: string) => void;
 }
 
 const TenantContext = createContext<TenantContextValue>({
@@ -35,6 +37,8 @@ const TenantContext = createContext<TenantContextValue>({
   isLoading: true,
   error: null,
   hasFeature: () => true,
+  refreshTenant: async () => {},
+  setTenantId: () => {},
 });
 
 // ── Color Palette Generation Utilities ──────────────────────────────────
@@ -143,57 +147,94 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchTenantConfig = async () => {
-      try {
-        const apiUrl = API_URL || 'http://localhost:3001';
-        
-        // Check URL for tenant query param to support local preview
-        const urlParams = new URLSearchParams(window.location.search);
-        const tenantParam = urlParams.get('tenant');
-        
-        const headers: Record<string, string> = {};
-        if (tenantParam) {
-          headers['x-tenant-id'] = tenantParam;
-          localStorage.setItem('previewTenantId', tenantParam);
+  const fetchTenantConfig = async (overrideTenantId?: string) => {
+    try {
+      const apiUrl = API_URL || 'http://localhost:3001';
+      
+      // Check URL for tenant query param to support local preview
+      const urlParams = new URLSearchParams(window.location.search);
+      const tenantParam = overrideTenantId || urlParams.get('tenant');
+      
+      let targetTenantId = tenantParam;
+      if (targetTenantId) {
+        localStorage.setItem('previewTenantId', targetTenantId);
+      } else {
+        const storedTenantId = localStorage.getItem('previewTenantId');
+        if (storedTenantId) {
+          targetTenantId = storedTenantId;
         } else {
-          const storedTenantId = localStorage.getItem('previewTenantId');
-          if (storedTenantId) {
-            headers['x-tenant-id'] = storedTenantId;
-          }
+          try {
+            const storedUser = localStorage.getItem('user');
+            if (storedUser) {
+              const parsed = JSON.parse(storedUser);
+              if (parsed.tenant_id || parsed.tenantId) {
+                targetTenantId = parsed.tenant_id || parsed.tenantId;
+              }
+            }
+          } catch (e) {}
         }
-
-        const response = await axios.get(`${apiUrl}/tenant/config`, { 
-          withCredentials: true,
-          headers
-        });
-        
-        if (response.data.success && response.data.data) {
-          const config = response.data.data;
-          setTenant(config);
-
-          // Apply full primary color palette to the document
-          if (config.theme?.primaryColor) {
-            applyThemePalette(config.theme.primaryColor);
-          }
-          // Apply secondary color if provided
-          if (config.theme?.secondaryColor) {
-            const sec = hexToRgb(config.theme.secondaryColor);
-            document.documentElement.style.setProperty('--secondary', rgbToHslString(sec.r, sec.g, sec.b));
-          }
-        } else {
-          setError('Failed to load tenant configuration');
-        }
-      } catch (err: any) {
-        console.error('Error fetching tenant config:', err);
-        setError(err.message || 'Error fetching tenant config');
-      } finally {
-        setIsLoading(false);
       }
+
+      const headers: Record<string, string> = {};
+      if (targetTenantId) {
+        headers['x-tenant-id'] = targetTenantId;
+      }
+      const token = localStorage.getItem('token');
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await axios.get(`${apiUrl}/tenant/config`, { 
+        withCredentials: true,
+        headers
+      });
+      
+      if (response.data.success && response.data.data) {
+        const config = response.data.data;
+        setTenant(config);
+
+        // Apply full primary color palette to the document
+        if (config.theme?.primaryColor) {
+          applyThemePalette(config.theme.primaryColor);
+        }
+        // Apply secondary color if provided
+        if (config.theme?.secondaryColor) {
+          const sec = hexToRgb(config.theme.secondaryColor);
+          document.documentElement.style.setProperty('--secondary', rgbToHslString(sec.r, sec.g, sec.b));
+        }
+      } else {
+        setError('Failed to load tenant configuration');
+      }
+    } catch (err: any) {
+      console.error('Error fetching tenant config:', err);
+      setError(err.message || 'Error fetching tenant config');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTenantConfig();
+
+    const handleTenantChange = (event: any) => {
+      const newTenantId = event?.detail;
+      fetchTenantConfig(newTenantId);
     };
 
-    fetchTenantConfig();
+    window.addEventListener('tenantChanged', handleTenantChange);
+    return () => {
+      window.removeEventListener('tenantChanged', handleTenantChange);
+    };
   }, []);
+
+  const setTenantId = (tenantId: string) => {
+    localStorage.setItem('previewTenantId', tenantId);
+    window.dispatchEvent(new CustomEvent('tenantChanged', { detail: tenantId }));
+  };
+
+  const refreshTenant = async (tenantId?: string) => {
+    await fetchTenantConfig(tenantId);
+  };
 
   const hasFeature = (featureName: string) => {
     if (!tenant || !tenant.features) return true; // Default to true if not configured
@@ -201,14 +242,10 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   return (
-    <TenantContext.Provider value={{ tenant, isLoading, error, hasFeature }}>
-      {/* 
-        You might want to show a loading screen while fetching tenant config,
-        so the app doesn't render with default colors and then flash to tenant colors.
-      */}
+    <TenantContext.Provider value={{ tenant, isLoading, error, hasFeature, refreshTenant, setTenantId }}>
       {isLoading ? (
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-primary-600"></div>
         </div>
       ) : (
         children

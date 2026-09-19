@@ -30,8 +30,8 @@ const can = (permissionName) => {
         req.user = user;
       }
 
-      // Check if user is super_admin
-      if (user.role === 'super_admin' || user.roles?.some(r => r.name === 'super_admin')) {
+      // Check if user is super_admin or admin
+      if (user.role === 'super_admin' || user.role === 'admin' || user.roles?.some(r => r.name === 'super_admin' || r.name === 'admin')) {
         return next();
       }
 

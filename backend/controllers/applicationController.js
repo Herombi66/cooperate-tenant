@@ -99,6 +99,7 @@ const submitApplication = async (req, res) => {
       investment,
       target_saving,
       target_period,
+      password = null,
       auto_approve = false // For admin direct creation
     } = req.body;
 
@@ -235,8 +236,8 @@ const submitApplication = async (req, res) => {
     if (auto_approve) {
       console.log('🔧 [ADMIN CREATE MEMBER] Processing auto-approved application - calling createMemberAccount');
       try {
-        console.log('🔧 [ADMIN CREATE MEMBER] About to call createMemberAccount with true sendEmail');
-        const result = await createMemberAccount(application.id, null, true);
+        console.log('🔧 [ADMIN CREATE MEMBER] About to call createMemberAccount with true sendEmail and provided/generated password');
+        const result = await createMemberAccount(application.id, password ? password.trim() : null, true);
         console.log('🔧 [ADMIN CREATE MEMBER] createMemberAccount returned:', result ? 'success' : 'null');
 
         userAccount = result.user;

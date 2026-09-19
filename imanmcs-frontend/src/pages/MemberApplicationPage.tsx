@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { User, Briefcase, FileText, CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../services/api';
+import { useTenant } from '../contexts/TenantContext';
 
 export const MemberApplicationPage: React.FC = () => {
+  const { tenant } = useTenant();
   const [customFields, setCustomFields] = useState<any[]>([]);
   const [formData, setFormData] = useState({
     personalInfo: {
@@ -645,8 +647,8 @@ export const MemberApplicationPage: React.FC = () => {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Join FCNACONSGMCS</h1>
-          <p className="text-gray-600">Apply to become a member of FCNACONSGMCS. all operation follows Biblical principle of Justice and fairness, and financial integrity.</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Join {tenant?.name || 'Cooperative Society'}</h1>
+          <p className="text-gray-600">Apply to become a member of {tenant?.name || 'the cooperative'}. Save, invest, and grow together.</p>
         </div>
 
         {/* Progress Steps */}
