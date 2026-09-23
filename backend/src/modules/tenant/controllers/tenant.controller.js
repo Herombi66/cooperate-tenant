@@ -89,6 +89,27 @@ class TenantController {
       res.status(500).json({ success: false, message: 'Failed to update theme' });
     }
   }
+
+  /**
+   * Get public list of active cooperatives
+   */
+  async getPublicTenantsList(req, res) {
+    try {
+      const tenants = await Tenant.findAll({
+        where: { status: 'active' },
+        attributes: ['id', 'name', 'cooperative_type', 'domain', 'subdomain', 'theme', 'features'],
+        order: [['name', 'ASC']]
+      });
+
+      res.json({
+        success: true,
+        tenants: tenants.filter(t => t.id !== 'default')
+      });
+    } catch (error) {
+      console.error('Error fetching public cooperatives list:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch cooperatives' });
+    }
+  }
 }
 
 module.exports = new TenantController();

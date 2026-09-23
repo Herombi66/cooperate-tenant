@@ -809,7 +809,18 @@ export const LandingPageEditor: React.FC = () => {
               <div className="h-6 w-px bg-gray-200" />
               <div>
                 <h1 className="text-lg font-bold text-gray-900">Landing Page Editor</h1>
-                <p className="text-xs text-gray-500">{tenantName}</p>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-500">{tenantName}</span>
+                  <span className="text-gray-300">•</span>
+                  <a
+                    href={`/${tenantId}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-xs font-mono text-emerald-600 hover:underline inline-flex items-center gap-1"
+                  >
+                    /{tenantId}
+                  </a>
+                </div>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -817,11 +828,12 @@ export const LandingPageEditor: React.FC = () => {
                 <span className="text-xs font-medium text-amber-600 bg-amber-50 px-3 py-1 rounded-full">Unsaved changes</span>
               )}
               <button
-                onClick={() => window.open(`/?tenant=${tenantId}`, '_blank')}
+                onClick={() => window.open(`/${tenantId}`, '_blank')}
                 className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
+                title={`Preview dedicated landing page at /${tenantId}`}
               >
-                <Eye className="w-4 h-4" />
-                Preview
+                <Eye className="w-4 h-4 text-emerald-600" />
+                <span>Preview Page</span>
               </button>
               <button
                 onClick={handleSave}

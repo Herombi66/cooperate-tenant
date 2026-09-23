@@ -6,6 +6,7 @@ const { can } = require('../../../../middleware/rbac');
 
 // Public route to get theme and config
 router.get('/config', tenantController.getPublicConfig);
+router.get('/list', tenantController.getPublicTenantsList);
 
 // Protected route to update theme
 router.post('/theme', authenticateToken, can('manage_settings'), tenantController.updateTheme);

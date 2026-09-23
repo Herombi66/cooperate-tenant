@@ -1,33 +1,48 @@
-import React, { Suspense, lazy, useMemo } from 'react';
+import React, { Suspense, lazy, useMemo, useEffect } from 'react';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { useTenant } from '../contexts/TenantContext';
 
 // Automatically index all tenant landing pages using Vite's glob import
 const landingPageModules = import.meta.glob('./landing-pages/*.tsx');
 
+// Reserved application routes that should never be treated as tenant slugs
+const RESERVED_ROUTES = [
+  'login', 'platform', 'agreements', 'change-password', 'dashboard',
+  'support', 'communication', 'withdrawals', 'expenses', 'members',
+  'contributions', 'loans', 'profit-sharing', 'reports', 'settings',
+  'loan-repayments', 'member-applications', 'profile', 'my-contributions',
+  'my-loans', 'my-guarantees', 'apply-loan', 'my-profit-share',
+  'loan-applications', 'loan-approvals', 'my-layyah', 'browse-layyah',
+  'admin-layyah', 'admin-animal-requests', 'my-layyah-groups',
+  'notifications', 'user-management', 'roles', 'apply-membership',
+  'health', 'api'
+];
+
 export const useTenantSlug = () => {
-  const { tenant } = useTenant();
-  const searchParams = new URLSearchParams(window.location.search);
+  const { tenantSlug } = useParams<{ tenantSlug?: string }>();
+  const [searchParams] = useSearchParams();
   const queryTenant = searchParams.get('tenant');
-  
-  if (queryTenant) return queryTenant;
-  
-  const storedTenant = localStorage.getItem('previewTenantId') || localStorage.getItem('tenant_id');
-  if (storedTenant && storedTenant !== 'default') return storedTenant;
 
-  if (tenant?.id && tenant.id !== 'default') {
-    return tenant.id;
+  // 1. Explicit path parameter (e.g. /habu, /tenant/habu, /t/habu)
+  if (tenantSlug && tenantSlug !== 'default' && !RESERVED_ROUTES.includes(tenantSlug.toLowerCase())) {
+    return tenantSlug.toLowerCase();
   }
 
+  // 2. Explicit query parameter (e.g. ?tenant=habu)
+  if (queryTenant && queryTenant !== 'default') {
+    return queryTenant.toLowerCase();
+  }
+
+  // 3. Subdomain on custom domain (e.g. habu.imanmcs.com)
   const hostname = window.location.hostname;
-  if (hostname === 'localhost' || hostname === '127.0.0.1') {
-    return 'default'; 
+  if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
+    const parts = hostname.split('.');
+    if (parts.length >= 3 && parts[0] !== 'www') {
+      return parts[0].toLowerCase();
+    }
   }
 
-  const parts = hostname.split('.');
-  if (parts.length >= 3) {
-    return parts[0];
-  }
-
+  // 4. Default to 'default' when no specific tenant is requested
   return 'default';
 };
 
@@ -42,6 +57,15 @@ const LandingPageLoader = () => (
 
 export const TenantLandingPage: React.FC = () => {
   const slug = useTenantSlug();
+  const { tenant, setTenantId, refreshTenant } = useTenant();
+
+  // Synchronize tenant context when viewing a tenant's landing page
+  useEffect(() => {
+    if (slug && slug !== 'default' && tenant?.id !== slug) {
+      setTenantId(slug);
+      refreshTenant(slug);
+    }
+  }, [slug, tenant?.id, setTenantId, refreshTenant]);
 
   const LandingPageComponent = useMemo(() => {
     const targetPath = `./landing-pages/${slug}.tsx`;

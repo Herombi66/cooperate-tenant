@@ -101,6 +101,8 @@ export const AppRoutes: React.FC = () => {
     <Routes>
       {/* Public routes - no layout */}
       <Route path="/" element={hasFeature('landing_page') ? <TenantLandingPage /> : <Navigate to="/login" replace />} />
+      <Route path="/tenant/:tenantSlug" element={<TenantLandingPage />} />
+      <Route path="/t/:tenantSlug" element={<TenantLandingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/platform/login" element={<PlatformLoginPage />} />
       <Route path="/platform/dashboard" element={<PlatformAdminDashboard />} />
@@ -429,6 +431,9 @@ export const AppRoutes: React.FC = () => {
           </AppLayout>
         }
       />
+
+      {/* Dynamic Tenant Landing Page Route (e.g. /habu, /tafida, /kumo, /al-mansur) */}
+      <Route path="/:tenantSlug" element={<TenantLandingPage />} />
     </Routes>
   );
 };

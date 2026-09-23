@@ -337,12 +337,10 @@ export const PlatformAdminDashboard: React.FC = () => {
                     </span>
                     <button 
                       onClick={() => {
-                        localStorage.setItem('previewTenantId', tenant.id);
-                        window.dispatchEvent(new CustomEvent('tenantChanged', { detail: tenant.id }));
-                        window.open(`/?tenant=${tenant.id}`, '_blank');
+                        window.open(`/${tenant.id}`, '_blank');
                       }}
                       className="p-1.5 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
-                      title="Open Tenant Portal / Dashboard"
+                      title="Open Dedicated Landing Page"
                     >
                       <ExternalLink className="w-5 h-5" />
                     </button>
@@ -377,13 +375,28 @@ export const PlatformAdminDashboard: React.FC = () => {
 
                   <h3 className="text-xl font-bold text-gray-900 mb-1">{tenant.name}</h3>
                   
-                  <div className="flex items-center gap-2 text-sm text-gray-500 mb-6">
-                    <Globe className="w-4 h-4" />
-                    {tenant.domain ? (
-                      <span className="font-medium text-gray-700">{tenant.domain}</span>
-                    ) : (
-                      <span>{tenant.subdomain}.imanmcs.com</span>
-                    )}
+                  <div className="flex flex-col gap-1.5 text-sm text-gray-500 mb-6">
+                    <div className="flex items-center gap-2">
+                      <Globe className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                      {tenant.domain ? (
+                        <span className="font-medium text-gray-700 truncate">{tenant.domain}</span>
+                      ) : (
+                        <span className="truncate">{tenant.subdomain || tenant.id}.imanmcs.com</span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <ExternalLink className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                      <a
+                        href={`/${tenant.id}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="font-mono text-xs text-emerald-600 hover:text-emerald-700 hover:underline flex items-center gap-1"
+                        title="Open Dedicated Landing Page"
+                      >
+                        /{tenant.id}
+                        <span className="text-[10px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded border border-emerald-200">Separate Landing Page</span>
+                      </a>
+                    </div>
                   </div>
 
                   <div className="pt-5 border-t border-gray-100">
