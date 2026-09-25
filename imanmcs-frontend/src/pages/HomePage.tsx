@@ -16,11 +16,16 @@ import {
   Twitter,
   Linkedin
 } from 'lucide-react';
+import fmckLogo from '../Assets/logo.png';
 
 export const HomePage: React.FC = () => {
   const { tenant } = useTenant();
   const theme = tenant?.theme?.landingPage || {};
   const orgName = tenant?.name || 'Cooperative Society';
+  
+  const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+  const currentTenantId = tenant?.id || urlParams?.get('tenant') || localStorage.getItem('previewTenantId') || '';
+  const isFmcksmcs = currentTenantId.toLowerCase() === 'fmcksmcs' || (tenant?.name?.toLowerCase().includes('kumo') ?? false);
   
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -105,8 +110,22 @@ export const HomePage: React.FC = () => {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <Link to="/" className="inline-flex items-center gap-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-md">
-              <span className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-primary text-primary-foreground shadow-sm">
-                <Heart className="w-5 h-5" aria-hidden="true" />
+              <span className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-white shadow-sm border border-border overflow-hidden p-1">
+                {tenant?.theme?.logoUrl ? (
+                  <img
+                    src={tenant.theme.logoUrl}
+                    alt={orgName}
+                    className="w-full h-full object-contain rounded-lg"
+                  />
+                ) : isFmcksmcs ? (
+                  <img
+                    src={fmckLogo}
+                    alt={orgName}
+                    className="w-full h-full object-contain rounded-lg"
+                  />
+                ) : (
+                  <Heart className="w-5 h-5 text-primary" aria-hidden="true" />
+                )}
               </span>
               <div className="leading-tight">
                 <div className="text-sm font-semibold tracking-tight">{orgName}</div>
@@ -430,7 +449,9 @@ export const HomePage: React.FC = () => {
                   q: 'How do withdrawals work?',
                   a: 'Eligible members can request exactly 30% of their contributions once per calendar year, subject to no active loans and administrative approval.'
                 }
-              ]).map((item: any) => (
+              ])
+              .filter((item: any) => !isFmcksmcs || !item.q?.toLowerCase().includes('withdrawal'))
+              .map((item: any) => (
                 <details key={item.q} className="group rounded-2xl border border-border/60 bg-card p-6 shadow-sm hover:shadow-md transition-shadow duration-300" data-reveal="init">
                   <summary className="cursor-pointer list-none flex items-center justify-between gap-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg">
                     <span className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors duration-300">{item.q}</span>

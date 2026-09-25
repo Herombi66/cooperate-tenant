@@ -6,6 +6,7 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 import toast from 'react-hot-toast';
+import { useTenantTerminology } from '../utils/tenantTerminology';
 
 interface LoanRepayment {
   id: string;
@@ -23,6 +24,7 @@ interface LoanRepayment {
 
 export const MyLoanRepayments: React.FC = () => {
   const { user } = useAuth();
+  const { formatLoanType } = useTenantTerminology();
   const [repayments, setRepayments] = useState<LoanRepayment[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedRepayment, setSelectedRepayment] = useState<LoanRepayment | null>(null);
@@ -161,7 +163,7 @@ export const MyLoanRepayments: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
                         <div className="text-sm font-medium text-gray-900">Loan #{repayment.loanId}</div>
-                        <div className="text-sm text-gray-500 capitalize">{repayment.loanType} - ₦{repayment.loanAmount.toLocaleString()}</div>
+                        <div className="text-sm text-gray-500 capitalize">{formatLoanType(repayment.loanType)} - ₦{repayment.loanAmount.toLocaleString()}</div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -220,7 +222,7 @@ export const MyLoanRepayments: React.FC = () => {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Loan Type:</span>
-                      <span className="font-medium capitalize">{selectedRepayment.loanType}</span>
+                      <span className="font-medium capitalize">{formatLoanType(selectedRepayment.loanType)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Loan Amount:</span>

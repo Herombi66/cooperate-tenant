@@ -1,13 +1,17 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import {
   CreditCard, Upload, User, DollarSign, Calendar,
-  FileText, AlertCircle, CheckCircle, Info, Loader, ArrowRight
+  FileText, AlertCircle, CheckCircle, Info, Loader, ArrowRight,
+  GraduationCap, TrendingUp
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import toast from 'react-hot-toast';
 import AgentAgreementModal from '../components/AgentAgreementModal';
+import { useTenantTerminology } from '../utils/tenantTerminology';
+
+export type LoanType = 'cash' | 'venture' | 'investment' | 'educational' | 'emergency';
 
 interface MemberData {
   totalInvestment: number;
@@ -28,8 +32,9 @@ interface MemberData {
 const ApplyForLoan: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { isFmck, idLabel, idPlaceholder, loanTypes, formatLoanType } = useTenantTerminology();
   const draftKey = 'loan_application_draft_v1';
-  const [loanType, setLoanType] = useState<'cash' | 'venture' | 'emergency'>('cash');
+  const [loanType, setLoanType] = useState<LoanType>('cash');
   const [memberData, setMemberData] = useState<MemberData | null>(null);
   const [loading, setLoading] = useState(true);
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
@@ -60,7 +65,7 @@ const ApplyForLoan: React.FC = () => {
       if (raw) {
         const parsed = JSON.parse(raw) as {
           step?: 1 | 2 | 3 | 4;
-          loanType?: 'cash' | 'venture' | 'emergency';
+          loanType?: LoanType;
           formData?: {
             amount?: string;
             tenure?: string;
@@ -69,8 +74,9 @@ const ApplyForLoan: React.FC = () => {
           };
         };
 
-        if (parsed.loanType && (parsed.loanType === 'cash' || parsed.loanType === 'venture' || parsed.loanType === 'emergency')) {
-          setLoanType(parsed.loanType);
+        if (parsed.loanType) {
+          const type = (isFmck && parsed.loanType === 'venture') ? 'investment' : parsed.loanType;
+          setLoanType(type);
         }
 
         if (parsed.step && [1, 2, 3, 4].includes(parsed.step)) {
@@ -197,6 +203,7 @@ const ApplyForLoan: React.FC = () => {
 
   // Calculate loan limits based on new rules and dynamic settings
   const totalContributions = memberData ? (memberData.totalSavings + memberData.totalInvestment) : 0;
+  const totalInvestment = memberData ? memberData.totalInvestment : 0;
   
   // Use settings if available, otherwise fallback to defaults
   const cashMaxAbsolute = settings.cash_loan_limit ? parseFloat(settings.cash_loan_limit) : 500000;
@@ -207,11 +214,38 @@ const ApplyForLoan: React.FC = () => {
 
   const maxCashLoan = Math.min(cashMaxAbsolute, totalContributions * 0.5 * cashMultiplier);
   const maxVentureLoan = Math.min(ventureMaxAbsolute, totalContributions * 0.3 * ventureMultiplier);
+  const maxInvestmentLoan = Math.min(
+    settings.investment_loan_limit ? parseFloat(settings.investment_loan_limit) : (settings.venture_loan_limit ? parseFloat(settings.venture_loan_limit) : 1000000),
+    totalInvestment * 3 || totalContributions * 0.3 * ventureMultiplier
+  );
+  const maxEducationalLoan = Math.min(
+    settings.educational_loan_limit ? parseFloat(settings.educational_loan_limit) : 1000000,
+    totalInvestment * 3 || totalContributions * 0.3 * 10
+  );
   const maxEmergencyLoan = maxEmergencyAbsolute;
+
+  const getMaxLoanForType = (type: LoanType): number => {
+    switch (type) {
+      case 'cash':
+        return maxCashLoan;
+      case 'investment':
+        return maxInvestmentLoan;
+      case 'educational':
+        return maxEducationalLoan;
+      case 'venture':
+        return maxVentureLoan;
+      case 'emergency':
+        return maxEmergencyLoan;
+      default:
+        return 0;
+    }
+  };
   
-  const maxTenureMonths = loanType === 'cash' ? 12 : loanType === 'venture' ? 24 : 6;
+  const maxTenureMonths = loanType === 'cash' ? 12 : loanType === 'emergency' ? 6 : 24;
   const tenureOptions = useMemo(() => {
-    return loanType === 'cash' ? [3, 6, 9, 12] : loanType === 'venture' ? [3, 6, 9, 12, 18, 24] : [1, 2, 3, 6];
+    if (loanType === 'cash') return [3, 6, 9, 12];
+    if (loanType === 'emergency') return [1, 2, 3, 6];
+    return [3, 6, 9, 12, 18, 24];
   }, [loanType]);
 
   useEffect(() => {
@@ -226,27 +260,24 @@ const ApplyForLoan: React.FC = () => {
   const tenureWarning =
     loanType === 'cash'
       ? 'Maximum repayment period for cash loans is 12 months.'
-      : loanType === 'venture'
-      ? 'Maximum repayment period for venture loans is 24 months.'
-      : 'Maximum repayment period for emergency loans is 6 months.';
+      : loanType === 'emergency'
+      ? 'Maximum repayment period for emergency loans is 6 months.'
+      : `Maximum repayment period for ${formatLoanType(loanType).toLowerCase()} is 24 months.`;
 
   const canProceedStep1 = () => {
     const amount = parseFloat(formData.amount || '0');
     const tenure = parseInt(formData.tenure || '0', 10);
     if (!formData.amount || !Number.isFinite(amount) || amount <= 0) return false;
     if (amount < 10000) return false;
-    if (!Number.isFinite(tenure) || tenure < 3) return false;
-    if ((loanType === 'cash' && amount > maxCashLoan) || 
-        (loanType === 'venture' && amount > maxVentureLoan) || 
-        (loanType === 'emergency' && amount > maxEmergencyLoan)) return false;
-    if (loanType === 'venture' && tenure > 24) return false;
-    if (loanType === 'cash' && tenure > 12) return false;
-    if (loanType === 'emergency' && tenure > 6) return false;
+    if (!Number.isFinite(tenure) || tenure < 1) return false;
+    const maxAllowed = getMaxLoanForType(loanType);
+    if (amount > maxAllowed) return false;
+    if (tenure > maxTenureMonths) return false;
     return true;
   };
 
   const canProceedStep2 = () => {
-    if (!formData.grantorPsn || formData.grantorPsn.trim().length < 5) return false;
+    if (!formData.grantorPsn || formData.grantorPsn.trim().length < 3) return false;
     if (!formData.purpose || formData.purpose.trim().length < 20) return false;
     return true;
   };
@@ -262,7 +293,7 @@ const ApplyForLoan: React.FC = () => {
       return;
     }
     if (step === 2 && !canProceedStep2()) {
-      toast.error('Please provide a valid grantor PSN and a detailed purpose before continuing.');
+      toast.error(`Please provide a valid grantor ${idLabel} and a detailed purpose before continuing.`);
       return;
     }
     if (step === 3 && !canProceedStep3()) {
@@ -275,8 +306,8 @@ const ApplyForLoan: React.FC = () => {
       setGrantorValidation({ status: 'loading' });
       const result = await validateGrantor(psn);
       if (!result.isValid) {
-        setGrantorValidation({ status: 'invalid', message: result.message || 'Invalid guarantor PSN. Please check and try again.' });
-        toast.error(result.message || 'Invalid guarantor PSN. Please check and try again.');
+        setGrantorValidation({ status: 'invalid', message: result.message || `Invalid guarantor ${idLabel}. Please check and try again.` });
+        toast.error(result.message || `Invalid guarantor ${idLabel}. Please check and try again.`);
         return;
       }
       setGrantorValidation({ status: 'valid', memberName: result.memberName, message: undefined });
@@ -378,18 +409,9 @@ const ApplyForLoan: React.FC = () => {
       return;
     }
 
-    if (loanType === 'cash' && amount > maxCashLoan) {
-      toast.error(`You are exceeding your cash limit. Maximum allowed is ₦${maxCashLoan.toLocaleString()}`);
-      return;
-    }
-
-    if (loanType === 'venture' && amount > maxVentureLoan) {
-      toast.error(`You are exceeding your venture limit. Maximum allowed is ₦${maxVentureLoan.toLocaleString()}`);
-      return;
-    }
-
-    if (loanType === 'emergency' && amount > maxEmergencyLoan) {
-      toast.error(`You are exceeding your emergency limit. Maximum allowed is ₦${maxEmergencyLoan.toLocaleString()}`);
+    const maxAllowed = getMaxLoanForType(loanType);
+    if (amount > maxAllowed) {
+      toast.error(`You are exceeding your limit for ${formatLoanType(loanType)}. Maximum allowed is ₦${maxAllowed.toLocaleString()}`);
       return;
     }
 
@@ -398,14 +420,14 @@ const ApplyForLoan: React.FC = () => {
       return;
     }
 
-    // Step 2: Validate grantor PSN
+    // Step 2: Validate grantor ID
     if (!formData.grantorPsn || !formData.grantorPsn.trim()) {
-      toast.error('Please enter grantor PSN');
+      toast.error(`Please enter grantor ${idLabel}`);
       return;
     }
 
-    if (formData.grantorPsn.trim().length < 5) {
-      toast.error('Please enter a valid PSN (5-8 characters)');
+    if (formData.grantorPsn.trim().length < 3) {
+      toast.error(`Please enter a valid ${idLabel}`);
       return;
     }
 
@@ -415,13 +437,13 @@ const ApplyForLoan: React.FC = () => {
       return;
     }
 
-    // Validate grantor PSN exists
-    toast.loading('Validating grantor...');
+    // Validate grantor exists
+    toast.loading(`Validating grantor ${idLabel}...`);
     const grantorValidation = await validateGrantor(formData.grantorPsn.trim());
 
     if (!grantorValidation.isValid) {
       toast.dismiss();
-      toast.error('Invalid grantor PSN. Please check and try again.');
+      toast.error(`Invalid grantor ${idLabel}. Please check and try again.`);
       return;
     }
 
@@ -444,8 +466,11 @@ const ApplyForLoan: React.FC = () => {
     if (loanType === 'emergency' && (tenure < 1 || tenure > 6)) {
       toast.error('Repayment period must be between 1 and 6 months');
       return;
-    } else if (loanType !== 'emergency' && (tenure < 3 || tenure > 24)) {
-      toast.error('Repayment period must be between 3 and 24 months');
+    } else if (loanType === 'cash' && (tenure < 1 || tenure > 12)) {
+      toast.error('Repayment period must be between 1 and 12 months');
+      return;
+    } else if (tenure < 1 || tenure > 24) {
+      toast.error('Repayment period must be between 1 and 24 months');
       return;
     }
 
@@ -707,22 +732,30 @@ const ApplyForLoan: React.FC = () => {
           <Info className="w-5 h-5 mr-2" />
           Your Loan Eligibility
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-white p-4 rounded-lg">
-            <h4 className="font-medium text-gray-900 mb-2">Cash Loan</h4>
-            <p className="text-2xl font-bold text-green-600">₦{maxCashLoan.toLocaleString()}</p>
-            <p className="text-sm text-gray-600">Max ₦{(settings.cash_loan_limit ? parseFloat(settings.cash_loan_limit) : 500000).toLocaleString()} ({settings.cash_loan_multiplier || 3}x 50% contribution)</p>
-          </div>
-          <div className="bg-white p-4 rounded-lg">
-            <h4 className="font-medium text-gray-900 mb-2">Venture Loan</h4>
-            <p className="text-2xl font-bold text-purple-600">₦{maxVentureLoan.toLocaleString()}</p>
-            <p className="text-sm text-gray-600">Max ₦{(settings.venture_loan_limit ? parseFloat(settings.venture_loan_limit) : 1000000).toLocaleString()} ({settings.venture_loan_multiplier || 10}x 30% contribution)</p>
-          </div>
-          <div className="bg-white p-4 rounded-lg">
-            <h4 className="font-medium text-gray-900 mb-2">Emergency Loan</h4>
-            <p className="text-2xl font-bold text-red-600">₦{maxEmergencyLoan.toLocaleString()}</p>
-            <p className="text-sm text-gray-600">Max ₦{(settings.emergency_loan_limit ? parseFloat(settings.emergency_loan_limit) : 20000).toLocaleString()} for emergencies.</p>
-          </div>
+        <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-${Math.min(loanTypes.length, 4)} gap-4`}>
+          {loanTypes.map((lt) => {
+            const limit = getMaxLoanForType(lt.id as LoanType);
+            const colorClass = lt.id === 'cash' ? 'text-green-600' : lt.id === 'emergency' ? 'text-red-600' : lt.id === 'educational' ? 'text-indigo-600' : 'text-purple-600';
+            let subtitle = '';
+            if (lt.id === 'cash') {
+              subtitle = `Max ₦${cashMaxAbsolute.toLocaleString()} (${cashMultiplier}x 50% contribution)`;
+            } else if (lt.id === 'venture') {
+              subtitle = `Max ₦${ventureMaxAbsolute.toLocaleString()} (${ventureMultiplier}x 30% contribution)`;
+            } else if (lt.id === 'investment') {
+              subtitle = `Max ₦${maxInvestmentLoan.toLocaleString()} (3x total investment)`;
+            } else if (lt.id === 'educational') {
+              subtitle = `Max ₦${maxEducationalLoan.toLocaleString()} (3x total investment)`;
+            } else if (lt.id === 'emergency') {
+              subtitle = `Max ₦${maxEmergencyLoan.toLocaleString()} for emergencies.`;
+            }
+            return (
+              <div key={lt.id} className="bg-white p-4 rounded-lg">
+                <h4 className="font-medium text-gray-900 mb-2">{formatLoanType(lt.id)}</h4>
+                <p className={`text-2xl font-bold ${colorClass}`}>₦{limit.toLocaleString()}</p>
+                <p className="text-sm text-gray-600">{subtitle}</p>
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -737,55 +770,35 @@ const ApplyForLoan: React.FC = () => {
                 <div className="space-y-6" aria-label="Step 1: Loan details">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-3">Loan Type *</label>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <button
-                        type="button"
-                        onClick={() => setLoanType('cash')}
-                        className={`p-4 border-2 rounded-lg text-left cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 ${
-                          loanType === 'cash' ? 'border-primary-500 bg-primary-50' : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                        aria-pressed={loanType === 'cash'}
-                      >
-                        <div className="flex items-center">
-                          <DollarSign className="w-6 h-6 text-green-500 mr-3" aria-hidden="true" />
-                          <div>
-                            <h4 className="font-medium">Cash Loan</h4>
-                            <p className="text-sm text-gray-600">Up to ₦{(settings.cash_loan_limit ? parseFloat(settings.cash_loan_limit) : 500000).toLocaleString()} • max 12 months</p>
-                          </div>
-                        </div>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setLoanType('venture')}
-                        className={`p-4 border-2 rounded-lg text-left cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 ${
-                          loanType === 'venture' ? 'border-primary-500 bg-primary-50' : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                        aria-pressed={loanType === 'venture'}
-                      >
-                        <div className="flex items-center">
-                          <CreditCard className="w-6 h-6 text-purple-500 mr-3" aria-hidden="true" />
-                          <div>
-                            <h4 className="font-medium">Venture Loan</h4>
-                            <p className="text-sm text-gray-600">Up to ₦{(settings.venture_loan_limit ? parseFloat(settings.venture_loan_limit) : 1000000).toLocaleString()} • max 24 months</p>
-                          </div>
-                        </div>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setLoanType('emergency')}
-                        className={`p-4 border-2 rounded-lg text-left cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 ${
-                          loanType === 'emergency' ? 'border-primary-500 bg-primary-50' : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                        aria-pressed={loanType === 'emergency'}
-                      >
-                        <div className="flex items-center">
-                          <AlertCircle className="w-6 h-6 text-red-500 mr-3" aria-hidden="true" />
-                          <div>
-                            <h4 className="font-medium">Emergency Loan</h4>
-                            <p className="text-sm text-gray-600">Up to ₦{(settings.emergency_loan_limit ? parseFloat(settings.emergency_loan_limit) : 20000).toLocaleString()} • max 6 months</p>
-                          </div>
-                        </div>
-                      </button>
+                    <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-${Math.min(loanTypes.length, 4)} gap-4`}>
+                      {loanTypes.map((lt) => {
+                        const isSelected = loanType === lt.id;
+                        const limit = getMaxLoanForType(lt.id as LoanType);
+                        const maxMonths = lt.id === 'cash' ? 12 : lt.id === 'emergency' ? 6 : 24;
+                        return (
+                          <button
+                            key={lt.id}
+                            type="button"
+                            onClick={() => setLoanType(lt.id as LoanType)}
+                            className={`p-4 border-2 rounded-lg text-left cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 ${
+                              isSelected ? 'border-primary-500 bg-primary-50' : 'border-gray-200 hover:border-gray-300'
+                            }`}
+                            aria-pressed={isSelected}
+                          >
+                            <div className="flex items-center">
+                              {lt.id === 'cash' && <DollarSign className="w-6 h-6 text-green-500 mr-3 flex-shrink-0" aria-hidden="true" />}
+                              {lt.id === 'venture' && <CreditCard className="w-6 h-6 text-purple-500 mr-3 flex-shrink-0" aria-hidden="true" />}
+                              {lt.id === 'investment' && <TrendingUp className="w-6 h-6 text-blue-500 mr-3 flex-shrink-0" aria-hidden="true" />}
+                              {lt.id === 'educational' && <GraduationCap className="w-6 h-6 text-indigo-500 mr-3 flex-shrink-0" aria-hidden="true" />}
+                              {lt.id === 'emergency' && <AlertCircle className="w-6 h-6 text-red-500 mr-3 flex-shrink-0" aria-hidden="true" />}
+                              <div>
+                                <h4 className="font-medium text-gray-900">{formatLoanType(lt.id)}</h4>
+                                <p className="text-sm text-gray-600">Up to ₦{limit.toLocaleString()} • max {maxMonths}m</p>
+                              </div>
+                            </div>
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
 
@@ -796,7 +809,7 @@ const ApplyForLoan: React.FC = () => {
                         type="number"
                         required
                         min="1000"
-                        max={loanType === 'cash' ? maxCashLoan : loanType === 'venture' ? maxVentureLoan : maxEmergencyLoan}
+                        max={getMaxLoanForType(loanType)}
                         value={formData.amount}
                         onChange={(e) => handleInputChange('amount', e.target.value)}
                         className={[
@@ -807,12 +820,12 @@ const ApplyForLoan: React.FC = () => {
                         aria-invalid={showValidation && !formData.amount}
                       />
                       <p className="text-xs text-gray-500 mt-1">
-                        Maximum: ₦{(loanType === 'cash' ? maxCashLoan : loanType === 'venture' ? maxVentureLoan : maxEmergencyLoan).toLocaleString()}
+                        Maximum: ₦{getMaxLoanForType(loanType).toLocaleString()}
                       </p>
                       {showValidation &&
                         (() => {
                           const amount = parseFloat(formData.amount || '0');
-                          const maxAllowed = loanType === 'cash' ? maxCashLoan : maxInvestmentLoan;
+                          const maxAllowed = getMaxLoanForType(loanType);
                           if (!formData.amount) return <p className="mt-1 text-sm text-red-600">Loan amount is required.</p>;
                           if (!Number.isFinite(amount) || amount <= 0) return <p className="mt-1 text-sm text-red-600">Enter a valid loan amount.</p>;
                           if (amount < 10000) return <p className="mt-1 text-sm text-red-600">Minimum loan amount is ₦10,000.</p>;
@@ -857,7 +870,7 @@ const ApplyForLoan: React.FC = () => {
               {step === 2 && (
                 <div className="space-y-6" aria-label="Step 2: Purpose and grantor">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Grantor PSN *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Grantor {idLabel} *</label>
                     <input
                       type="text"
                       required
@@ -865,40 +878,40 @@ const ApplyForLoan: React.FC = () => {
                       onChange={(e) => handleInputChange('grantorPsn', e.target.value)}
                       onBlur={async () => {
                         const psn = formData.grantorPsn.trim();
-                        if (!psn || psn.length < 5) return;
+                        if (!psn || psn.length < 3) return;
                         setGrantorValidation({ status: 'loading' });
                         const result = await validateGrantor(psn);
                         if (!result.isValid) {
-                          setGrantorValidation({ status: 'invalid', message: result.message || 'Invalid guarantor PSN. Please check and try again.' });
+                          setGrantorValidation({ status: 'invalid', message: result.message || `Invalid guarantor ${idLabel}. Please check and try again.` });
                           return;
                         }
                         setGrantorValidation({ status: 'valid', memberName: result.memberName, message: undefined });
                       }}
                       className={[
                         'w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent',
-                        showValidation && (!formData.grantorPsn || formData.grantorPsn.trim().length < 5) ? 'border-red-300' : 'border-gray-300'
+                        showValidation && (!formData.grantorPsn || formData.grantorPsn.trim().length < 3) ? 'border-red-300' : 'border-gray-300'
                       ].join(' ')}
-                      placeholder="Enter grantor's PSN"
-                      aria-invalid={showValidation && (!formData.grantorPsn || formData.grantorPsn.trim().length < 5)}
+                      placeholder={`Enter grantor's ${idLabel}`}
+                      aria-invalid={showValidation && (!formData.grantorPsn || formData.grantorPsn.trim().length < 3)}
                     />
-                    <p className="text-sm text-gray-500 mt-1">PSN of the cooperative member who will guarantee your loan.</p>
-                    {showValidation && (!formData.grantorPsn || formData.grantorPsn.trim().length < 5) && (
-                      <p className="mt-1 text-sm text-red-600">Grantor PSN is required (minimum 5 characters).</p>
+                    <p className="text-sm text-gray-500 mt-1">{idLabel} of the cooperative member who will guarantee your loan.</p>
+                    {showValidation && (!formData.grantorPsn || formData.grantorPsn.trim().length < 3) && (
+                      <p className="mt-1 text-sm text-red-600">Grantor {idLabel} is required.</p>
                     )}
                     {grantorValidation.status === 'loading' && (
-                      <p className="mt-1 text-sm text-gray-600">Validating guarantor PSN…</p>
+                      <p className="mt-1 text-sm text-gray-600">Validating guarantor {idLabel}…</p>
                     )}
                     {grantorValidation.status === 'valid' && (
                       <p className="mt-1 text-sm text-green-700">Guarantor found: {grantorValidation.memberName || 'Cooperative member'}</p>
                     )}
                     {grantorValidation.status === 'invalid' && (
-                      <p className="mt-1 text-sm text-red-600">{grantorValidation.message || 'Invalid guarantor PSN. Please check and try again.'}</p>
+                      <p className="mt-1 text-sm text-red-600">{grantorValidation.message || `Invalid guarantor ${idLabel}. Please check and try again.`}</p>
                     )}
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {loanType === 'venture' ? 'Venture to Embark On *' : 'Purpose of Loan *'}
+                      {loanType === 'venture' ? 'Venture to Embark On *' : loanType === 'investment' ? 'Investment Purpose *' : loanType === 'educational' ? 'Educational Purpose *' : 'Purpose of Loan *'}
                     </label>
                     <textarea
                       required
@@ -909,11 +922,11 @@ const ApplyForLoan: React.FC = () => {
                         'w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent',
                         showValidation && (!formData.purpose || formData.purpose.trim().length < 20) ? 'border-red-300' : 'border-gray-300'
                       ].join(' ')}
-                      placeholder={loanType === 'venture' ? "Describe the venture you intend to embark on (at least 20 characters)..." : "Describe the purpose of this loan (at least 20 characters)..."}
+                      placeholder={loanType === 'venture' ? "Describe the venture you intend to embark on (at least 20 characters)..." : loanType === 'investment' ? "Describe the investment or business activity (at least 20 characters)..." : loanType === 'educational' ? "Describe the educational purpose or course details (at least 20 characters)..." : "Describe the purpose of this loan (at least 20 characters)..."}
                       aria-invalid={showValidation && (!formData.purpose || formData.purpose.trim().length < 20)}
                     />
                     <p className="text-sm text-gray-500 mt-1">
-                      {loanType === 'venture' ? 'Provide clear details of your venture.' : 'Provide a clear purpose to support faster review.'}
+                      {loanType === 'venture' ? 'Provide clear details of your venture.' : loanType === 'investment' ? 'Provide clear details of your investment.' : loanType === 'educational' ? 'Provide clear details of educational program and institution.' : 'Provide a clear purpose to support faster review.'}
                     </p>
                     {showValidation && (!formData.purpose || formData.purpose.trim().length < 20) && (
                       <p className="mt-1 text-sm text-red-600">Purpose is required (minimum 20 characters).</p>
@@ -1032,10 +1045,10 @@ const ApplyForLoan: React.FC = () => {
                   <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
                     <div className="text-sm font-semibold text-gray-900">Review</div>
                     <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                      <div className="flex justify-between gap-2"><span className="text-gray-600">Loan type</span><span className="font-medium capitalize text-gray-900">{loanType}</span></div>
+                      <div className="flex justify-between gap-2"><span className="text-gray-600">Loan type</span><span className="font-medium text-gray-900">{formatLoanType(loanType)}</span></div>
                       <div className="flex justify-between gap-2"><span className="text-gray-600">Tenure</span><span className="font-medium text-gray-900">{formData.tenure} months</span></div>
                       <div className="flex justify-between gap-2 sm:col-span-2"><span className="text-gray-600">Amount</span><span className="font-medium text-gray-900">₦{parseFloat(formData.amount || '0').toLocaleString()}</span></div>
-                      <div className="flex justify-between gap-2 sm:col-span-2"><span className="text-gray-600">Grantor PSN</span><span className="font-medium text-gray-900">{formData.grantorPsn || '-'}</span></div>
+                      <div className="flex justify-between gap-2 sm:col-span-2"><span className="text-gray-600">Grantor {idLabel}</span><span className="font-medium text-gray-900">{formData.grantorPsn || '-'}</span></div>
                       <div className="sm:col-span-2">
                         <div className="text-gray-600">Purpose</div>
                         <div className="mt-1 text-gray-900">{formData.purpose || '-'}</div>
@@ -1107,7 +1120,7 @@ const ApplyForLoan: React.FC = () => {
               <div className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Loan Type:</span>
-                  <span className="font-medium capitalize">{loanType}</span>
+                  <span className="font-medium">{formatLoanType(loanType)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Amount:</span>

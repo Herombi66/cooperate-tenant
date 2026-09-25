@@ -9,6 +9,7 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import { DashboardService } from '../services/dashboardService';
 import toast from 'react-hot-toast';
+import { useTenantTerminology } from '../utils/tenantTerminology';
 
 const safeMap = <T, R>(value: T[] | null | undefined, mapper: (item: T, index: number) => R): R[] => {
   if (!Array.isArray(value)) return [];
@@ -107,6 +108,7 @@ const cardVariants = {
 
 export const MemberDashboard: React.FC = () => {
   const { user } = useAuth();
+  const { isFmck, formatLoanType } = useTenantTerminology();
   const navigate = useNavigate();
   const [showLoanRepayments, setShowLoanRepayments] = useState(false);
   const [showPolicy, setShowPolicy] = useState(false);
@@ -449,7 +451,7 @@ export const MemberDashboard: React.FC = () => {
             <CreditCard className="w-5 h-5 mr-2 text-green-500" />
             Loan Eligibility
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className={`grid grid-cols-1 md:grid-cols-3 ${isFmck ? 'lg:grid-cols-4' : ''} gap-4`}>
             <div className="p-3 bg-green-50 rounded-lg border border-green-100">
               <div className="text-xs text-green-600 font-semibold mb-1">Emergency Loan</div>
               <div className="text-lg font-bold text-green-800">{toCurrency(memberData.settings.emergency_loan_limit || 20000)}</div>
@@ -459,9 +461,15 @@ export const MemberDashboard: React.FC = () => {
               <div className="text-lg font-bold text-primary-800">{toCurrency(memberData.settings.cash_loan_limit || 500000)}</div>
             </div>
             <div className="p-3 bg-orange-50 rounded-lg border border-orange-100">
-              <div className="text-xs text-orange-600 font-semibold mb-1">Venture Loan</div>
-              <div className="text-lg font-bold text-orange-800">{toCurrency(memberData.settings.venture_loan_limit || 1000000)}</div>
+              <div className="text-xs text-orange-600 font-semibold mb-1">{formatLoanType('venture')}</div>
+              <div className="text-lg font-bold text-orange-800">{toCurrency(memberData.settings.venture_loan_limit || memberData.settings.investment_loan_limit || 1000000)}</div>
             </div>
+            {isFmck && (
+              <div className="p-3 bg-purple-50 rounded-lg border border-purple-100">
+                <div className="text-xs text-purple-600 font-semibold mb-1">Educational Loan</div>
+                <div className="text-lg font-bold text-purple-800">{toCurrency(memberData.settings.educational_loan_limit || 500000)}</div>
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
+import { Navigate } from 'react-router-dom';
 import { RefreshCw, Percent, AlertTriangle, CheckCircle } from 'lucide-react';
 import api from '../services/api';
 import toast from 'react-hot-toast';
+import { useTenantTerminology } from '../utils/tenantTerminology';
 
 type Eligibility = {
   eligible: boolean;
@@ -23,6 +25,12 @@ type Withdrawal = {
 };
 
 export const WithdrawalsPage: React.FC = () => {
+  const { isFmck } = useTenantTerminology();
+
+  if (isFmck) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
   const [loading, setLoading] = useState(false);
   const [eligibility, setEligibility] = useState<Eligibility | null>(null);
   const [history, setHistory] = useState<Withdrawal[]>([]);

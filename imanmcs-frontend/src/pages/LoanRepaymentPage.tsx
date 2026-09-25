@@ -8,6 +8,7 @@ import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 import toast from 'react-hot-toast';
 import { exportToExcel } from '../utils/excel';
+import { useTenantTerminology } from '../utils/tenantTerminology';
 
 interface LoanRepayment {
   id: string;
@@ -42,6 +43,7 @@ interface LoanDetails {
 
 export const LoanRepaymentPage: React.FC = () => {
   const { user } = useAuth();
+  const { idLabel, isFmck, formatLoanType } = useTenantTerminology();
   const [repayments, setRepayments] = useState<LoanRepayment[]>([]);
   const [loading, setLoading] = useState(true);
   const requestSeqRef = useRef(0);
@@ -254,9 +256,12 @@ export const LoanRepaymentPage: React.FC = () => {
   };
 
   const downloadRepaymentCsvTemplate = () => {
-    const csvContent = `Loan_ID,PSN,Repayment_Amount,Repayment_Date,Payment_Method,Notes
-123,PSN001,5000,2025-12,cash,Monthly repayment
-124,PSN002,6500,2025-12,transfer,Monthly repayment`;
+    const headerId = isFmck ? 'IPPIS' : 'PSN';
+    const sampleId1 = isFmck ? 'IPPIS001' : 'PSN001';
+    const sampleId2 = isFmck ? 'IPPIS002' : 'PSN002';
+    const csvContent = `Loan_ID,${headerId},Repayment_Amount,Repayment_Date,Payment_Method,Notes
+123,${sampleId1},5000,2025-12,cash,Monthly repayment
+124,${sampleId2},6500,2025-12,transfer,Monthly repayment`;
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -269,9 +274,12 @@ export const LoanRepaymentPage: React.FC = () => {
   };
 
   const downloadRepaymentXlsxTemplate = () => {
+    const idKey = isFmck ? 'IPPIS' : 'PSN';
+    const sample1 = isFmck ? 'IPPIS001' : 'PSN001';
+    const sample2 = isFmck ? 'IPPIS002' : 'PSN002';
     const rows = [
-      { Loan_ID: 123, PSN: 'PSN001', Repayment_Amount: 5000, Repayment_Date: '2025-12', Payment_Method: 'cash', Notes: 'Monthly repayment' },
-      { Loan_ID: 124, PSN: 'PSN002', Repayment_Amount: 6500, Repayment_Date: '2025-12', Payment_Method: 'transfer', Notes: 'Monthly repayment' },
+      { Loan_ID: 123, [idKey]: sample1, Repayment_Amount: 5000, Repayment_Date: '2025-12', Payment_Method: 'cash', Notes: 'Monthly repayment' },
+      { Loan_ID: 124, [idKey]: sample2, Repayment_Amount: 6500, Repayment_Date: '2025-12', Payment_Method: 'transfer', Notes: 'Monthly repayment' },
     ];
     exportToExcel(rows, 'loan_repayments_template', 'Loan Repayments');
   };
@@ -325,7 +333,7 @@ export const LoanRepaymentPage: React.FC = () => {
 
   const handleLiquidationLookup = async () => {
     if (!liquidationLookup.trim()) {
-      toast.error('Please enter a Loan ID or PSN');
+      toast.error(`Please enter a Loan ID or ${idLabel}`);
       return;
     }
     try {
@@ -392,7 +400,7 @@ export const LoanRepaymentPage: React.FC = () => {
     }
 
     const ok = confirm(
-      `Confirm loan liquidation?\n\nMember: ${liquidationLoanDetails.memberName} (${liquidationLoanDetails.memberPsn})\nLoan ID: ${liquidationLoanDetails.id}\nAmount: ₦${amount.toLocaleString()}\n\nThis will deduct from contributions and apply as a verified repayment.`
+      `Confirm loan liquidation?\n\nMember: ${liquidationLoanDetails.memberName} (${idLabel}: ${liquidationLoanDetails.memberPsn})\nLoan ID: ${liquidationLoanDetails.id}\nAmount: ₦${amount.toLocaleString()}\n\nThis will deduct from contributions and apply as a verified repayment.`
     );
     if (!ok) return;
 
@@ -591,7 +599,7 @@ export const LoanRepaymentPage: React.FC = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
                 type="text"
-                placeholder="Search by member name, PSN, or loan ID..."
+                placeholder={`Search by member name, ${idLabel}, or loan ID...`}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent w-full md:w-80"
@@ -646,7 +654,7 @@ export const LoanRepaymentPage: React.FC = () => {
               onClick={() => {
                 // Export repayments data
                 const csvContent = [
-                  ['Loan ID', 'Member PSN', 'Member Name', 'Loan Amount', 'Repayment Amount', 'Repayment Date', 'Payment Method', 'Status', 'Notes'].join(','),
+                  ['Loan ID', `Member ${idLabel}`, 'Member Name', 'Loan Amount', 'Repayment Amount', 'Repayment Date', 'Payment Method', 'Status', 'Notes'].join(','),
                   ...repayments.map(rep => [
                     rep.loanId,
                     rep.memberPsn,
@@ -921,7 +929,7 @@ export const LoanRepaymentPage: React.FC = () => {
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                     <div>
-                      <span className="font-medium text-gray-700">Member PSN:</span>
+                      <span className="font-medium text-gray-700">Member {idLabel}:</span>
                       <p className="text-gray-900 font-mono">{loanDetails.memberPsn}</p>
                     </div>
                     <div>
@@ -930,7 +938,7 @@ export const LoanRepaymentPage: React.FC = () => {
                     </div>
                     <div>
                       <span className="font-medium text-gray-700">Loan Type:</span>
-                      <p className="text-gray-900 capitalize">{loanDetails.loanType}</p>
+                      <p className="text-gray-900 capitalize">{formatLoanType(loanDetails.loanType)}</p>
                     </div>
                     <div>
                       <span className="font-medium text-gray-700">Loan Amount:</span>
@@ -1061,13 +1069,13 @@ export const LoanRepaymentPage: React.FC = () => {
 
             <div className="p-6 space-y-5">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Loan ID or Member PSN</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Loan ID or Member {idLabel}</label>
                 <div className="flex gap-2">
                   <input
                     type="text"
                     value={liquidationLookup}
                     onChange={(e) => setLiquidationLookup(e.target.value)}
-                    placeholder="e.g., 123 or PSN001"
+                    placeholder={`e.g., 123 or ${isFmck ? 'IPPIS001' : 'PSN001'}`}
                     className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                   <button

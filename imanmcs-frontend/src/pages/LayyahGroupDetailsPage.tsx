@@ -8,6 +8,7 @@ import LayyahService from '../services/layyahService';
 import { useT } from '../i18n/useT';
 import { layyahGroupsMessages } from '../i18n/layyahGroupsMessages';
 import { useAuth } from '../contexts/AuthContext';
+import { useTenantTerminology } from '../utils/tenantTerminology';
 
 const formatAnimal = (category: string) => {
   if (category === 'ram') return '🐏';
@@ -18,6 +19,7 @@ const formatAnimal = (category: string) => {
 };
 
 export const LayyahGroupDetailsPage: React.FC = () => {
+  const { idShort } = useTenantTerminology();
   const t = useT(layyahGroupsMessages);
   const { user } = useAuth();
   const { groupId } = useParams();
@@ -239,7 +241,7 @@ export const LayyahGroupDetailsPage: React.FC = () => {
                           <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-primary-100 text-primary-700">{t('leader')}</span>
                         )}
                       </div>
-                      <div className="text-sm text-gray-600">{m.user_psn ? `PSN: ${m.user_psn}` : ''}</div>
+                      <div className="text-sm text-gray-600">{m.user_psn ? `${idShort}: ${m.user_psn}` : ''}</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">

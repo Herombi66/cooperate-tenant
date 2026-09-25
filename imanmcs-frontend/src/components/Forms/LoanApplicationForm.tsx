@@ -6,11 +6,13 @@ import { CreditCard, Upload, User, DollarSign, Calendar } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../services/api';
 
+import { useTenantTerminology } from '../../utils/tenantTerminology';
+
 const loanSchema = z.object({
-  type: z.enum(['cash', 'investment']),
+  type: z.enum(['cash', 'investment', 'venture', 'educational', 'emergency']),
   amount: z.number().min(1000, 'Minimum loan amount is ₦1,000'),
   tenure: z.number().min(1, 'Minimum tenure is 1 month').max(24, 'Maximum tenure is 24 months'),
-  grantorPsn: z.string().min(1, 'Grantor PSN is required'),
+  grantorPsn: z.string().min(1, 'Grantor identifier is required'),
   purpose: z.string().min(10, 'Please provide a detailed purpose (minimum 10 characters)'),
   payslip: z.any().refine((files) => files?.length > 0, 'Payslip is required'),
 }).refine((data) => {
@@ -34,6 +36,7 @@ export const LoanApplicationForm: React.FC<LoanApplicationFormProps> = ({
   onClose, 
   memberInvestment = 0 
 }) => {
+  const { idLabel, idPlaceholder, isFmck } = useTenantTerminology();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
@@ -86,6 +89,8 @@ export const LoanApplicationForm: React.FC<LoanApplicationFormProps> = ({
       formData.append('amount', data.amount.toString());
       formData.append('tenure', data.tenure.toString());
       formData.append('grantorPsn', data.grantorPsn);
+      formData.append('grantor_psn', data.grantorPsn);
+      formData.append('grantor_ippis', data.grantorPsn);
       formData.append('purpose', data.purpose);
       if (selectedFile) {
         formData.append('payslip', selectedFile);
@@ -250,13 +255,13 @@ export const LoanApplicationForm: React.FC<LoanApplicationFormProps> = ({
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Grantor PSN *
+                Grantor {idLabel} *
               </label>
               <input
                 {...register('grantorPsn')}
                 type="text"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-                placeholder="Enter grantor's PSN"
+                placeholder={`Enter grantor's ${idLabel}`}
               />
               {errors.grantorPsn && (
                 <p className="mt-1 text-sm text-red-600">{errors.grantorPsn.message}</p>

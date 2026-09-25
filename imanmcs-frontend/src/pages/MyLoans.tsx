@@ -5,6 +5,7 @@ import api from '../services/api';
 import toast from 'react-hot-toast';
 import AgentAgreementModal from '../components/AgentAgreementModal';
 import MurabahaContractModal from '../components/MurabahaContractModal';
+import { useTenantTerminology } from '../utils/tenantTerminology';
 
 interface Loan {
   id: number;
@@ -43,6 +44,7 @@ interface LoanRepayment {
 
 export const MyLoans: React.FC = () => {
   const { user } = useAuth();
+  const { isFmck, idLabel, formatLoanType } = useTenantTerminology();
   const [loans, setLoans] = useState<Loan[]>([]);
   const [repayments, setRepayments] = useState<LoanRepayment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -65,7 +67,7 @@ export const MyLoans: React.FC = () => {
     // Auto-show Agent Agreement if pending
     if (loans.length > 0) {
         const pendingAgentAgreement = loans.find(l => 
-            l.loan_type === 'investment' && 
+            (l.loan_type === 'investment' || (!isFmck && l.loan_type === 'venture')) && 
             l.status === 'pending' && 
             (!l.agreements?.some(a => a.type === 'agent_agreement' && a.status === 'accepted')) &&
             (!l.agreements?.some(a => a.type === 'agent_agreement' && a.status === 'rejected'))
@@ -75,7 +77,7 @@ export const MyLoans: React.FC = () => {
         }
 
         const pendingMurabaha = loans.find(l => 
-            l.loan_type === 'investment' && 
+            (l.loan_type === 'investment' || (!isFmck && l.loan_type === 'venture')) && 
             l.status === 'disbursed' && 
             (!l.agreements?.some(a => a.type === 'murabaha_contract' && a.status === 'accepted'))
         );
@@ -83,7 +85,7 @@ export const MyLoans: React.FC = () => {
             setMurabahaContractLoanId(pendingMurabaha.id);
         }
     }
-  }, [loans]);
+  }, [loans, isFmck]);
 
   const fetchMyLoans = async () => {
     try {
@@ -247,7 +249,7 @@ export const MyLoans: React.FC = () => {
                         {getStatusIcon(loan.status)}
                         <div>
                           <h3 className="text-lg font-medium text-gray-900">
-                            {loan.loan_type.charAt(0).toUpperCase() + loan.loan_type.slice(1)} Loan
+                            {formatLoanType(loan.loan_type)}
                           </h3>
                           <p className="text-sm text-gray-500">
                             Applied on {new Date(loan.application_date).toLocaleDateString()}
@@ -469,7 +471,7 @@ export const MyLoans: React.FC = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm font-medium text-gray-500">Loan Type</p>
-                  <p className="text-sm text-gray-900 capitalize">{selectedLoan.loan_type}</p>
+                  <p className="text-sm text-gray-900">{formatLoanType(selectedLoan.loan_type)}</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-500">Application Date</p>

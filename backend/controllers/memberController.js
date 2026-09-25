@@ -252,6 +252,7 @@ const createMemberAccount = async (applicationId, password = null, sendEmail = t
   // Create user account linked to membership application
   const user = await User.create({
     membership_application_id: applicationId,
+    tenant_id: application?.tenant_id || 'default',
     password_hash: hashedPassword,
     is_default_password: !password, // If password was auto-generated
     status: 'active',
@@ -1176,7 +1177,8 @@ const importMembers = async (req, res) => {
 // Validate grantor PSN for loan applications
 const validateGrantor = async (req, res) => {
   try {
-    const psn = (req.query?.psn == null ? '' : String(req.query.psn)).trim();
+    const rawPsn = req.query?.psn || req.query?.ippis || req.query?.ippisNumber || req.query?.ippis_number || req.query?.id;
+    const psn = (rawPsn == null ? '' : String(rawPsn)).trim();
 
     if (!psn) {
       await ActivityLog.logActivity(
@@ -1184,13 +1186,13 @@ const validateGrantor = async (req, res) => {
         'guarantor_psn_validation_attempt',
         'loan',
         null,
-        'Guarantor PSN validation failed: PSN is required.',
+        'Guarantor PSN/IPPIS validation failed: identification number is required.',
         { outcome: 'failed', code: 'PSN_REQUIRED', psn: null },
         req
       );
       return res.status(400).json({
         success: false,
-        message: 'PSN parameter is required'
+        message: 'Guarantor PSN / IPPIS Number is required'
       });
     }
 
@@ -1202,13 +1204,13 @@ const validateGrantor = async (req, res) => {
         'guarantor_psn_validation_attempt',
         'loan',
         null,
-        'Guarantor PSN failed format validation.',
+        'Guarantor identifier failed format validation.',
         { outcome: 'failed', code: 'INVALID_FORMAT', psn },
         req
       );
       return res.status(400).json({ 
         success: false, 
-        message: 'Invalid PSN format. Must be 3-20 alphanumeric characters.', 
+        message: 'Invalid identification format. Must be 3-20 alphanumeric characters.', 
         code: 'INVALID_FORMAT' 
       });
     }
@@ -1219,7 +1221,7 @@ const validateGrantor = async (req, res) => {
         'guarantor_psn_validation_attempt',
         'loan',
         null,
-        'Guarantor PSN validation failed: applicant cannot guarantee self.',
+        'Guarantor validation failed: applicant cannot guarantee self.',
         { outcome: 'failed', code: 'SELF_GUARANTOR', psn },
         req
       );
@@ -1247,13 +1249,13 @@ const validateGrantor = async (req, res) => {
         'guarantor_psn_validation_attempt',
         'loan',
         null,
-        'Guarantor PSN validation failed: PSN not found among active members.',
+        'Guarantor validation failed: identifier not found among active members.',
         { outcome: 'failed', code: 'GUARANTOR_PSN_NOT_FOUND', psn },
         req
       );
       return res.status(404).json({
         success: false,
-        message: 'Guarantor PSN does not match any active registered member. Please enter a valid member PSN.',
+        message: 'Guarantor does not match any active registered member. Please enter a valid member ID.',
         code: 'PSN_NOT_FOUND'
       });
     }
@@ -1268,7 +1270,7 @@ const validateGrantor = async (req, res) => {
       'guarantor_psn_validation_attempt',
       'loan',
       null,
-      'Guarantor PSN validated successfully.',
+      'Guarantor validated successfully.',
       {
         outcome: 'success',
         code: 'OK',
@@ -1285,6 +1287,8 @@ const validateGrantor = async (req, res) => {
         id: user?.id || application.id,
         name: application.name,
         psn: application.psn,
+        ippis: application.psn,
+        ippis_number: application.psn,
         email: application.email,
         phone: application.phone
       }

@@ -85,11 +85,11 @@ router.get(
     if (!psn) {
       return res.status(400).json({
         success: false,
-        message: 'PSN is required'
+        message: 'Identifier is required'
       });
     }
 
-    // Find user by PSN
+    // Find user by PSN/IPPIS
     const user = await User.findOne({
       include: [{
         model: MembershipApplication,
@@ -101,7 +101,7 @@ router.get(
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: `No member found with PSN: ${psn}`
+        message: `No member found with identifier: ${psn}`
       });
     }
 

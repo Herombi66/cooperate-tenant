@@ -6,6 +6,7 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 import toast from 'react-hot-toast';
+import { useTenantTerminology } from '../utils/tenantTerminology';
 
 interface Member {
    id: string;
@@ -114,6 +115,7 @@ interface MemberFinancialProfile {
 
 export const MembersPage: React.FC = () => {
   const { user } = useAuth();
+  const { idLabel, isFmck } = useTenantTerminology();
   const [showAddModal, setShowAddModal] = useState(false);
   const [showAddPassword, setShowAddPassword] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
@@ -450,7 +452,7 @@ const [loadingDetails, setLoadingDetails] = useState(false);
               <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search members..."
+                placeholder={`Search by name, ${idLabel}, email...`}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
@@ -481,7 +483,7 @@ const [loadingDetails, setLoadingDetails] = useState(false);
                   Member
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  PSN
+                  {idLabel}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Facility
@@ -489,9 +491,11 @@ const [loadingDetails, setLoadingDetails] = useState(false);
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Withdrawal
-                </th>
+                {!isFmck && (
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Withdrawal
+                  </th>
+                )}
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Termination
                 </th>
@@ -538,9 +542,11 @@ const [loadingDetails, setLoadingDetails] = useState(false);
                       {member.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    ₦{(member.totalWithdrawals || 0).toLocaleString()}
-                  </td>
+                  {!isFmck && (
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      ₦{(member.totalWithdrawals || 0).toLocaleString()}
+                    </td>
+                  )}
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     ₦{(member.totalTerminations || 0).toLocaleString()}
                   </td>
@@ -712,7 +718,7 @@ const [loadingDetails, setLoadingDetails] = useState(false);
               <div className="bg-primary-50 p-3 rounded-lg">
                 <h4 className="text-sm font-medium text-primary-900 mb-1">Required Columns:</h4>
                 <p className="text-xs text-primary-700">
-                  PSN, Name, Email, Phone, Facility_Name, Next_Of_Kin_Name, Next_Of_Kin_Phone, Savings, Investment, Target_Saving, Target_Period
+                  {idLabel.replace(/\s+/g, '_')}, Name, Email, Phone, Facility_Name, Next_Of_Kin_Name, Next_Of_Kin_Phone, Savings, Investment, Target_Saving, Target_Period
                 </p>
                 <p className="text-xs text-primary-700 mt-1">
                   <strong>Note:</strong> Combined Savings + Investment must be at least ₦5,000. All membership application fields are required.
@@ -785,7 +791,7 @@ const [loadingDetails, setLoadingDetails] = useState(false);
                 {/* Basic Information */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                   <div className="bg-primary-50 p-4 rounded-lg">
-                    <label className="block text-sm font-medium text-primary-700 mb-1">PSN</label>
+                    <label className="block text-sm font-medium text-primary-700 mb-1">{idLabel}</label>
                     <p className="text-lg font-semibold text-primary-900">{memberDetails.membershipApplication?.psn || 'N/A'}</p>
                   </div>
                   <div className="bg-primary-50 p-4 rounded-lg">
@@ -968,7 +974,7 @@ const [loadingDetails, setLoadingDetails] = useState(false);
               <div>
                 <h3 className="text-lg font-semibold text-gray-900">Member Financial Profile</h3>
                 <div className="text-sm text-gray-600">
-                  {financialProfile?.member?.name || selectedMember.name} {financialProfile?.member?.psn ? `(${financialProfile.member.psn})` : `(${selectedMember.psn})`}
+                  {financialProfile?.member?.name || selectedMember.name} {financialProfile?.member?.psn ? `(${idLabel}: ${financialProfile.member.psn})` : `(${idLabel}: ${selectedMember.psn})`}
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -1149,11 +1155,11 @@ const [loadingDetails, setLoadingDetails] = useState(false);
             <form id="addMemberForm" className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">PSN</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{idLabel}</label>
                   <input
                     type="text"
                     name="psn"
-                    placeholder="Enter PSN"
+                    placeholder={`Enter ${idLabel}`}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     required
                   />
@@ -1396,7 +1402,7 @@ const [loadingDetails, setLoadingDetails] = useState(false);
             <form className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">PSN</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{idLabel}</label>
                   <input
                     type="text"
                     defaultValue={memberDetails.membershipApplication?.psn || ''}
@@ -1653,7 +1659,7 @@ const [loadingDetails, setLoadingDetails] = useState(false);
                     alert(
                       `Password Reset Successful!\n\n` +
                       `Member: ${selectedMember.name}\n` +
-                      `PSN: ${selectedMember.psn}\n` +
+                      `${idLabel}: ${selectedMember.psn}\n` +
                       `New Password: ${newPassword}\n\n` +
                       `Please save this password and share it securely with the member.\n` +
                       `The member should change this password after their first login.`

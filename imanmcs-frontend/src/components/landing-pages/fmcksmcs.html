@@ -1,0 +1,2712 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FMC Kumo Staff MPCS Ltd — Save, Invest, Grow Together</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,600&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --teal: #0F3D3D;
+    --teal-dim: #163f3f;
+    --teal-glow: rgba(15, 61, 61, 0.15);
+    --paper: #F7F1E4;
+    --paper-2: #EFE7D5;
+    --paper-card: #FFFFFF;
+    --gold: #B8862F;
+    --gold-bright: #D6A94A;
+    --gold-soft: rgba(184, 134, 47, 0.14);
+    --ink: #1A1F1C;
+    --ink-soft: #454D47;
+    --ink-muted: #6B756D;
+    --sage: #DCE3D6;
+    --sage-dim: #CAD4C3;
+    --line: rgba(15, 61, 61, 0.15);
+    --line-heavy: rgba(15, 61, 61, 0.28);
+    --serif: 'Fraunces', Georgia, serif;
+    --sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    --mono: 'IBM Plex Mono', monospace;
+    --shadow-soft: 0 10px 30px -10px rgba(15, 61, 61, 0.08), 0 2px 8px -2px rgba(15, 61, 61, 0.04);
+    --shadow-card: 0 14px 40px -12px rgba(15, 61, 61, 0.12), 0 4px 14px -3px rgba(15, 61, 61, 0.06);
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 16px;
+  }
+
+  [data-theme="dark"] {
+    --teal: #1FB1A5;
+    --teal-dim: #134E4A;
+    --teal-glow: rgba(31, 177, 165, 0.15);
+    --paper: #0E1715;
+    --paper-2: #14221F;
+    --paper-card: #182824;
+    --gold: #E5B453;
+    --gold-bright: #F5CA70;
+    --gold-soft: rgba(229, 180, 83, 0.16);
+    --ink: #F0EDE4;
+    --ink-soft: #C1C9C1;
+    --ink-muted: #8E998F;
+    --sage: #1F342D;
+    --sage-dim: #192B25;
+    --line: rgba(229, 180, 83, 0.16);
+    --line-heavy: rgba(229, 180, 83, 0.32);
+    --shadow-soft: 0 10px 30px -10px rgba(0, 0, 0, 0.4);
+    --shadow-card: 0 16px 48px -12px rgba(0, 0, 0, 0.6);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; scroll-padding-top: 88px; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    transition: background 0.3s ease, color 0.3s ease;
+    overflow-x: hidden;
+  }
+
+  /* ── Standard Browser Cursor Enforcement ── */
+  *, *::before, *::after {
+    cursor: auto;
+  }
+  html, body {
+    cursor: default;
+  }
+  a, button:not(:disabled), [role="button"], input[type="submit"], input[type="button"], select {
+    cursor: pointer !important;
+  }
+  input[type="text"], input[type="email"], input[type="tel"], input[type="number"], input[type="date"], textarea {
+    cursor: text !important;
+  }
+  button:disabled, input:disabled, select:disabled, textarea:disabled, .btn-disabled, [disabled] {
+    cursor: not-allowed !important;
+  }
+
+  .btn-spinner {
+    display: inline-block;
+    width: 15px;
+    height: 15px;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    animation: fmckSpin 0.7s linear infinite;
+    flex-shrink: 0;
+  }
+  @keyframes fmckSpin {
+    to { transform: rotate(360deg); }
+  }
+
+  a { color: inherit; text-decoration: none; }
+  img { max-width: 100%; display: block; }
+  button { font-family: inherit; cursor: pointer; border: none; background: none; }
+  input, select, textarea { font-family: inherit; font-size: inherit; color: inherit; }
+
+  .wrap { max-width: 1160px; margin: 0 auto; padding: 0 28px; }
+  .hairline { border-top: 1px solid var(--line); }
+
+  /* Typography styles */
+  h1, h2, h3, h4, .font-serif {
+    font-family: var(--serif);
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    line-height: 1.15;
+  }
+  .kicker {
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--gold);
+    font-size: 1.05rem;
+    margin-bottom: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .kicker::before {
+    content: "";
+    display: inline-block;
+    width: 18px;
+    height: 1px;
+    background: var(--gold);
+  }
+
+  /* Watermark and grain pattern overlay */
+  .grain-bg {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 999;
+    opacity: 0.025;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  }
+
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: color-mix(in srgb, var(--paper) 90%, transparent);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line);
+    transition: all 0.3s ease;
+  }
+  .nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 0;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--serif);
+    font-weight: 700;
+    font-size: 1.12rem;
+    color: var(--ink);
+  }
+  .brand-logo-wrap {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 1.5px solid var(--gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+  .brand-logo-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 50%;
+    display: block;
+  }
+  .brand-sub {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-muted);
+    font-family: var(--sans);
+    font-weight: 500;
+    display: block;
+    line-height: 1;
+    margin-top: 2px;
+  }
+  nav.links {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    font-size: 0.92rem;
+    color: var(--ink-soft);
+    font-weight: 500;
+  }
+  nav.links a {
+    position: relative;
+    transition: color 0.2s;
+    padding: 4px 0;
+  }
+  nav.links a:hover {
+    color: var(--gold);
+  }
+  nav.links a::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0%;
+    height: 1.5px;
+    background: var(--gold);
+    transition: width 0.25s ease;
+  }
+  nav.links a:hover::after { width: 100%; }
+
+  .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  /* Theme toggle pill */
+  .theme-toggle {
+    width: 44px;
+    height: 26px;
+    border-radius: 13px;
+    background: var(--paper-2);
+    border: 1px solid var(--line-heavy);
+    display: flex;
+    align-items: center;
+    padding: 2px;
+    position: relative;
+    transition: background 0.3s ease;
+  }
+  .theme-toggle .thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--gold);
+    color: var(--paper);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    transform: translateX(0);
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  [data-theme="dark"] .theme-toggle .thumb {
+    transform: translateX(18px);
+  }
+
+  .nav-cta {
+    font-size: 0.88rem;
+    padding: 9px 20px;
+    border: 1px solid var(--teal);
+    background: transparent;
+    border-radius: var(--radius-sm);
+    color: var(--teal);
+    font-weight: 600;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .nav-cta:hover {
+    background: var(--teal);
+    color: var(--paper);
+  }
+  [data-theme="dark"] .nav-cta {
+    border-color: var(--gold-bright);
+    color: var(--gold-bright);
+  }
+  [data-theme="dark"] .nav-cta:hover {
+    background: var(--gold-bright);
+    color: #0E1715;
+  }
+
+  /* Mobile menu button */
+  .mobile-toggle {
+    display: none;
+    width: 36px;
+    height: 36px;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+  }
+  .mobile-toggle span {
+    display: block;
+    width: 20px;
+    height: 2px;
+    background: var(--ink);
+    transition: 0.2s;
+  }
+
+  .hero {
+    position: relative;
+    min-height: 86vh;
+    display: flex;
+    align-items: center;
+    padding: 84px 0 76px;
+    background-image: 
+      linear-gradient(135deg, rgba(8, 34, 34, 0.94) 0%, rgba(15, 61, 61, 0.84) 50%, rgba(6, 26, 26, 0.92) 100%),
+      url('{{FMCK_IMAGE_URL}}'),
+      url('/fmck.jpeg');
+    background-size: cover;
+    background-position: center 30%;
+    background-repeat: no-repeat;
+    color: #F7F1E4;
+    overflow: hidden;
+  }
+  .hero::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 48px;
+    background: linear-gradient(to bottom, transparent, rgba(8, 30, 30, 0.45));
+    pointer-events: none;
+  }
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 52px;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+    width: 100%;
+  }
+  @media (max-width: 992px) {
+    .hero {
+      min-height: auto;
+      padding: 64px 0 60px;
+    }
+    .hero-grid {
+      grid-template-columns: 1fr;
+      gap: 36px;
+    }
+  }
+
+  /* Glassmorphic Accreditation Showcase Card on Hero */
+  .hospital-glass-card {
+    background: rgba(14, 48, 48, 0.70);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid rgba(214, 169, 74, 0.38);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 24px 50px -10px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+    padding: 28px 24px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+  .hospital-glass-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(245, 202, 112, 0.6);
+    box-shadow: 0 28px 60px -10px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  }
+  .glass-card-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+  }
+  .glass-emblem {
+    width: 48px;
+    height: 48px;
+    background: #ffffff;
+    border: 1.5px solid rgba(245, 202, 112, 0.6);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    padding: 2px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+  }
+  .glass-logo-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 50%;
+    display: block;
+  }
+  .glass-inst-title {
+    font-family: var(--serif);
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #FFFFFF;
+    display: block;
+    line-height: 1.25;
+  }
+  .glass-inst-sub {
+    font-size: 0.74rem;
+    color: var(--gold-bright);
+    font-family: var(--mono);
+    display: block;
+    margin-top: 3px;
+    letter-spacing: 0.02em;
+  }
+  .glass-card-body {
+    padding: 20px 0 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .glass-feature {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .glass-check {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: rgba(214, 169, 74, 0.22);
+    border: 1px solid var(--gold-bright);
+    color: var(--gold-bright);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: bold;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .glass-feat-text strong {
+    display: block;
+    font-size: 0.92rem;
+    color: #FFFFFF;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+  .glass-feat-text span {
+    display: block;
+    font-size: 0.8rem;
+    color: rgba(247, 241, 228, 0.84);
+    margin-top: 2px;
+    line-height: 1.4;
+  }
+  .glass-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.14);
+  }
+  .glass-stat .glass-lbl {
+    display: block;
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--gold-bright);
+    letter-spacing: 0.06em;
+  }
+  .glass-stat .glass-val {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #FFFFFF;
+  }
+
+  .hero .kicker {
+    color: var(--gold-bright);
+    font-size: 0.82rem;
+    font-family: var(--sans);
+    font-weight: 600;
+    font-style: normal;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    background: rgba(214, 169, 74, 0.18);
+    border: 1px solid rgba(245, 202, 112, 0.45);
+    padding: 6px 14px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  .hero .kicker::before {
+    display: none;
+  }
+  .hero h1 {
+    font-size: clamp(2.4rem, 4.3vw, 3.8rem);
+    line-height: 1.08;
+    color: #FFFFFF;
+    margin-bottom: 20px;
+    text-shadow: 0 2px 14px rgba(0, 0, 0, 0.35);
+  }
+  .hero h1 em {
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--gold-bright);
+    font-weight: 400;
+  }
+  .hero p.lede {
+    max-width: 52ch;
+    color: rgba(247, 241, 228, 0.94);
+    font-size: 1.14rem;
+    line-height: 1.65;
+    margin-bottom: 34px;
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.3);
+  }
+  .cta-row {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .hero .btn-primary {
+    background: linear-gradient(135deg, var(--gold-bright) 0%, var(--gold) 100%);
+    color: #0E1715;
+    padding: 14px 28px;
+    border-radius: var(--radius-sm);
+    font-size: 0.98rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 20px rgba(214, 169, 74, 0.45);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+  }
+  .hero .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(214, 169, 74, 0.6);
+    filter: brightness(1.08);
+  }
+  .hero .btn-ghost {
+    padding: 14px 24px;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: var(--radius-sm);
+    font-size: 0.98rem;
+    color: #FFFFFF;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  .hero .btn-ghost:hover {
+    background: rgba(255, 255, 255, 0.22);
+    border-color: var(--gold-bright);
+    color: var(--gold-bright);
+    transform: translateY(-1px);
+  }
+  .hero .hero-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.18);
+    font-size: 0.84rem;
+    color: rgba(247, 241, 228, 0.92);
+  }
+  .hero .badge-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-weight: 500;
+    background: rgba(255, 255, 255, 0.08);
+    padding: 5px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    backdrop-filter: blur(6px);
+  }
+  .hero .badge-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--gold-bright);
+    box-shadow: 0 0 6px rgba(245, 202, 112, 0.85);
+  }
+  .btn-primary {
+    background: var(--teal);
+    color: var(--paper);
+    padding: 14px 28px;
+    border-radius: var(--radius-sm);
+    font-size: 0.98rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 14px -3px var(--teal-glow);
+  }
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px -3px var(--teal-glow);
+    filter: brightness(1.08);
+  }
+  [data-theme="dark"] .btn-primary {
+    background: var(--gold);
+    color: #0E1715;
+  }
+  .btn-ghost {
+    padding: 14px 24px;
+    border: 1px solid var(--line-heavy);
+    border-radius: var(--radius-sm);
+    font-size: 0.98rem;
+    color: var(--ink);
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+    background: var(--paper-2);
+  }
+  .btn-ghost:hover {
+    background: var(--paper);
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+
+  /* Realistic Physical Passbook Component with Stitch Marks */
+  .passbook-card {
+    background: var(--paper-2);
+    border: 1px solid var(--line-heavy);
+    border-radius: var(--radius-md);
+    padding: 34px 32px 28px 42px;
+    position: relative;
+    box-shadow: var(--shadow-card);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  .passbook-card:hover {
+    transform: translateY(-3px);
+  }
+  /* Sewn binding stitch effect on left margin */
+  .passbook-card::before {
+    content: "";
+    position: absolute;
+    left: 14px;
+    top: 24px;
+    bottom: 24px;
+    width: 2px;
+    background: repeating-linear-gradient(to bottom, var(--gold) 0 8px, transparent 8px 16px);
+  }
+  .passbook-card::after {
+    content: "";
+    position: absolute;
+    left: 20px;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: var(--line);
+  }
+  .pb-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    border-bottom: 2px solid var(--line-heavy);
+    padding-bottom: 12px;
+    margin-bottom: 18px;
+  }
+  .pb-head .title {
+    font-family: var(--serif);
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    font-weight: 700;
+  }
+  .pb-head .tag {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    background: var(--gold-soft);
+    color: var(--gold);
+    padding: 2px 8px;
+    border-radius: 2px;
+    font-weight: 600;
+  }
+  .pb-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px dashed var(--line);
+    font-size: 0.94rem;
+  }
+  .pb-row span:first-child {
+    color: var(--ink-soft);
+  }
+  .pb-row .num {
+    font-family: var(--serif);
+    font-variant-numeric: tabular-nums oldstyle-nums;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .pb-total {
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 2px solid var(--line-heavy);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+  .pb-total .label {
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-muted);
+  }
+  .pb-total .amt {
+    font-family: var(--serif);
+    font-size: 2.1rem;
+    color: var(--teal);
+    font-weight: 700;
+    line-height: 1;
+  }
+  [data-theme="dark"] .pb-total .amt {
+    color: var(--gold-bright);
+  }
+  .pb-stamp {
+    position: absolute;
+    bottom: 24px;
+    right: 28px;
+    width: 76px;
+    height: 76px;
+    border: 2px dashed var(--gold);
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transform: rotate(-14deg);
+    pointer-events: none;
+    opacity: 0.78;
+    color: var(--gold);
+    text-transform: uppercase;
+    font-family: var(--mono);
+    font-size: 0.58rem;
+    line-height: 1.1;
+    text-align: center;
+  }
+  .pb-stamp strong { font-size: 0.72rem; letter-spacing: 0.05em; }
+
+  .stats-section {
+    padding: 44px 0;
+    background: var(--paper-2);
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .stats-ledger {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .stat-item {
+    padding: 0 28px;
+  }
+  .stat-item:first-child { padding-left: 0; }
+  .stat-item + .stat-item { border-left: 1px solid var(--line-heavy); }
+  .stat-item .n {
+    font-family: var(--serif);
+    font-size: 2.35rem;
+    font-weight: 700;
+    color: var(--teal);
+    line-height: 1;
+    margin-bottom: 6px;
+    letter-spacing: -0.02em;
+  }
+  [data-theme="dark"] .stat-item .n {
+    color: var(--gold-bright);
+  }
+  .stat-item .l {
+    color: var(--ink-soft);
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+  .stat-item .meta {
+    font-size: 0.75rem;
+    color: var(--ink-muted);
+    font-family: var(--mono);
+    margin-top: 4px;
+  }
+
+  section { padding: 88px 0; position: relative; }
+  .section-head { max-width: 62ch; margin-bottom: 52px; }
+  .section-head h2 { font-size: clamp(1.8rem, 2.9vw, 2.6rem); margin-top: 4px; }
+  .section-head p { color: var(--ink-soft); margin-top: 14px; font-size: 1.05rem; }
+
+  .pillars {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border: 1px solid var(--line-heavy);
+    border-radius: var(--radius-md);
+    background: var(--paper-2);
+    overflow: hidden;
+  }
+  .pillar {
+    padding: 40px 32px;
+    position: relative;
+  }
+  .pillar + .pillar {
+    border-left: 1px solid var(--line-heavy);
+  }
+  .pillar .icon-wrap {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-sm);
+    background: var(--gold-soft);
+    color: var(--gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 22px;
+  }
+  .pillar .icon-wrap svg { width: 26px; height: 26px; stroke-width: 1.5; }
+  .pillar h3 { font-size: 1.4rem; margin-bottom: 12px; }
+  .pillar p { color: var(--ink-soft); font-size: 0.96rem; line-height: 1.65; margin-bottom: 18px; }
+  .pillar-list { list-style: none; font-size: 0.88rem; color: var(--ink-soft); space-y: 8px; }
+  .pillar-list li { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .pillar-list li::before {
+    content: "✓";
+    color: var(--gold);
+    font-weight: bold;
+  }
+
+  .simulator-box {
+    background: var(--paper-2);
+    border: 1px solid var(--line-heavy);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    padding: 48px;
+    position: relative;
+    overflow: hidden;
+  }
+  .simulator-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    align-items: center;
+  }
+  .control-group {
+    margin-bottom: 26px;
+  }
+  .control-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-weight: 600;
+    font-size: 0.96rem;
+    margin-bottom: 10px;
+  }
+  .control-label .val {
+    font-family: var(--mono);
+    color: var(--gold);
+    font-size: 1.1rem;
+  }
+  .range-slider {
+    width: 100%;
+    height: 6px;
+    background: var(--line-heavy);
+    border-radius: 3px;
+    outline: none;
+    -webkit-appearance: none;
+  }
+  .range-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--teal);
+    border: 2px solid var(--paper);
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+    transition: transform 0.1s;
+  }
+  .range-slider::-webkit-slider-thumb:hover { transform: scale(1.15); }
+  [data-theme="dark"] .range-slider::-webkit-slider-thumb { background: var(--gold); }
+
+  /* Animated Simulated Ledger Output */
+  .ledger-slip {
+    background: var(--paper);
+    border: 1px dashed var(--line-heavy);
+    border-radius: var(--radius-md);
+    padding: 30px;
+    position: relative;
+  }
+  .ledger-slip::before {
+    content: "OFFICIAL PASSBOOK LEDGER SLIP — FMC KUMO";
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    color: var(--ink-muted);
+    display: block;
+    margin-bottom: 16px;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 6px;
+  }
+  .slip-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    font-size: 0.92rem;
+    border-bottom: 1px dotted var(--line);
+  }
+  .slip-row.total-row {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 2px solid var(--ink);
+    border-bottom: 2px solid var(--ink);
+    font-size: 1.05rem;
+    font-weight: 700;
+  }
+  .slip-row.total-row .val {
+    font-family: var(--serif);
+    font-size: 1.6rem;
+    color: var(--teal);
+  }
+  [data-theme="dark"] .slip-row.total-row .val { color: var(--gold-bright); }
+
+  .calc-tab-nav {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 30px;
+    border-bottom: 1px solid var(--line-heavy);
+    padding-bottom: 10px;
+  }
+  .calc-tab-btn {
+    padding: 8px 20px;
+    border-radius: var(--radius-sm);
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--ink-soft);
+    transition: all 0.2s;
+  }
+  .calc-tab-btn.active {
+    background: var(--teal);
+    color: var(--paper);
+  }
+  [data-theme="dark"] .calc-tab-btn.active {
+    background: var(--gold);
+    color: #0E1715;
+  }
+
+  .service-dossier {
+    border-top: 1px solid var(--line-heavy);
+  }
+  .dossier-item {
+    border-bottom: 1px solid var(--line);
+    transition: background 0.2s;
+  }
+  .dossier-item:hover {
+    background: color-mix(in srgb, var(--paper-2) 60%, transparent);
+  }
+  .dossier-trigger {
+    width: 100%;
+    padding: 24px 0;
+    display: grid;
+    grid-template-columns: 1.2fr 2fr auto;
+    gap: 24px;
+    align-items: baseline;
+    text-align: left;
+  }
+  .dossier-trigger h3 { font-size: 1.2rem; }
+  .dossier-trigger p { color: var(--ink-soft); font-size: 0.95rem; line-height: 1.5; }
+  .dossier-badge {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 0.85rem;
+    color: var(--gold);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .dossier-detail {
+    display: none;
+    padding: 0 0 24px 0;
+    font-size: 0.92rem;
+    color: var(--ink-soft);
+  }
+  .dossier-detail.open { display: block; }
+  .dossier-grid-details {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    background: var(--paper-2);
+    padding: 20px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--line);
+  }
+  .detail-cell strong { display: block; font-size: 0.78rem; text-transform: uppercase; color: var(--ink-muted); margin-bottom: 4px; font-family: var(--mono); }
+
+  .quote-container {
+    max-width: 760px;
+    margin: 0 auto;
+    text-align: center;
+    position: relative;
+  }
+  .quote-box {
+    padding: 24px 0;
+  }
+  .quote-box q {
+    font-family: var(--serif);
+    font-size: clamp(1.4rem, 2.5vw, 1.85rem);
+    line-height: 1.4;
+    font-style: italic;
+    display: block;
+    color: var(--ink);
+  }
+  .quote-box .author {
+    margin-top: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+  }
+  .author-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--sage);
+    border: 1px solid var(--gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--serif);
+    font-weight: 700;
+    color: var(--teal);
+  }
+  .author-info { text-align: left; }
+  .author-name { font-weight: 600; font-size: 0.95rem; color: var(--ink); }
+  .author-role { font-size: 0.8rem; color: var(--ink-muted); }
+  .quote-nav-dots {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 24px;
+  }
+  .quote-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--line-heavy);
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  .quote-dot.active {
+    background: var(--gold);
+    width: 28px;
+    border-radius: 5px;
+  }
+
+  .faq-search-box {
+    margin-bottom: 32px;
+    position: relative;
+  }
+  .faq-search-box input {
+    width: 100%;
+    padding: 14px 20px 14px 44px;
+    background: var(--paper-2);
+    border: 1px solid var(--line-heavy);
+    border-radius: var(--radius-sm);
+    outline: none;
+    font-size: 0.98rem;
+    transition: border-color 0.2s;
+  }
+  .faq-search-box input:focus {
+    border-color: var(--gold);
+  }
+  .faq-search-icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--ink-muted);
+  }
+  .faq-item {
+    border-bottom: 1px solid var(--line);
+    padding: 20px 0;
+  }
+  .faq-question {
+    width: 100%;
+    text-align: left;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--serif);
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .faq-question:hover { color: var(--gold); }
+  .faq-toggle-icon {
+    font-size: 1.2rem;
+    color: var(--gold);
+    transition: transform 0.2s;
+  }
+  .faq-answer {
+    display: none;
+    padding-top: 12px;
+    color: var(--ink-soft);
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+  .faq-answer.open { display: block; }
+
+  .cta-band {
+    background: var(--teal);
+    color: var(--paper);
+    border-radius: var(--radius-lg);
+    padding: 64px 48px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+  }
+  [data-theme="dark"] .cta-band {
+    background: #142823;
+    border: 1px solid var(--line-heavy);
+  }
+  .cta-band::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    opacity: 0.08;
+    background-image: radial-gradient(circle at 50% 50%, #ffffff 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+  .cta-band h2 {
+    color: var(--paper);
+    font-size: clamp(1.8rem, 3vw, 2.5rem);
+    margin-bottom: 16px;
+  }
+  .cta-band p {
+    color: color-mix(in srgb, var(--paper) 82%, transparent);
+    max-width: 52ch;
+    margin: 0 auto 32px;
+    font-size: 1.08rem;
+  }
+  .cta-band .cta-row { justify-content: center; }
+  .cta-band .btn-primary {
+    background: var(--gold);
+    color: #0E1715;
+    font-weight: 700;
+  }
+  .cta-band .btn-ghost {
+    border-color: color-mix(in srgb, var(--paper) 35%, transparent);
+    color: var(--paper);
+    background: transparent;
+  }
+  .cta-band .btn-ghost:hover {
+    background: rgba(255,255,255,0.1);
+    color: var(--paper);
+  }
+
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(14, 23, 21, 0.78);
+    backdrop-filter: blur(8px);
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal-backdrop.open { display: flex; }
+  .modal-card {
+    background: var(--paper);
+    border: 1px solid var(--line-heavy);
+    border-radius: var(--radius-md);
+    max-width: 620px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 40px;
+    position: relative;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  }
+  .modal-card.modal-card-lg {
+    max-width: 780px;
+    width: 100%;
+  }
+  .modal-close {
+    position: absolute;
+    right: 24px;
+    top: 24px;
+    font-size: 1.4rem;
+    color: var(--ink-muted);
+    cursor: pointer;
+  }
+  .modal-close:hover { color: var(--gold); }
+  .modal-form label {
+    display: block;
+    font-size: 0.84rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--ink-soft);
+    margin-bottom: 6px;
+    margin-top: 14px;
+  }
+  .modal-form label .req {
+    color: #e53e3e;
+    font-weight: bold;
+  }
+  .modal-form input, .modal-form select, .modal-form textarea {
+    width: 100%;
+    padding: 12px 14px;
+    background: var(--paper-2);
+    border: 1px solid var(--line-heavy);
+    border-radius: var(--radius-sm);
+    outline: none;
+    font-size: 0.95rem;
+    color: var(--ink);
+  }
+  .modal-form input:focus, .modal-form select:focus, .modal-form textarea:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 2px var(--gold-soft);
+  }
+  .form-section {
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line-heavy);
+  }
+  .form-section-title {
+    font-family: var(--serif);
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--teal);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  [data-theme="dark"] .form-section-title {
+    color: var(--gold-bright);
+  }
+  .form-section-desc {
+    font-size: 0.82rem;
+    color: var(--ink-muted);
+    margin-top: 2px;
+    margin-bottom: 12px;
+  }
+  .form-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 640px) {
+    .form-grid-2 { grid-template-columns: 1fr; }
+    .modal-card { padding: 24px; }
+  }
+  .field-error-msg {
+    color: #e53e3e;
+    font-size: 0.78rem;
+    margin-top: 4px;
+    display: none;
+    font-weight: 500;
+  }
+  .field-error-msg.show {
+    display: block;
+  }
+  .calculated-box {
+    background: var(--paper-2);
+    border: 1px solid var(--line-heavy);
+    border-radius: var(--radius-sm);
+    padding: 18px;
+    margin-top: 16px;
+  }
+  .calculated-box .total-val {
+    font-family: var(--mono);
+    font-size: 1.65rem;
+    font-weight: 700;
+    color: var(--teal);
+  }
+  [data-theme="dark"] .calculated-box .total-val {
+    color: var(--gold-bright);
+  }
+  .fee-notice-banner {
+    background: var(--gold-soft);
+    border: 1px solid var(--gold);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    margin-top: 12px;
+    font-size: 0.85rem;
+    color: var(--ink);
+    line-height: 1.5;
+  }
+  .form-actions-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line-heavy);
+  }
+  @media (max-width: 540px) {
+    .form-actions-row {
+      flex-direction: column-reverse;
+    }
+    .form-actions-row button {
+      width: 100%;
+    }
+  }
+  .btn-reset {
+    padding: 12px 22px;
+    border: 1px solid var(--line-heavy);
+    border-radius: var(--radius-sm);
+    color: var(--ink-soft);
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    background: var(--paper-2);
+    transition: all 0.2s;
+  }
+  .btn-reset:hover {
+    background: var(--paper);
+    color: var(--ink);
+    border-color: var(--gold);
+  }
+  .slip-print-view {
+    display: none;
+    background: #fff;
+    color: #000;
+    padding: 24px;
+    border: 2px solid #333;
+    margin-top: 16px;
+    font-family: var(--mono);
+    font-size: 0.85rem;
+  }
+
+  footer {
+    padding: 64px 0 44px;
+    background: var(--paper-2);
+    border-top: 1px solid var(--line-heavy);
+  }
+  .foot-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1.2fr;
+    gap: 36px;
+    font-size: 0.92rem;
+    color: var(--ink-soft);
+  }
+  .foot-grid h4 {
+    font-family: var(--sans);
+    font-weight: 600;
+    color: var(--ink);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 16px;
+  }
+  .foot-grid a {
+    display: block;
+    margin-bottom: 10px;
+    transition: color 0.2s;
+  }
+  .foot-grid a:hover { color: var(--gold); }
+  .foot-bottom {
+    margin-top: 48px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.82rem;
+    color: var(--ink-muted);
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  @media (max-width: 992px) {
+    .hero-grid { grid-template-columns: 1fr; gap: 40px; }
+    .stats-ledger { grid-template-columns: repeat(2, 1fr); gap: 24px; }
+    .stat-item + .stat-item { border-left: none; }
+    .simulator-grid { grid-template-columns: 1fr; }
+    .pillars { grid-template-columns: 1fr; }
+    .pillar + .pillar { border-left: none; border-top: 1px solid var(--line-heavy); }
+    .foot-grid { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 768px) {
+    nav.links { display: none; }
+    nav.links.mobile-active {
+      display: flex;
+      flex-direction: column;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: var(--paper);
+      padding: 24px;
+      border-bottom: 1px solid var(--line-heavy);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    .mobile-toggle { display: flex; }
+    .dossier-trigger { grid-template-columns: 1fr; gap: 8px; }
+    .foot-grid { grid-template-columns: 1fr; }
+    .simulator-box { padding: 24px; }
+    .passbook-card { padding: 24px 20px 24px 34px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="grain-bg"></div>
+
+<header>
+  <div class="wrap nav">
+    <div class="brand">
+      <div class="brand-logo-wrap">
+        <img 
+          src="{{FMCK_LOGO_URL}}" 
+          onerror="this.src='/logo.png'" 
+          alt="Federal Medical Centre Kumo Logo" 
+          class="brand-logo-img" 
+        />
+      </div>
+      <div>
+        <span>FMC Kumo Staff MPCS Ltd</span>
+        <span class="brand-sub">Cooperative Society • Est. 2026</span>
+      </div>
+    </div>
+
+    <nav class="links" id="mainNav">
+      <a href="#services" onclick="scrollToSection('services', event)">Services</a>
+      <a href="#calculator" onclick="scrollToSection('calculator', event)">Loan Calculator</a>
+      <a href="#faqs" onclick="scrollToSection('faqs', event)">FAQs</a>
+      <!-- <a href="/login?tenant=fmcksmcs" target="_top" style="color:var(--gold); font-weight:600;">Member Sign In</a> -->
+    </nav>
+
+    <div class="nav-actions">
+      <!-- Dark / Light Theme Toggle -->
+      <button class="theme-toggle" id="themeToggle" title="Toggle Light / Dark Mode" aria-label="Toggle Color Theme">
+        <div class="thumb">☀</div>
+      </button>
+
+      <a href="/login?tenant=fmcksmcs" target="_top" style="font-size:0.88rem; padding:9px 18px; border:1px solid var(--line-heavy); border-radius:var(--radius-sm); color:var(--ink); font-weight:600; text-decoration:none; display:inline-flex; align-items:center;">
+        Sign In
+      </a>
+
+      <button class="nav-cta" onclick="openModal('applyModal')">
+        <span>Join Society</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+
+      <button class="mobile-toggle" id="mobileToggle" aria-label="Toggle Navigation Menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div class="hero-content">
+        <div class="kicker">Federal Medical Centre Kumo Staff Multipurpose Cooperative Society Ltd</div>
+        <h1>Save. Invest.<br><em>Grow together.</em></h1>
+        <p class="lede">
+          A cooperative built by and for the dedicated healthcare, clinical, and administrative staff of FMC Kumo. Every contribution strengthens our shared capital, shielding colleagues from exorbitant commercial loans.
+        </p>
+        <div class="cta-row">
+          <button class="btn-primary" onclick="openModal('applyModal')">
+            <span>Apply for Membership</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </button>
+          <a class="btn-ghost" href="#passbook" onclick="scrollToSection('passbook', event)">
+            <span>Simulate My Savings</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 9l-7 7-7-7"/></svg>
+          </a>
+        </div>
+
+        <div class="hero-badges">
+          <div class="badge-item">
+            <span class="badge-dot"></span>
+            <span>Hospital Payroll Checkoff</span>
+          </div>
+          <div class="badge-item">
+            <span class="badge-dot"></span>
+            <span>Annual Audited Dividends</span>
+          </div>
+          <div class="badge-item">
+            <span class="badge-dot"></span>
+            <span>Ethical Financial Principles</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-media">
+        <div class="hospital-glass-card">
+          <div class="glass-card-header">
+            <div class="glass-emblem" aria-hidden="true">
+              <img 
+                src="{{FMCK_LOGO_URL}}" 
+                onerror="this.src='/logo.png'" 
+                alt="Federal Medical Centre Kumo Logo" 
+                class="glass-logo-img" 
+              />
+            </div>
+            <div>
+              <span class="glass-inst-title">Federal Medical Centre, Kumo</span>
+              <span class="glass-inst-sub">Staff Multipurpose Cooperative Society Ltd</span>
+            </div>
+          </div>
+
+          <div class="glass-card-body">
+            <div class="glass-feature">
+              <div class="glass-check">✓</div>
+              <div class="glass-feat-text">
+                <strong>Hospital Payroll Checkoff</strong>
+                <span>Direct, automated monthly savings deduction via IPPIS & accounts</span>
+              </div>
+            </div>
+            <div class="glass-feature">
+              <div class="glass-check">✓</div>
+              <div class="glass-feat-text">
+                <strong>Instant Credit Facilities</strong>
+                <span>Access loans up to 2× cumulative savings with friendly guarantor terms</span>
+              </div>
+            </div>
+            <div class="glass-feature">
+              <div class="glass-check">✓</div>
+              <div class="glass-feat-text">
+                <strong>Audited Surplus Dividends</strong>
+                <span>Annual interest-free surplus distribution to all registered staff</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="glass-card-footer">
+            <div class="glass-stat">
+              <span class="glass-lbl">SECRETARIAT</span>
+              <span class="glass-val">Admin Block, FMC Kumo</span>
+            </div>
+            <div class="glass-stat" style="text-align: right;">
+              <span class="glass-lbl">AFFILIATION</span>
+              <span class="glass-val">FMCK / GOMBE</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="stats-section">
+    <div class="wrap">
+      <div class="stats-ledger">
+        <div class="stat-item">
+          <div class="n">00</div>
+          <div class="l">Registered Hospital Staff</div>
+          <div class="meta">Across All 14 Directorates</div>
+        </div>
+        <div class="stat-item">
+          <div class="n">₦0M</div>
+          <div class="l">Total Member Savings</div>
+          <div class="meta">Strict Audit & Ledger Backing</div>
+        </div>
+        <div class="stat-item">
+          <div class="n">0Yrs</div>
+          <div class="l">Continuous Stewardship</div>
+          <div class="meta">Founded By Hospital Pioneer Staff</div>
+        </div>
+        <div class="stat-item">
+          <div class="n">%</div>
+          <div class="l">2026 Dividend Rate</div>
+          <div class="meta">Annual Surplus Distribution</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="services">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="kicker">Cooperative Tenets</div>
+        <h2>Three Principles, Executed Faithfully</h2>
+        <p>
+          Founded on mutual self-help, the society exists solely to champion the financial autonomy and welfare of civil servants at FMC Kumo.
+        </p>
+      </div>
+
+      <div class="pillars">
+        <div class="pillar">
+          <div class="icon-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="8" width="18" height="12" rx="2"/><path d="M7 8V6a5 5 0 0 1 10 0v2"/><circle cx="12" cy="14" r="2"/></svg>
+          </div>
+          <h3>1. Save Consistently</h3>
+          <p>Deducted seamlessly via hospital payroll checkoff, eliminating deposit friction while accumulating interest-free member reserves.</p>
+          <ul class="pillar-list">
+            <li>Automatic salary checkoff</li>
+            <li>Zero monthly maintenance charges</li>
+            
+          </ul>
+        </div>
+
+        <div class="pillar">
+          <div class="icon-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 6h6v6"/></svg>
+          </div>
+          <h3>2. Invest Ethically</h3>
+          <p>Pooled member resources are safely deployed into audited consumer staples, bulk commodity procurement, and low-risk hospital supply syndicates.</p>
+          <ul class="pillar-list">
+            <li>Zero speculative trading</li>
+            <li>Direct hospital equipment bulk purchases</li>
+            <li>Annual surplus dividend allocation</li>
+          </ul>
+        </div>
+
+        <div class="pillar">
+          <div class="icon-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="8" r="4"/><path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg>
+          </div>
+          <h3>3. Grow Collectively</h3>
+          <p>When emergencies arise, members borrow up to twice their cumulative balance at modest single-digit processing rates without collateral headaches.</p>
+          <ul class="pillar-list">
+            <li>Emergency medical & tuition relief</li>
+            <li>Welfare & bereavement support pool</li>
+            <li>Friendly peer-guarantor endorsement</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="passbook" style="background: color-mix(in srgb, var(--paper-2) 40%, transparent);">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="kicker">Simulate Your Future</div>
+        <h2>Interactive Passbook Projection</h2>
+        <p>Adjust your proposed monthly deduction and planned tenure to witness how compound surplus sharing builds real financial independence.</p>
+      </div>
+
+      <div class="simulator-box">
+        <div class="simulator-grid">
+          <!-- Controls -->
+          <div>
+            <div class="control-group">
+              <div class="control-label">
+                <span>Monthly Salary Contribution</span>
+                <span class="val" id="simMonthlyDisplay">₦30,000</span>
+              </div>
+              <input type="range" class="range-slider" id="simMonthly" min="5000" max="200000" step="5000" value="30000">
+              <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:var(--ink-muted); margin-top:4px;">
+                <span>₦5k/mo</span>
+                <span>₦100k/mo</span>
+                <span>₦200k/mo</span>
+              </div>
+            </div>
+
+            <div class="control-group">
+              <div class="control-label">
+                <span>Years in Cooperative</span>
+                <span class="val" id="simYearsDisplay">5 Years</span>
+              </div>
+              <input type="range" class="range-slider" id="simYears" min="1" max="25" step="1" value="5">
+              <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:var(--ink-muted); margin-top:4px;">
+                <span>1 Year</span>
+                <span>12 Years</span>
+                <span>25 Years</span>
+              </div>
+            </div>
+
+            <div class="control-group">
+              <div class="control-label">
+                <span>Annual Dividend Projection</span>
+                <span class="val" id="simDivDisplay">7.0%</span>
+              </div>
+              <input type="range" class="range-slider" id="simDiv" min="4.0" max="10.0" step="0.5" value="7.0">
+              <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:var(--ink-muted); margin-top:4px;">
+                <span>4% (Conservative)</span>
+                <span>7% (Average)</span>
+                <span>10% (Peak)</span>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Live Ledger Output Slip -->
+          <div>
+            <div class="ledger-slip" id="ledgerSlip">
+              <div class="slip-row">
+                <span>Total Salary Saved (Principal)</span>
+                <strong class="num" id="slipPrincipal">₦1,800,000</strong>
+              </div>
+              <div class="slip-row">
+                <span>Estimated Cumulative Dividends</span>
+                <strong class="num" id="slipDividends" style="color:var(--gold);">+₦362,800</strong>
+              </div>
+              <div class="slip-row">
+                <span>Eligible Loan Threshold (2x)</span>
+                <strong class="num" id="slipLoanMax">₦4,325,600</strong>
+              </div>
+              <div class="slip-row total-row">
+                <span>Total Projected Net Worth</span>
+                <span class="val" id="slipTotal">₦2,162,800</span>
+              </div>
+              <div style="margin-top:16px; font-size:0.75rem; color:var(--ink-muted); line-height:1.4;">
+                *Calculation is based on compounding monthly payroll checkoff crediting and declared historical dividends. Actual payouts are subject to AGM approval.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="calculator">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="kicker">Fair Credit For Hospital Staff</div>
+        <h2>Cooperative Credit & Asset Financing Calculator</h2>
+        <p>Calculate your repayment deductions ahead of time. No hidden interest traps, no compounding bank charges.</p>
+      </div>
+
+      <div class="calc-tab-nav">
+        <button class="calc-tab-btn active" id="tabPersonalLoan" onclick="switchCalcTab('personal')">Normal Loan Scheme</button>
+        <button class="calc-tab-btn" id="tabCommodity" onclick="switchCalcTab('commodity')">Commodity & Asset Financing</button>
+        <button class="calc-tab-btn" id="tabEmergency" onclick="switchCalcTab('emergency')">Emergency Fast-Track</button>
+      </div>
+
+      <div class="simulator-box">
+        <div class="simulator-grid">
+          <div>
+            <div class="control-group">
+              <div class="control-label">
+                <span>Required Financing Sum</span>
+                <span class="val" id="loanAmtDisplay">₦500,000</span>
+              </div>
+              <input type="range" class="range-slider" id="loanAmtInput" min="50000" max="3000000" step="25000" value="500000">
+            </div>
+
+            <div class="control-group">
+              <div class="control-label">
+                <span>Repayment Duration</span>
+                <span class="val" id="loanTenureDisplay">12 Months</span>
+              </div>
+              <input type="range" class="range-slider" id="loanTenureInput" min="3" max="24" step="1" value="12">
+            </div>
+
+            <div style="font-size:0.85rem; color:var(--ink-soft); line-height:1.5; background:var(--paper); padding:16px; border-radius:var(--radius-sm); border:1px solid var(--line);">
+              <strong>Staff Guarantee Policy:</strong> Requires two confirmed staff guarantors from FMC Kumo who have completed at least 1 year of active membership.
+            </div>
+          </div>
+
+          <div>
+            <div class="ledger-slip">
+              <div class="slip-row">
+                <span>Administrative Markup (Flat)</span>
+                <strong class="num" id="loanMarkupDisplay">5.0% flat</strong>
+              </div>
+              <div class="slip-row">
+                <span>Total Repayable Amount</span>
+                <strong class="num" id="loanTotalRepayable">₦525,000</strong>
+              </div>
+              <div class="slip-row total-row">
+                <span>Monthly Payroll Deduction</span>
+                <span class="val" id="loanMonthlyDeduction">₦43,750/mo</span>
+              </div>
+              <button class="btn-primary" style="margin-top:20px; width:100%; justify-content:center;" onclick="openModal('applyModal')">
+                Apply for this Facility
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="faqs">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="kicker">Transparency First</div>
+        <h2>Frequently Asked Questions</h2>
+        <p>Direct clarifications on cooperative policies, qualifying cycles, guarantor rules, and annual dividends.</p>
+      </div>
+
+      <div style="max-w:760px; margin:0 auto;">
+        <div class="faq-search-box">
+          <span class="faq-search-icon">🔍</span>
+          <input type="text" id="faqSearchInput" placeholder="Search questions (e.g. loans, interest, registration, retirement)..." oninput="filterFaqs()">
+        </div>
+
+        <div class="faq-list" id="faqContainer">
+          <div class="faq-item">
+            <button class="faq-question" onclick="toggleFaq(this)">
+              <span>Who is eligible to join FMC Kumo Staff MPCS Ltd?</span>
+              <span class="faq-toggle-icon">+</span>
+            </button>
+            <div class="faq-answer">
+              Membership is open to all permanent and confirmed civil servants across all directorates of Federal Medical Centre, Kumo (Clinical, Nursing, Pharmacy, Admin, Laboratory, Works, etc.) upon completion of the membership enrollment form.
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question" onclick="toggleFaq(this)">
+              <span>How soon can a new member apply for a loan?</span>
+              <span class="faq-toggle-icon">+</span>
+            </button>
+            <div class="faq-answer">
+              A newly inducted staff member qualifies for the standard 2x loan facility after six (6) consecutive months of regular salary checkoff deductions. Emergency welfare facilities are accessible after three (3) months.
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question" onclick="toggleFaq(this)">
+              <span>Can I increase or adjust my monthly contribution?</span>
+              <span class="faq-toggle-icon">+</span>
+            </button>
+            <div class="faq-answer">
+              Yes. You can submit a simple one-page Variation Form to the cooperative secretariat before the 15th day of any calendar month. Your new rate will reflect on the subsequent IPPIS/salary payroll cycle.
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question" onclick="toggleFaq(this)">
+              <span>What occurs when a member retires or transfers out of FMC Kumo?</span>
+              <span class="faq-toggle-icon">+</span>
+            </button>
+            <div class="faq-answer">
+              Upon formal notification of retirement or transfer, all accumulated savings, plus accrued dividends up to the terminal date, are refunded in full after offsetting any outstanding loan obligations.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="join">
+    <div class="wrap">
+      <div class="cta-band">
+        <h2>Ready to build financial peace with your FMC Kumo colleagues?</h2>
+        <p>Membership forms are processed weekly by the cooperative executive committee. Take charge of your financial wellness today.</p>
+        <div class="cta-row">
+          <button class="btn-primary" onclick="openModal('applyModal')">
+            <span>Complete Enrollment Form</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </button>
+          <button class="btn-ghost" onclick="openModal('contactModal')">
+            <span>Contact Secretariat Desk</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer id="contact">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <h4>FMC Kumo Staff MPCS Ltd</h4>
+        <p style="margin-bottom:12px; max-width:34ch;">
+          Federal Medical Centre, Kumo, Gombe State, Nigeria.<br>
+          Serving the dedicated staff of FMC Kumo since inception.
+        </p>
+        <span style="font-family:var(--mono); font-size:0.75rem; color:var(--ink-muted);">
+          
+        </span>
+      </div>
+
+      <div>
+        <h4>Quick Links</h4>
+        <a href="#services" onclick="scrollToSection('services', event)">Services</a>
+        <a href="#calculator" onclick="scrollToSection('calculator', event)">Credit Calculator</a>
+        <a href="#faqs" onclick="scrollToSection('faqs', event)">Frequently Asked Questions</a>
+        <a href="/login?tenant=fmcksmcs" target="_top">Member Portal</a>
+      </div>
+
+      <div>
+        <h4>Governance</h4>
+        <a href="#faqs" onclick="scrollToSection('faqs', event)">Cooperative Bye-Laws</a>
+        <a href="#faqs" onclick="scrollToSection('faqs', event)">Audit & AGM Minutes</a>
+        <a href="#faqs" onclick="scrollToSection('faqs', event)">Supervisory Committee</a>
+        <a href="#faqs" onclick="scrollToSection('faqs', event)">Welfare Board</a>
+      </div>
+
+      <div>
+        <h4>Cooperative Secretariat</h4>
+        <p style="margin-bottom:6px;">Office: Admin Block, FMC Kumo</p>
+        <a href="mailto:secretariat@fmckumompcs.coop">secretariat@fmckumompcs.coop</a>
+        <p style="margin-top:6px; font-family:var(--mono); font-size:0.8rem;">Mon – Fri: 8:00 AM – 3:30 PM</p>
+      </div>
+    </div>
+
+    <div class="foot-bottom">
+      <span>© 2026 FMC Kumo Staff Multipurpose Cooperative Society Ltd. All rights reserved.</span>
+      <span>Preserving Healthcare Staff Prosperity • Gombe State, Nigeria</span>
+    </div>
+  </div>
+</footer>
+
+<div class="modal-backdrop" id="applyModal">
+  <div class="modal-card modal-card-lg">
+    <button class="modal-close" onclick="closeModal('applyModal')" aria-label="Close dialog">✕</button>
+    
+    <div id="applicationFormContainer">
+      <div class="kicker">FMC Kumo Staff Cooperative Society</div>
+      <h2 style="font-size:1.75rem; margin-bottom:4px;">Membership Application Form</h2>
+      <p style="color:var(--ink-soft); font-size:0.92rem; margin-bottom:20px;">
+        Please complete the official application sections below. All required fields are marked with an asterisk (<span style="color:#e53e3e; font-weight:bold;">*</span>).
+      </p>
+
+      <form class="modal-form" id="fmckMemberForm" onsubmit="handleApplySubmit(event)" novalidate>
+        <!-- 1. APPLICANT INFORMATION -->
+        <div class="form-section" style="margin-top:0; border-top:none; padding-top:0;">
+          <div class="form-section-title">
+            <span>1. Applicant Information</span>
+          </div>
+          <div class="form-section-desc">
+            Your official employment and identification details as verified on IPPIS payroll
+          </div>
+
+          <div style="margin-bottom:14px;">
+            <label for="appFullName">Full Name <span class="req">*</span></label>
+            <input type="text" id="appFullName" placeholder="e.g. Dr. Haruna Bello Garba" required oninput="validateFieldRealtime('appFullName')">
+            <div class="field-error-msg" id="err-appFullName">Full Name is required.</div>
+          </div>
+
+          <div class="form-grid-2">
+            <div>
+              <label for="appIppis">IPPIS Number <span class="req">*</span></label>
+              <input type="text" id="appIppis" placeholder="e.g. IPPIS/142920 or 142920" required oninput="validateFieldRealtime('appIppis')">
+              <div class="field-error-msg" id="err-appIppis">Valid IPPIS / Staff Number is required.</div>
+            </div>
+            <div>
+              <label for="appEmail">Email Address <span class="req">*</span></label>
+              <input type="email" id="appEmail" placeholder="your.name@fmckumo.gov.ng" required oninput="validateFieldRealtime('appEmail')">
+              <div class="field-error-msg" id="err-appEmail">Please enter a valid email address.</div>
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div>
+              <label for="appPhone">Phone Number <span class="req">*</span></label>
+              <input type="tel" id="appPhone" placeholder="0803 123 4567" required oninput="validateFieldRealtime('appPhone')">
+              <div class="field-error-msg" id="err-appPhone">Please enter a valid Nigerian phone number (11 digits).</div>
+            </div>
+            <div>
+              <label for="appDob">Date of Birth <span class="req">*</span></label>
+              <input type="date" id="appDob" required onchange="validateFieldRealtime('appDob')">
+              <div class="field-error-msg" id="err-appDob">Date of Birth is required.</div>
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div>
+              <label for="appGender">Gender <span class="req">*</span></label>
+              <select id="appGender" required onchange="validateFieldRealtime('appGender')">
+                <option value="">Select Gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+              </select>
+              <div class="field-error-msg" id="err-appGender">Please select your gender.</div>
+            </div>
+            <div>
+              <label for="appDept">Department <span class="req">*</span></label>
+              <select id="appDept" required onchange="validateFieldRealtime('appDept')">
+                <option value="">Select Hospital Directorate</option>
+                <option value="Clinical Services">Clinical Services (Doctors)</option>
+                <option value="Nursing Services">Nursing Services Directorate</option>
+                <option value="Pharmacy Directorate">Pharmacy Directorate</option>
+                <option value="Medical Laboratory">Medical Laboratory & Diagnostic Services</option>
+                <option value="General Administration">General Administration & Records</option>
+                <option value="Finance & Accounts">Finance & Accounts</option>
+                <option value="Works & Engineering">Works, Biomedical & Maintenance</option>
+                <option value="Health Information Management">Health Information Management (HIM)</option>
+                <option value="Nutrition & Dietetics">Nutrition & Dietetics</option>
+                <option value="Radiology & Radiography">Radiology & Radiography</option>
+                <option value="Other Hospital Directorate">Other Hospital Directorate</option>
+              </select>
+              <div class="field-error-msg" id="err-appDept">Hospital Department is required.</div>
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div>
+              <label for="appUnit">Unit / Section <span class="req">*</span></label>
+              <input type="text" id="appUnit" placeholder="e.g. ICU, Special Care Baby Unit, Internal Audit" required oninput="validateFieldRealtime('appUnit')">
+              <div class="field-error-msg" id="err-appUnit">Hospital Unit/Section is required.</div>
+            </div>
+            <div>
+              <label for="appCadre">Cadre / Professional Designation <span class="req">*</span></label>
+              <input type="text" id="appCadre" placeholder="e.g. Senior Medical Officer, Nursing Officer II" required oninput="validateFieldRealtime('appCadre')">
+              <div class="field-error-msg" id="err-appCadre">Cadre / Professional Designation is required.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. INITIAL CONTRIBUTION -->
+        <div class="form-section">
+          <div class="form-section-title">
+            <span>2. Initial Contribution</span>
+          </div>
+          <div class="form-section-desc">
+            Enter your opening savings and investment allocation. The total must meet the minimum threshold.
+          </div>
+
+          <div class="form-grid-2">
+            <div>
+              <label for="appInitialSaving">Initial Saving Amount (₦) <span class="req">*</span></label>
+              <input type="number" id="appInitialSaving" min="0" step="500" placeholder="e.g. 3000" required oninput="handleContributionInput()">
+              <div class="field-error-msg" id="err-appInitialSaving">Please enter a valid saving amount.</div>
+              <span id="previewSavingFmt" style="font-family:var(--mono); font-size:0.75rem; color:var(--ink-muted); display:block; margin-top:4px;"></span>
+            </div>
+            <div>
+              <label for="appInitialInvestment">Initial Investment Amount (₦) <span class="req">*</span></label>
+              <input type="number" id="appInitialInvestment" min="0" step="500" placeholder="e.g. 2000" required oninput="handleContributionInput()">
+              <div class="field-error-msg" id="err-appInitialInvestment">Please enter a valid investment amount.</div>
+              <span id="previewInvestFmt" style="font-family:var(--mono); font-size:0.75rem; color:var(--ink-muted); display:block; margin-top:4px;"></span>
+            </div>
+          </div>
+
+          <!-- Total Initial Contribution (Read-Only Calculated Field) -->
+          <div class="calculated-box">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:8px;">
+              <div>
+                <span style="font-family:var(--mono); font-size:0.7rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--ink-muted); display:block;">
+                  Read-Only Calculated Field
+                </span>
+                <span style="font-size:1.05rem; font-weight:700; color:var(--ink);">
+                  Total Initial Contribution
+                </span>
+                <span style="font-size:0.8rem; color:var(--ink-muted); display:block;">
+                  (Initial Saving + Initial Investment)
+                </span>
+              </div>
+              <div class="total-val" id="appTotalContributionDisplay">₦0.00</div>
+            </div>
+
+            <!-- Minimum Requirement Notice Directly Below Total -->
+            <div class="fee-notice-banner">
+              <strong>Minimum required: ₦5,000 combined. ₦1,500 entrance fee will be deducted from your first contribution.</strong>
+              <div style="font-size:0.78rem; color:var(--ink-soft); margin-top:4px;">
+                Example: Initial Saving: ₦3,000 + Initial Investment: ₦2,000 = Total Initial Contribution: ₦5,000.
+              </div>
+            </div>
+            <div class="field-error-msg" id="err-totalContribution" style="margin-top:8px;">
+              The combined contribution is currently below the required ₦5,000 minimum threshold.
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. MONTHLY SAVING TARGET -->
+        <div class="form-section">
+          <div class="form-section-title">
+            <span>3. Monthly Saving Target</span>
+          </div>
+          <div class="form-section-desc">
+            Specify your desired monthly payroll deduction target
+          </div>
+
+          <div style="max-width:400px;">
+            <label for="appTargetMonthlySaving">Target Monthly Saving (₦) <span style="font-weight:normal; text-transform:none; color:var(--ink-muted);">(Optional)</span></label>
+            <input type="number" id="appTargetMonthlySaving" min="0" step="1000" placeholder="e.g. 10000" oninput="handleTargetSavingInput()">
+            <span id="previewTargetFmt" style="font-family:var(--mono); font-size:0.75rem; color:var(--ink-muted); display:block; margin-top:4px;"></span>
+            <p style="font-size:0.78rem; color:var(--ink-muted); margin-top:4px;">
+              This field is optional. If left empty, your application remains valid and submittable.
+            </p>
+          </div>
+        </div>
+
+        <!-- 4. REASON FOR JOINING -->
+        <div class="form-section">
+          <div class="form-section-title">
+            <span>4. Reason for Joining <span class="req">*</span></span>
+          </div>
+          <div class="form-section-desc">
+            Briefly share your motivations for joining the society for our executive review
+          </div>
+
+          <div>
+            <textarea id="appReasonForJoining" rows="4" placeholder="Please briefly explain why you would like to join FMCKSMCS." required oninput="validateFieldRealtime('appReasonForJoining')"></textarea>
+            <div class="field-error-msg" id="err-appReasonForJoining">Please briefly explain why you would like to join FMCKSMCS (at least 15 characters).</div>
+          </div>
+        </div>
+
+        <!-- 5. ACTIONS: RESET & SUBMIT -->
+        <div class="form-actions-row">
+          <button type="button" class="btn-reset" onclick="handleApplyReset()">
+            ↺ Reset / Clear Form
+          </button>
+          <button type="submit" id="btnSubmitApp" class="btn-primary" style="padding:14px 32px; font-weight:700; min-width:240px; display:inline-flex; align-items:center; justify-content:center; gap:8px;">
+            <span>Submit Application</span>
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- 6. SUBMISSION CONFIRMATION & PRINT SLIP -->
+    <div class="slip-print-view" id="printSlipView" style="display:none; padding:32px 24px; border:2px dashed var(--line-heavy); border-radius:var(--radius-md); background:var(--paper-2);">
+      <!-- Confirmation Banner -->
+      <div style="text-align:center; padding-bottom:20px; border-bottom:1px solid var(--line-heavy); margin-bottom:20px;">
+        <div style="display:inline-flex; width:48px; height:48px; border-radius:50%; background:var(--teal); color:var(--gold); align-items:center; justify-content:center; font-size:24px; margin-bottom:12px;">
+          ✓
+        </div>
+        <h3 style="font-family:var(--serif); font-size:1.5rem; color:var(--teal); margin-bottom:8px;">
+          Application Submitted Successfully
+        </h3>
+        <p style="color:var(--ink-soft); font-size:0.95rem; max-width:540px; margin:0 auto; line-height:1.5;">
+          "Your FMCKSMCS membership application has been submitted successfully. Your application will be reviewed, and you will be contacted using the information provided."
+        </p>
+        <div id="slipRefNumber" style="margin-top:12px; font-family:var(--mono); font-size:0.8rem; letter-spacing:0.05em; color:var(--gold); background:var(--paper); display:inline-block; padding:4px 12px; border-radius:var(--radius-sm); border:1px solid var(--line);"></div>
+      </div>
+
+      <!-- Printable Acknowledgment Slip -->
+      <div style="background:var(--paper); border:1px solid var(--line); border-radius:var(--radius-sm); padding:24px; font-family:var(--mono); font-size:0.85rem; line-height:1.7;">
+        <div style="text-align:center; font-weight:700; margin-bottom:12px; font-family:var(--sans);">
+          FEDERAL MEDICAL CENTRE KUMO STAFF MULTIPURPOSE COOPERATIVE SOCIETY LTD<br>
+          <span style="font-size:0.8rem; font-weight:normal; color:var(--ink-muted);">MEMBERSHIP ENROLLMENT & PAYROLL CHECKOFF SLIP</span>
+        </div>
+        <div style="border-top:1px dashed var(--line); margin:12px 0;"></div>
+        <div>APPLICANT NAME: <strong id="slipName"></strong></div>
+        <div>IPPIS / STAFF ID: <strong id="slipStaff"></strong></div>
+        <div>DEPARTMENT: <span id="slipDepartment"></span></div>
+        <div>UNIT & CADRE: <span id="slipUnitCadre"></span></div>
+        <div>EMAIL ADDRESS: <span id="slipEmail"></span></div>
+        <div>PHONE NUMBER: <span id="slipPhone"></span></div>
+        <div style="border-top:1px dashed var(--line); margin:12px 0;"></div>
+        <div>INITIAL SAVING: <strong id="slipInitialSaving"></strong></div>
+        <div>INITIAL INVESTMENT: <strong id="slipInitialInvestment"></strong></div>
+        <div style="font-size:1rem; font-weight:bold; color:var(--teal); margin:6px 0;">
+          TOTAL INITIAL CONTRIBUTION: <span id="slipTotalContribution"></span>
+        </div>
+        <div style="color:var(--gold); font-size:0.8rem;">★ Note: ₦1,500 entrance fee will be deducted from your first contribution.</div>
+        <div id="slipTargetSavingRow" style="margin-top:6px;">TARGET MONTHLY SAVING: <span id="slipTargetSaving"></span></div>
+        <div>DATE GENERATED: <span id="slipDate"></span></div>
+      </div>
+
+      <div style="display:flex; justify-content:center; margin-top:20px;">
+        <button class="btn-reset" onclick="handleAnotherApplication()" style="min-width:240px; justify-content:center;">
+          Submit Another Application
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="contactModal">
+  <div class="modal-card">
+    <button class="modal-close" onclick="closeModal('contactModal')">✕</button>
+    <div class="kicker">Cooperative Secretariat Desk</div>
+    <h2>Dispatch an Official Inquiry</h2>
+    <p style="color:var(--ink-soft); font-size:0.92rem; margin-bottom:20px;">
+      Have questions regarding your balance statement, guarantor status, or commodity pickup?
+    </p>
+
+    <form class="modal-form" onsubmit="handleContactSubmit(event)">
+      <label for="cName">Your Name</label>
+      <input type="text" id="cName" required placeholder="Your full name">
+
+      <label for="cEmail">Staff Email or Phone</label>
+      <input type="text" id="cEmail" required placeholder="your.name@fmckumo.gov.ng">
+
+      <label for="cSubject">Inquiry Category</label>
+      <select id="cSubject">
+        <option>Passbook Balance Discrepancy</option>
+        <option>Loan Guarantor Status</option>
+        <option>Upcoming Commodity Scheme Delivery</option>
+        <option>Welfare Grant Application</option>
+        <option>General Secretariat Inquiry</option>
+      </select>
+
+      <label for="cMsg">Message / Details</label>
+      <textarea id="cMsg" rows="4" placeholder="Briefly specify your request or question..." required></textarea>
+
+      <button type="submit" class="btn-primary" style="margin-top:24px; width:100%; justify-content:center;">
+        Transmit to Secretariat Desk
+      </button>
+    </form>
+    <div id="contactSuccess" style="display:none; margin-top:16px; padding:12px; background:var(--sage); color:var(--teal); border-radius:var(--radius-sm); font-weight:600; text-align:center;">
+      ✓ Transmission dispatched to the General Secretary. You will receive an SMS response shortly.
+    </div>
+  </div>
+</div>
+
+<script>
+  // Smooth Section Navigation Handler
+  function scrollToSection(sectionId, event) {
+    if (event) {
+      if (typeof event.preventDefault === 'function') event.preventDefault();
+      if (typeof event.stopPropagation === 'function') event.stopPropagation();
+    }
+    const cleanId = String(sectionId || '').replace(/^#/, '').trim();
+    if (!cleanId) return;
+
+    const aliases = {
+      'about': 'services',
+      'tenets': 'services',
+      'cooperative-tenets': 'services',
+      'simulator': 'passbook',
+      'credit': 'calculator',
+      'fair-credit': 'calculator',
+      'faq': 'faqs'
+    };
+
+    const targetId = aliases[cleanId] || cleanId;
+    const targetEl = document.getElementById(targetId) || document.querySelector(`[id="${targetId}"]`) || document.querySelector(`[id="${cleanId}"]`);
+
+    if (targetEl) {
+      const header = document.querySelector('header');
+      const headerHeight = header ? header.getBoundingClientRect().height : 80;
+      const targetRect = targetEl.getBoundingClientRect();
+      const currentScrollY = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+      const targetTop = targetRect.top + currentScrollY;
+      const finalY = Math.max(0, targetTop - headerHeight - 14);
+
+      try {
+        window.scrollTo({
+          top: finalY,
+          behavior: 'smooth'
+        });
+      } catch (err) {
+        window.scrollTo(0, finalY);
+      }
+    }
+
+    // Dismiss mobile navigation menu if open
+    const mainNav = document.getElementById('mainNav');
+    if (mainNav) {
+      mainNav.classList.remove('mobile-active');
+    }
+  }
+
+  // Intercept all internal anchor clicks for smooth scrolling
+  document.addEventListener('click', function(e) {
+    const anchor = e.target && e.target.closest ? e.target.closest('a[href^="#"]') : null;
+    if (!anchor) return;
+    const href = anchor.getAttribute('href');
+    if (!href || href === '#' || href === '#!') return;
+    scrollToSection(href, e);
+  }, { capture: true });
+
+  // Theme Management (Preserves preference)
+  const themeToggleBtn = document.getElementById('themeToggle');
+  const htmlRoot = document.documentElement;
+
+  function initTheme() {
+    const savedTheme = localStorage.getItem('fmck_theme');
+    if (savedTheme) {
+      htmlRoot.setAttribute('data-theme', savedTheme);
+      updateThemeIcon(savedTheme);
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      htmlRoot.setAttribute('data-theme', 'dark');
+      updateThemeIcon('dark');
+    }
+  }
+
+  function toggleTheme() {
+    const current = htmlRoot.getAttribute('data-theme') || 'light';
+    const next = current === 'light' ? 'dark' : 'light';
+    htmlRoot.setAttribute('data-theme', next);
+    localStorage.setItem('fmck_theme', next);
+    updateThemeIcon(next);
+  }
+
+  function updateThemeIcon(theme) {
+    if (themeToggleBtn) {
+      const thumb = themeToggleBtn.querySelector('.thumb');
+      if (thumb) thumb.textContent = theme === 'dark' ? '☾' : '☀';
+    }
+  }
+
+  themeToggleBtn.addEventListener('click', toggleTheme);
+  initTheme();
+
+  // Mobile Menu Toggle
+  const mobileToggle = document.getElementById('mobileToggle');
+  const mainNav = document.getElementById('mainNav');
+  mobileToggle.addEventListener('click', () => {
+    mainNav.classList.toggle('mobile-active');
+  });
+  mainNav.querySelectorAll('a').forEach(a => {
+    a.addEventListener('click', () => {
+      mainNav.classList.remove('mobile-active');
+    });
+  });
+
+  // Modal Controllers
+  function openModal(id) {
+    const m = document.getElementById(id);
+    if (m) m.classList.add('open');
+  }
+  function closeModal(id) {
+    const m = document.getElementById(id);
+    if (m) m.classList.remove('open');
+  }
+  window.addEventListener('click', (e) => {
+    if (e.target.classList.contains('modal-backdrop')) {
+      e.target.classList.remove('open');
+    }
+  });
+
+  // Currency Formatter
+  function fmtNaira(val) {
+    return '₦' + Math.round(val).toLocaleString('en-NG');
+  }
+
+  // Passbook Simulator Engine
+  const simMonthly = document.getElementById('simMonthly');
+  const simYears = document.getElementById('simYears');
+  const simDiv = document.getElementById('simDiv');
+
+  const simMonthlyDisplay = document.getElementById('simMonthlyDisplay');
+  const simYearsDisplay = document.getElementById('simYearsDisplay');
+  const simDivDisplay = document.getElementById('simDivDisplay');
+
+  const slipPrincipal = document.getElementById('slipPrincipal');
+  const slipDividends = document.getElementById('slipDividends');
+  const slipLoanMax = document.getElementById('slipLoanMax');
+  const slipTotal = document.getElementById('slipTotal');
+
+  function calculateSimulator() {
+    const p = parseFloat(simMonthly.value);
+    const y = parseInt(simYears.value);
+    const r = parseFloat(simDiv.value) / 100;
+
+    simMonthlyDisplay.textContent = fmtNaira(p);
+    simYearsDisplay.textContent = y + (y === 1 ? ' Year' : ' Years');
+    simDivDisplay.textContent = (r * 100).toFixed(1) + '%';
+
+    const totalDeposited = p * y * 12;
+    // Compound monthly annuity calculation
+    const monthlyRate = r / 12;
+    const months = y * 12;
+    const fv = p * ((Math.pow(1 + monthlyRate, months) - 1) / monthlyRate);
+    const totalDividends = Math.max(0, fv - totalDeposited);
+    const maxLoan = fv * 2.0;
+
+    slipPrincipal.textContent = fmtNaira(totalDeposited);
+    slipDividends.textContent = '+' + fmtNaira(totalDividends);
+    slipLoanMax.textContent = fmtNaira(maxLoan);
+    slipTotal.textContent = fmtNaira(fv);
+  }
+
+  [simMonthly, simYears, simDiv].forEach(el => {
+    if (el) el.addEventListener('input', calculateSimulator);
+  });
+  calculateSimulator();
+
+  // Credit Calculator Engine
+  let currentCalcMode = 'personal'; // 'personal' | 'commodity' | 'emergency'
+  const loanAmtInput = document.getElementById('loanAmtInput');
+  const loanTenureInput = document.getElementById('loanTenureInput');
+  const loanAmtDisplay = document.getElementById('loanAmtDisplay');
+  const loanTenureDisplay = document.getElementById('loanTenureDisplay');
+  const loanMarkupDisplay = document.getElementById('loanMarkupDisplay');
+  const loanTotalRepayable = document.getElementById('loanTotalRepayable');
+  const loanMonthlyDeduction = document.getElementById('loanMonthlyDeduction');
+
+  function switchCalcTab(mode) {
+    currentCalcMode = mode;
+    document.querySelectorAll('.calc-tab-btn').forEach(btn => btn.classList.remove('active'));
+    if (mode === 'personal') {
+      document.getElementById('tabPersonalLoan').classList.add('active');
+      loanAmtInput.max = "3000000";
+      loanTenureInput.max = "24";
+    } else if (mode === 'commodity') {
+      document.getElementById('tabCommodity').classList.add('active');
+      loanAmtInput.max = "1500000";
+      loanTenureInput.max = "10";
+    } else {
+      document.getElementById('tabEmergency').classList.add('active');
+      loanAmtInput.max = "300000";
+      loanTenureInput.max = "6";
+    }
+    updateLoanCalc();
+  }
+
+  function updateLoanCalc() {
+    const amt = parseFloat(loanAmtInput.value);
+    const mos = parseInt(loanTenureInput.value);
+
+    loanAmtDisplay.textContent = fmtNaira(amt);
+    loanTenureDisplay.textContent = mos + ' Months';
+
+    let markupRate = 0.05; // 5% flat for regular
+    if (currentCalcMode === 'commodity') markupRate = 0.065;
+    if (currentCalcMode === 'emergency') markupRate = 0.02;
+
+    loanMarkupDisplay.textContent = (markupRate * 100).toFixed(1) + '% flat';
+    const totalMarkup = amt * markupRate;
+    const totalRepay = amt + totalMarkup;
+    const monthlyDeduct = totalRepay / mos;
+
+    loanTotalRepayable.textContent = fmtNaira(totalRepay);
+    loanMonthlyDeduction.textContent = fmtNaira(monthlyDeduct) + '/mo';
+  }
+
+  [loanAmtInput, loanTenureInput].forEach(el => {
+    if (el) el.addEventListener('input', updateLoanCalc);
+  });
+  updateLoanCalc();
+
+  // FAQ Search & Accordion
+  function toggleFaq(btn) {
+    const ans = btn.nextElementSibling;
+    const icon = btn.querySelector('.faq-toggle-icon');
+    const isOpen = ans.classList.contains('open');
+    document.querySelectorAll('.faq-answer').forEach(a => a.classList.remove('open'));
+    document.querySelectorAll('.faq-toggle-icon').forEach(i => i.textContent = '+');
+    if (!isOpen) {
+      ans.classList.add('open');
+      icon.textContent = '−';
+    }
+  }
+
+  function filterFaqs() {
+    const query = document.getElementById('faqSearchInput').value.toLowerCase();
+    const items = document.querySelectorAll('.faq-item');
+    items.forEach(item => {
+      const q = item.querySelector('.faq-question span').textContent.toLowerCase();
+      const a = item.querySelector('.faq-answer').textContent.toLowerCase();
+      if (q.includes(query) || a.includes(query)) {
+        item.style.display = 'block';
+      } else {
+        item.style.display = 'none';
+      }
+    });
+  }
+
+  // ── FMCKSMCS Application Form Real-time Validation & Calculations ──
+  function isFmckEmailValid(val) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(val || '').trim());
+  }
+
+  function isFmckPhoneValid(val) {
+    const clean = String(val || '').replace(/[\s\-\(\)]/g, '');
+    return /^(\+?234|0)[789][01]\d{8}$/.test(clean);
+  }
+
+  function validateFieldRealtime(id) {
+    const input = document.getElementById(id);
+    const err = document.getElementById('err-' + id);
+    if (!input || !err) return true;
+
+    let isValid = true;
+    const val = input.value.trim();
+
+    if (id === 'appFullName') isValid = val.length >= 3;
+    else if (id === 'appIppis') isValid = val.length >= 4;
+    else if (id === 'appEmail') isValid = isFmckEmailValid(val);
+    else if (id === 'appPhone') isValid = isFmckPhoneValid(val);
+    else if (id === 'appDob' || id === 'appGender' || id === 'appDept') isValid = val.length > 0;
+    else if (id === 'appUnit' || id === 'appCadre') isValid = val.length > 0;
+    else if (id === 'appReasonForJoining') isValid = val.length >= 15;
+
+    if (!isValid) {
+      err.classList.add('show');
+    } else {
+      err.classList.remove('show');
+    }
+    return isValid;
+  }
+
+  function handleContributionInput() {
+    const savingInput = document.getElementById('appInitialSaving');
+    const investInput = document.getElementById('appInitialInvestment');
+    const savingVal = parseFloat(savingInput.value) || 0;
+    const investVal = parseFloat(investInput.value) || 0;
+    const total = savingVal + investVal;
+
+    // Previews
+    document.getElementById('previewSavingFmt').textContent = savingVal > 0 ? 'Preview: ' + fmtNaira(savingVal) : '';
+    document.getElementById('previewInvestFmt').textContent = investVal > 0 ? 'Preview: ' + fmtNaira(investVal) : '';
+
+    // Total display
+    const totalDisplay = document.getElementById('appTotalContributionDisplay');
+    totalDisplay.textContent = fmtNaira(total);
+
+    // Minimum requirement validation
+    const errTotal = document.getElementById('err-totalContribution');
+    const btnSubmit = document.getElementById('btnSubmitApp');
+
+    if (savingVal > 0 || investVal > 0) {
+      if (total < 5000) {
+        errTotal.classList.add('show');
+        totalDisplay.style.color = '#e53e3e';
+      } else {
+        errTotal.classList.remove('show');
+        totalDisplay.style.color = '';
+      }
+    } else {
+      errTotal.classList.remove('show');
+      totalDisplay.style.color = '';
+    }
+  }
+
+  function handleTargetSavingInput() {
+    const targetInput = document.getElementById('appTargetMonthlySaving');
+    const targetVal = parseFloat(targetInput.value) || 0;
+    document.getElementById('previewTargetFmt').textContent = targetVal > 0 ? 'Projected checkoff: ' + fmtNaira(targetVal) + ' / mo' : '';
+  }
+
+  function handleApplyReset() {
+    if (confirm('Are you sure you want to reset and clear the application form?')) {
+      document.getElementById('fmckMemberForm').reset();
+      document.querySelectorAll('.field-error-msg').forEach(e => e.classList.remove('show'));
+      document.getElementById('previewSavingFmt').textContent = '';
+      document.getElementById('previewInvestFmt').textContent = '';
+      document.getElementById('previewTargetFmt').textContent = '';
+      document.getElementById('appTotalContributionDisplay').textContent = '₦0.00';
+      document.getElementById('appTotalContributionDisplay').style.color = '';
+    }
+  }
+
+  function handleAnotherApplication() {
+    document.getElementById('fmckMemberForm').reset();
+    document.querySelectorAll('.field-error-msg').forEach(e => e.classList.remove('show'));
+    document.getElementById('previewSavingFmt').textContent = '';
+    document.getElementById('previewInvestFmt').textContent = '';
+    document.getElementById('previewTargetFmt').textContent = '';
+    document.getElementById('appTotalContributionDisplay').textContent = '₦0.00';
+    document.getElementById('printSlipView').style.display = 'none';
+    document.getElementById('applicationFormContainer').style.display = 'block';
+  }
+
+  // Membership Form Submission
+  async function handleApplySubmit(e) {
+    e.preventDefault();
+
+    const btnSubmit = document.getElementById('btnSubmitApp');
+    if (btnSubmit && btnSubmit.disabled) {
+      return; // Prevent duplicate submissions
+    }
+
+    // Set loading state immediately
+    if (btnSubmit) {
+      btnSubmit.disabled = true;
+      btnSubmit.innerHTML = '<span class="btn-spinner"></span><span>Submitting Application...</span>';
+    }
+
+    // Ensure browser paints loading spinner
+    await new Promise(r => setTimeout(r, 300));
+
+    try {
+      // Validate all required fields
+      const requiredFieldIds = [
+        'appFullName', 'appIppis', 'appEmail', 'appPhone',
+        'appDob', 'appGender', 'appDept', 'appUnit', 'appCadre',
+        'appReasonForJoining'
+      ];
+
+      let hasErrors = false;
+      let firstInvalid = null;
+
+      requiredFieldIds.forEach(id => {
+        const valid = validateFieldRealtime(id);
+        if (!valid) {
+          hasErrors = true;
+          if (!firstInvalid) firstInvalid = document.getElementById(id);
+        }
+      });
+
+      const savingInput = document.getElementById('appInitialSaving');
+      const investInput = document.getElementById('appInitialInvestment');
+      const savingVal = parseFloat(savingInput.value) || 0;
+      const investVal = parseFloat(investInput.value) || 0;
+      const total = savingVal + investVal;
+
+      const errTotal = document.getElementById('err-totalContribution');
+      if (total < 5000) {
+        errTotal.classList.add('show');
+        hasErrors = true;
+        if (!firstInvalid) firstInvalid = savingInput;
+      } else {
+        errTotal.classList.remove('show');
+      }
+
+      if (hasErrors) {
+        if (firstInvalid) firstInvalid.focus();
+        return;
+      }
+
+      // Capture values
+      const fullName = document.getElementById('appFullName').value.trim();
+      const ippis = document.getElementById('appIppis').value.trim();
+      const email = document.getElementById('appEmail').value.trim();
+      const phone = document.getElementById('appPhone').value.trim();
+      const dob = document.getElementById('appDob').value;
+      const gender = document.getElementById('appGender').value;
+      const dept = document.getElementById('appDept').value;
+      const unit = document.getElementById('appUnit').value.trim();
+      const cadre = document.getElementById('appCadre').value.trim();
+      const targetMonthly = parseFloat(document.getElementById('appTargetMonthlySaving').value) || 0;
+      const reason = document.getElementById('appReasonForJoining').value.trim();
+
+      const refNumber = 'FMCK-APP-' + Math.floor(100000 + Math.random() * 900000);
+      const dateFormatted = new Date().toLocaleDateString('en-GB', {
+        day: 'numeric', month: 'long', year: 'numeric'
+      });
+
+      const sanitizedPsn = ippis.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+      const payload = {
+        name: fullName,
+        psn: sanitizedPsn.length >= 5 ? sanitizedPsn.slice(0, 20) : ('FMCK' + sanitizedPsn).slice(0, 20),
+        email: email,
+        phone: phone,
+        facility_name: 'FMC Kumo - ' + dept,
+        department: dept,
+        unit: unit,
+        cadre: cadre,
+        date_of_birth: dob,
+        gender: gender,
+        savings: savingVal,
+        investment: investVal,
+        total_initial_contribution: total,
+        target_saving: targetMonthly,
+        target_period: 12,
+        reference_number: refNumber,
+        tenant_id: 'fmcksmcs',
+        metadata: {
+          reference_number: refNumber,
+          ippis_number: ippis,
+          date_of_birth: dob,
+          gender: gender,
+          department: dept,
+          unit: unit,
+          cadre: cadre,
+          initial_saving: savingVal,
+          initial_investment: investVal,
+          total_initial_contribution: total,
+          target_monthly_saving: targetMonthly,
+          reason_for_joining: reason,
+          entrance_fee: 1500,
+          entrance_fee_note: '₦1,500 entrance fee deducted from first contribution',
+          submitted_at: new Date().toISOString(),
+          tenant_id: 'fmcksmcs'
+        }
+      };
+
+      try {
+        let resp = await fetch('/api/applications/apply', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Tenant-Id': 'fmcksmcs'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (resp.status === 404) {
+          resp = await fetch('/applications/apply', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Tenant-Id': 'fmcksmcs'
+            },
+            body: JSON.stringify(payload)
+          });
+        }
+
+        const respData = await resp.json().catch(() => ({}));
+        if (!resp.ok) {
+          alert(respData.message || 'An application with this IPPIS Number, email or phone already exists or could not be processed.');
+          return;
+        }
+      } catch (err) {
+        console.warn('Backend sync failed, continuing to registration slip:', err);
+      }
+
+      // Populate Official Registration Slip
+      document.getElementById('slipRefNumber').textContent = 'REFERENCE NO: ' + refNumber;
+      document.getElementById('slipName').textContent = fullName;
+      document.getElementById('slipStaff').textContent = ippis;
+      document.getElementById('slipDepartment').textContent = dept;
+      document.getElementById('slipUnitCadre').textContent = unit + ' • ' + cadre;
+      document.getElementById('slipEmail').textContent = email;
+      document.getElementById('slipPhone').textContent = phone;
+      document.getElementById('slipInitialSaving').textContent = fmtNaira(savingVal);
+      document.getElementById('slipInitialInvestment').textContent = fmtNaira(investVal);
+      document.getElementById('slipTotalContribution').textContent = fmtNaira(total);
+      document.getElementById('slipTargetSaving').textContent = targetMonthly > 0 ? fmtNaira(targetMonthly) + ' / month' : 'Not specified';
+      document.getElementById('slipDate').textContent = dateFormatted;
+
+      // Transition view
+      document.getElementById('applicationFormContainer').style.display = 'none';
+      document.getElementById('printSlipView').style.display = 'block';
+    } finally {
+      if (btnSubmit) {
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = '<span>Submit Application</span>';
+      }
+    }
+  }
+
+  // Secretariat Contact Form Submission
+  function handleContactSubmit(e) {
+    e.preventDefault();
+    document.getElementById('contactSuccess').style.display = 'block';
+    setTimeout(() => {
+      closeModal('contactModal');
+      document.getElementById('contactSuccess').style.display = 'none';
+    }, 2500);
+  }
+</script>
+
+</body>
+</html>

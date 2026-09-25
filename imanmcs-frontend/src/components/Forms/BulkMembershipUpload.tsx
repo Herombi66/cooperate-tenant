@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { X, Upload, Download, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../services/api';
+import { useTenantTerminology } from '../../utils/tenantTerminology';
 
 interface BulkMembershipUploadProps {
   onClose: () => void;
 }
 
 export const BulkMembershipUpload: React.FC<BulkMembershipUploadProps> = ({ onClose }) => {
+  const { idLabel, isFmck } = useTenantTerminology();
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadResults, setUploadResults] = useState<any>(null);
@@ -24,9 +26,12 @@ export const BulkMembershipUpload: React.FC<BulkMembershipUploadProps> = ({ onCl
   };
 
   const downloadTemplate = () => {
-    const csvContent = `Name,PSN,Email,Phone,Facility_Name,Next_Of_Kin_Name,Next_Of_Kin_Phone,Savings,Investment,Target_Saving,Target_Period
-John Doe,PSN001,john@example.com,08012345678,General Hospital,Jane Doe,08087654321,30000,20000,10000,12
-Jane Smith,PSN002,jane@example.com,08023456789,Teaching Hospital,John Smith,08098765432,25000,25000,15000,24`;
+    const idCol = isFmck ? 'IPPIS' : 'PSN';
+    const idVal1 = isFmck ? '100001' : 'PSN001';
+    const idVal2 = isFmck ? '100002' : 'PSN002';
+    const csvContent = `Name,${idCol},Email,Phone,Facility_Name,Next_Of_Kin_Name,Next_Of_Kin_Phone,Savings,Investment,Target_Saving,Target_Period
+John Doe,${idVal1},john@example.com,08012345678,General Hospital,Jane Doe,08087654321,30000,20000,10000,12
+Jane Smith,${idVal2},jane@example.com,08023456789,Teaching Hospital,John Smith,08098765432,25000,25000,15000,24`;
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -95,7 +100,7 @@ Jane Smith,PSN002,jane@example.com,08023456789,Teaching Hospital,John Smith,0809
                       <ul className="list-disc pl-5 space-y-1">
                         <li>Download the CSV template below</li>
                         <li>Fill in the membership application data for each member</li>
-                        <li>Ensure PSN and email values are unique</li>
+                        <li>Ensure {idLabel} and email values are unique</li>
                         <li>Combined savings and investment must be at least ₦5,000</li>
                         <li>Upload the completed CSV file</li>
                       </ul>

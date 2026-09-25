@@ -5,9 +5,10 @@ import { z } from 'zod';
 import { X, Search, DollarSign } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../services/api';
+import { useTenantTerminology } from '../../utils/tenantTerminology';
 
 const contributionSchema = z.object({
-  member_psn: z.string().min(1, 'Member PSN is required'),
+  member_psn: z.string().min(1, 'Member identifier is required'),
   period: z.string().min(1, 'Period is required'),
   savings: z.number().min(0, 'Savings cannot be negative'),
   investment: z.number().min(0, 'Investment cannot be negative'),
@@ -21,6 +22,7 @@ interface ContributionFormProps {
 }
 
 export const ContributionForm: React.FC<ContributionFormProps> = ({ onClose }) => {
+  const { idLabel } = useTenantTerminology();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [members, setMembers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -113,7 +115,7 @@ export const ContributionForm: React.FC<ContributionFormProps> = ({ onClose }) =
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Search by name or PSN..."
+                  placeholder={`Search by name or ${idLabel}...`}
                   className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
                 />
               </div>
@@ -131,7 +133,7 @@ export const ContributionForm: React.FC<ContributionFormProps> = ({ onClose }) =
                         className="w-full text-left p-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
                       >
                         <div className="font-medium text-gray-900">{member.user.name}</div>
-                        <div className="text-sm text-gray-500">PSN: {member.user.psn}</div>
+                        <div className="text-sm text-gray-500">{idLabel}: {member.user.psn}</div>
                       </button>
                     ))
                   )}
@@ -142,7 +144,7 @@ export const ContributionForm: React.FC<ContributionFormProps> = ({ onClose }) =
             {selectedMember && (
               <div className="bg-gray-50 p-4 rounded-md">
                 <h4 className="font-medium text-gray-900">{selectedMember.user.name}</h4>
-                <p className="text-sm text-gray-600">PSN: {selectedMember.user.psn}</p>
+                <p className="text-sm text-gray-600">{idLabel}: {selectedMember.user.psn}</p>
                 <p className="text-sm text-gray-600">Facility: {selectedMember.facility_name}</p>
               </div>
             )}

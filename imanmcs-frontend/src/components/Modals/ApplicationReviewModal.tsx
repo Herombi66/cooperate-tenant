@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, User, Building, Phone, DollarSign, Check, XIcon } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../services/api';
+import { useTenantTerminology } from '../../utils/tenantTerminology';
 
 interface ApplicationReviewModalProps {
   application: any;
@@ -12,6 +13,7 @@ export const ApplicationReviewModal: React.FC<ApplicationReviewModalProps> = ({
   application,
   onClose,
 }) => {
+  const { idLabel } = useTenantTerminology();
   const [isProcessing, setIsProcessing] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
   const [showRejectionForm, setShowRejectionForm] = useState(false);
@@ -98,7 +100,7 @@ export const ApplicationReviewModal: React.FC<ApplicationReviewModalProps> = ({
                 <p className="text-sm text-gray-900 font-medium">{application.name}</p>
               </div>
               <div className="bg-gray-50 p-3 rounded-md">
-                <label className="block text-sm font-medium text-gray-600">PSN</label>
+                <label className="block text-sm font-medium text-gray-600">{idLabel}</label>
                 <p className="text-sm text-gray-900 font-medium">{application.psn}</p>
               </div>
               <div className="bg-gray-50 p-3 rounded-md">

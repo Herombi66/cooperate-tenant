@@ -226,27 +226,32 @@ app.use('/uploads', (req, res, next) => {
 // -----------------------------
 // API ROUTES
 // -----------------------------
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
-app.use('/dashboard', dashboardRouter);
-app.use('/contributions', contributionsRouter);
-app.use('/expenses', expensesRouter);
-app.use('/layyah', layyahRouter);
-app.use('/applications', applicationsRouter);
-app.use('/auth', authRouter);
-app.use('/members', membersRouter);
+const apiRouter = express.Router();
+apiRouter.use('/', indexRouter);
+apiRouter.use('/users', usersRouter);
+apiRouter.use('/dashboard', dashboardRouter);
+apiRouter.use('/contributions', contributionsRouter);
+apiRouter.use('/expenses', expensesRouter);
+apiRouter.use('/layyah', layyahRouter);
+apiRouter.use('/applications', applicationsRouter);
+apiRouter.use('/auth', authRouter);
+apiRouter.use('/members', membersRouter);
 const apiModulesRouter = require('./src/modules');
-app.use('/', apiModulesRouter);
-app.use('/loan-repayments', loanRepaymentsRouter);
-app.use('/settings', settingsRouter);
-app.use('/profit-shares', profitSharesRouter);
-app.use('/reports', reportsRouter);
-app.use('/communication', communicationRouter);
-app.use('/direct-messages', directMessagesRouter);
-app.use('/treasurer', treasurerRouter);
-app.use('/withdrawals', withdrawalsRouter);
-app.use('/complaints', complaintsRouter);
-app.use('/bulk-uploads', bulkUploadsRouter);
+apiRouter.use('/', apiModulesRouter);
+apiRouter.use('/loan-repayments', loanRepaymentsRouter);
+apiRouter.use('/settings', settingsRouter);
+apiRouter.use('/profit-shares', profitSharesRouter);
+apiRouter.use('/reports', reportsRouter);
+apiRouter.use('/communication', communicationRouter);
+apiRouter.use('/direct-messages', directMessagesRouter);
+apiRouter.use('/treasurer', treasurerRouter);
+apiRouter.use('/withdrawals', withdrawalsRouter);
+apiRouter.use('/complaints', complaintsRouter);
+apiRouter.use('/bulk-uploads', bulkUploadsRouter);
+
+// Support both /api/* and root /* paths
+app.use('/api', apiRouter);
+app.use('/', apiRouter);
 
 // 404 handler
 app.use(function(req, res, next) {

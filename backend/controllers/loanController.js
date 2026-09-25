@@ -353,8 +353,13 @@ const createLoan = async (req, res) => {
     const body = req.body;
     const amount = body.amount || body.amount_requested;
     const tenure = body.tenure || body.repayment_period_months;
-    const loanType = body.loanType || body.loan_type;
-    const { purpose, guarantor_name, guarantor_phone, guarantor_relationship, guarantor_psn, memberPsn } = body;
+    let loanType = body.loanType || body.loan_type;
+    if (req.user?.tenant_id === 'fmcksmcs' && loanType === 'venture') {
+      loanType = 'investment';
+    }
+    const { purpose, guarantor_name, guarantor_phone, guarantor_relationship } = body;
+    const guarantor_psn = body.guarantor_psn || body.guarantor_ippis || body.guarantor_ippis_number;
+    const memberPsn = body.memberPsn || body.member_psn || body.memberIppis || body.member_ippis;
     let payslip_url = body.payslip_url;
 
     // Track grantor details for post-creation notifications
@@ -1929,7 +1934,8 @@ const serveEducationalDocument = async (req, res) => {
 
 const validateGrantor = async (req, res) => {
   try {
-    const psn = normalizePsn(req.body?.psn);
+    const rawVal = req.body?.psn || req.body?.ippis || req.body?.ippisNumber || req.body?.ippis_number;
+    const psn = normalizePsn(rawVal);
     const applicantId = req.user.id;
 
     if (!psn) {
@@ -1937,11 +1943,11 @@ const validateGrantor = async (req, res) => {
         req,
         outcome: 'failed',
         code: 'PSN_REQUIRED',
-        message: 'Guarantor PSN validation failed: PSN is required.',
+        message: 'Guarantor PSN/IPPIS validation failed: identification number is required.',
         psn: null,
         targetUserId: applicantId
       });
-      return res.status(400).json({ success: false, message: 'PSN is required', code: 'PSN_REQUIRED' });
+      return res.status(400).json({ success: false, message: 'Guarantor PSN / IPPIS Number is required', code: 'PSN_REQUIRED' });
     }
 
     // 1. Format Validation (Alphanumeric, e.g., 3-20 chars)
@@ -1952,13 +1958,13 @@ const validateGrantor = async (req, res) => {
         req,
         outcome: 'failed',
         code: 'INVALID_FORMAT',
-        message: 'Guarantor PSN failed format validation.',
+        message: 'Guarantor identifier failed format validation.',
         psn,
         targetUserId: applicantId
       });
       return res.status(400).json({ 
         success: false, 
-        message: 'Invalid PSN format. Must be 3-20 alphanumeric characters.', 
+        message: 'Invalid identification format. Must be 3-20 alphanumeric characters.', 
         code: 'INVALID_FORMAT',
         expected_pattern: '^[A-Za-z0-9_]{3,20}$'
       });
@@ -1969,7 +1975,7 @@ const validateGrantor = async (req, res) => {
         req,
         outcome: 'failed',
         code: 'SELF_GUARANTOR',
-        message: 'Guarantor PSN validation failed: applicant cannot guarantee self.',
+        message: 'Guarantor validation failed: applicant cannot guarantee self.',
         psn,
         targetUserId: applicantId
       });
@@ -1986,11 +1992,11 @@ const validateGrantor = async (req, res) => {
          req,
          outcome: 'failed',
          code: 'GUARANTOR_PSN_NOT_FOUND',
-         message: 'Guarantor PSN validation failed: PSN not found among active members.',
+         message: 'Guarantor validation failed: identifier not found among active members.',
          psn,
          targetUserId: applicantId
        });
-       return res.status(404).json({ success: false, message: 'PSN not found in system.', code: 'PSN_NOT_FOUND' });
+       return res.status(404).json({ success: false, message: 'Guarantor not found among active members.', code: 'PSN_NOT_FOUND' });
     }
 
     const grantorUser = await User.findOne({
@@ -2002,7 +2008,7 @@ const validateGrantor = async (req, res) => {
       req,
       outcome: 'success',
       code: 'OK',
-      message: 'Guarantor PSN validated successfully.',
+      message: 'Guarantor validated successfully.',
       psn,
       targetUserId: applicantId,
       guarantorMembershipApplicationId: grantorApplication.id,
@@ -2015,6 +2021,8 @@ const validateGrantor = async (req, res) => {
         grantor: {
             name: grantorApplication.name,
             psn: grantorApplication.psn,
+            ippis: grantorApplication.psn,
+            ippis_number: grantorApplication.psn,
             email: grantorApplication.email,
             phone: grantorApplication.phone,
             id: grantorUser?.id || grantorApplication.id

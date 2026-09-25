@@ -6,6 +6,7 @@ import {
 import api from '../services/api';
 import toast from 'react-hot-toast';
 import { exportToExcel } from '../utils/excel';
+import { useTenantTerminology } from '../utils/tenantTerminology';
 
 interface Contribution {
   id: string;
@@ -57,6 +58,7 @@ interface IncreaseRequestRow {
 }
 
 export const ContributionsPage: React.FC = () => {
+  const { idLabel, isFmck } = useTenantTerminology();
   const [showAddModal, setShowAddModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
@@ -107,45 +109,61 @@ export const ContributionsPage: React.FC = () => {
   const importReviewPollInFlightRef = useRef(false);
 
   const downloadTotalCsvTemplate = () => {
-    const csvContent = `PSN,Total_Amount,Month,Year,Payment_Method
-PSN001,5000,12,2025,bank transfer
-PSN002,6500,2025-12,salary deduction`;
+    const idKey = isFmck ? 'IPPIS' : 'PSN';
+    const sample1 = isFmck ? 'IPPIS001' : 'PSN001';
+    const sample2 = isFmck ? 'IPPIS002' : 'PSN002';
+    const csvContent = `${idKey},Total_Amount,Month,Year,Payment_Method
+${sample1},5000,12,2025,bank transfer
+${sample2},6500,2025-12,salary deduction`;
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
     a.download = 'contributions_total_template.csv';
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
   };
 
   const downloadTypedCsvTemplate = () => {
-    const csvContent = `PSN,Type,Amount,Month,Payment_Method
-PSN001,savings,3000,2025-12,bank transfer
-PSN001,investment,2000,2025-12,bank transfer
-PSN002,target_savings,1500,12,2025,salary deduction`;
+    const idKey = isFmck ? 'IPPIS' : 'PSN';
+    const sample1 = isFmck ? 'IPPIS001' : 'PSN001';
+    const sample2 = isFmck ? 'IPPIS002' : 'PSN002';
+    const csvContent = `${idKey},Type,Amount,Month,Payment_Method
+${sample1},savings,3000,2025-12,bank transfer
+${sample1},investment,2000,2025-12,bank transfer
+${sample2},target_savings,1500,12,2025,salary deduction`;
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
     a.download = 'contributions_typed_template.csv';
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
   };
 
   const downloadTotalXlsxTemplate = () => {
+    const idKey = isFmck ? 'IPPIS' : 'PSN';
+    const sample1 = isFmck ? 'IPPIS001' : 'PSN001';
+    const sample2 = isFmck ? 'IPPIS002' : 'PSN002';
     const rows = [
-      { PSN: 'PSN001', Total_Amount: 5000, Month: 12, Year: 2025, Payment_Method: 'bank transfer' },
-      { PSN: 'PSN002', Total_Amount: 6500, Month: '2025-12', Payment_Method: 'salary deduction' }
+      { [idKey]: sample1, Total_Amount: 5000, Month: 12, Year: 2025, Payment_Method: 'bank transfer' },
+      { [idKey]: sample2, Total_Amount: 6500, Month: '2025-12', Payment_Method: 'salary deduction' }
     ];
     exportToExcel(rows, 'contributions_total_template', 'Contributions');
   };
 
   const downloadTypedXlsxTemplate = () => {
+    const idKey = isFmck ? 'IPPIS' : 'PSN';
+    const sample1 = isFmck ? 'IPPIS001' : 'PSN001';
+    const sample2 = isFmck ? 'IPPIS002' : 'PSN002';
     const rows = [
-      { PSN: 'PSN001', Type: 'savings', Amount: 3000, Month: '2025-12', Payment_Method: 'bank transfer' },
-      { PSN: 'PSN001', Type: 'investment', Amount: 2000, Month: '2025-12', Payment_Method: 'bank transfer' },
-      { PSN: 'PSN002', Type: 'target_savings', Amount: 1500, Month: 12, Year: 2025, Payment_Method: 'salary deduction' }
+      { [idKey]: sample1, Type: 'savings', Amount: 3000, Month: '2025-12', Payment_Method: 'bank transfer' },
+      { [idKey]: sample1, Type: 'investment', Amount: 2000, Month: '2025-12', Payment_Method: 'bank transfer' },
+      { [idKey]: sample2, Type: 'target_savings', Amount: 1500, Month: 12, Year: 2025, Payment_Method: 'salary deduction' }
     ];
     exportToExcel(rows, 'contributions_typed_template', 'Contributions');
   };
@@ -569,9 +587,9 @@ PSN002,target_savings,1500,12,2025,salary deduction`;
       console.error('❌ [VALIDATE] PSN validation failed:', error);
       setValidatedMember(null);
       if (error.response?.status === 404) {
-        toast.error(`No member found with PSN: ${psn}`);
+        toast.error(`No member found with ${idLabel}: ${psn}`);
       } else {
-        toast.error('Error validating PSN');
+        toast.error(`Error validating ${idLabel}`);
       }
     } finally {
       setValidatingPsn(false);
@@ -599,7 +617,7 @@ PSN002,target_savings,1500,12,2025,salary deduction`;
               <button
                 onClick={() => {
                   const csvContent = [
-                    ['PSN', 'Member Name', 'Savings', 'Investment', 'Target Saving', 'Total', 'Month', 'Payment Method', 'Status', 'Created At'].join(','),
+                    [idLabel, 'Member Name', 'Savings', 'Investment', 'Target Saving', 'Total', 'Month', 'Payment Method', 'Status', 'Created At'].join(','),
                     ...filteredContributions.map(contribution => [
                       contribution.memberPsn,
                       `"${contribution.memberName}"`,
@@ -683,7 +701,7 @@ PSN002,target_savings,1500,12,2025,salary deduction`;
                     type="text"
                     value={increaseRequestsSearch}
                     onChange={(e) => setIncreaseRequestsSearch(e.target.value)}
-                    placeholder="Search by name / PSN / email"
+                    placeholder={`Search by name / ${idLabel} / email`}
                     className="pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent w-full md:w-72"
                   />
                 </div>
@@ -1179,7 +1197,7 @@ PSN002,target_savings,1500,12,2025,salary deduction`;
               }
 
               if (!validatedMember) {
-                toast.error('Please validate the PSN first by entering it and waiting for confirmation');
+                toast.error(`Please validate the ${idLabel} first by entering it and waiting for confirmation`);
                 return;
               }
 
@@ -1240,14 +1258,14 @@ PSN002,target_savings,1500,12,2025,salary deduction`;
               {/* PSN Input */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Member PSN <span className="text-red-500">*</span>
+                  Member {idLabel} <span className="text-red-500">*</span>
                   {validatingPsn && <span className="ml-2 text-primary-500">Validating...</span>}
                   {validatedMember && !validatingPsn && <span className="ml-2 text-green-500">✓ Found</span>}
                 </label>
                 <input
                   type="text"
                   name="psn"
-                  placeholder="Enter member PSN (e.g., 00003)"
+                  placeholder={`Enter member ${idLabel} (e.g., ${isFmck ? '00003' : '00003'})`}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent uppercase"
                   required
                   onBlur={(e) => validatePsn(e.target.value)}
@@ -1259,7 +1277,7 @@ PSN002,target_savings,1500,12,2025,salary deduction`;
                   }}
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Enter the exact PSN to validate and load member's configured contribution amounts
+                  Enter the exact {idLabel} to validate and load member's configured contribution amounts
                 </p>
               </div>
 

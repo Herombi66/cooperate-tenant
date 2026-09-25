@@ -37,6 +37,17 @@ export interface Application {
   investment: number;
   target_saving: number;
   target_period: number;
+  department?: string;
+  unit?: string;
+  cadre?: string;
+  date_of_birth?: string;
+  gender?: string;
+  tenant_id?: string;
+  review_notes?: string;
+  rejection_reason?: string;
+  reviewed_by?: number | string;
+  review_date?: string;
+  metadata?: Record<string, any>;
   status: 'pending' | 'approved' | 'rejected' | 'under_review';
   approved_by?: string;
   approved_at?: string;

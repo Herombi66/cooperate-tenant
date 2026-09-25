@@ -4,12 +4,13 @@ import {
   Search, Filter, Eye, CheckCircle, XCircle, Clock,
   User, DollarSign, Calendar, FileText, Download, CreditCard, Shield
 } from 'lucide-react';
+import { useTenantTerminology } from '../utils/tenantTerminology';
 
 interface LoanApproval {
   id: string;
   memberPsn: string;
   memberName: string;
-  loanType: 'cash' | 'investment';
+  loanType: string;
   amount: number;
   tenure: number;
   grantorPsn: string;
@@ -58,6 +59,7 @@ const buttonVariants = {
 };
 
 export const LoanApprovalsPage: React.FC = () => {
+  const { isFmck, idLabel, idPlaceholder, loanTypes, formatLoanType } = useTenantTerminology();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
@@ -275,7 +277,7 @@ export const LoanApprovalsPage: React.FC = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
                 type="text"
-                placeholder="Search by name, PSN, or loan ID..."
+                placeholder={`Search by name, ${idLabel}, or loan ID...`}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent w-full md:w-80"
@@ -303,8 +305,9 @@ export const LoanApprovalsPage: React.FC = () => {
               className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             >
               <option value="all">All Types</option>
-              <option value="cash">Cash Loan</option>
-              <option value="investment">Investment Loan</option>
+              {loanTypes.map((t) => (
+                <option key={t.id} value={t.id}>{formatLoanType(t.id)}</option>
+              ))}
             </select>
           </div>
           
@@ -312,12 +315,12 @@ export const LoanApprovalsPage: React.FC = () => {
             onClick={() => {
               // Export loan approvals data
               const csvContent = [
-                ['Loan ID', 'Member Name', 'PSN', 'Type', 'Amount', 'Tenure', 'Risk', 'Status', 'Application Date'].join(','),
+                ['Loan ID', 'Member Name', idLabel, 'Type', 'Amount', 'Tenure', 'Risk', 'Status', 'Application Date'].join(','),
                 ...filteredLoans.map(loan => [
                   loan.id,
                   `"${loan.memberName}"`,
                   loan.memberPsn,
-                  loan.loanType,
+                  formatLoanType(loan.loanType),
                   loan.amount,
                   loan.tenure,
                   loan.riskAssessment,
@@ -375,7 +378,7 @@ export const LoanApprovalsPage: React.FC = () => {
                     <div>
                       <div className="text-sm font-medium text-gray-900">
                         <CreditCard className="w-4 h-4 inline mr-1" />
-                        {loan.loanType === 'cash' ? 'Cash Loan' : 'Investment Loan'}
+                        {formatLoanType(loan.loanType)}
                       </div>
                       <div className="text-sm text-gray-900">₦{loan.amount.toLocaleString()}</div>
                       <div className="text-sm text-gray-500">{loan.tenure} months tenure</div>
@@ -486,7 +489,7 @@ export const LoanApprovalsPage: React.FC = () => {
                     <p className="text-sm text-gray-900">{selectedLoan.memberName}</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">PSN</label>
+                    <label className="block text-sm font-medium text-gray-700">{idLabel}</label>
                     <p className="text-sm text-gray-900">{selectedLoan.memberPsn}</p>
                   </div>
                   <div>
@@ -511,7 +514,7 @@ export const LoanApprovalsPage: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Loan Type</label>
-                    <p className="text-sm text-gray-900 capitalize">{selectedLoan.loanType} Loan</p>
+                    <p className="text-sm text-gray-900">{formatLoanType(selectedLoan.loanType)}</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Amount</label>
@@ -562,7 +565,7 @@ export const LoanApprovalsPage: React.FC = () => {
                     <p className="text-sm text-gray-900">{selectedLoan.grantorName}</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Grantor PSN</label>
+                    <label className="block text-sm font-medium text-gray-700">Grantor {idLabel}</label>
                     <p className="text-sm text-gray-900">{selectedLoan.grantorPsn}</p>
                   </div>
                 </div>

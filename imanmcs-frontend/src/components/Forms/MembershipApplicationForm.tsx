@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { X, User, Building, Phone, DollarSign, Calendar } from 'lucide-react';
+import { X, User, Building, Phone, DollarSign, Calendar, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../services/api';
+import { useTenantTerminology } from '../../utils/tenantTerminology';
 
 const membershipSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
-  psn: z.string().min(1, 'PSN is required'),
+  psn: z.string().min(1, 'This field is required'),
   email: z.string().email('Invalid email address'),
   phone: z.string().min(11, 'Phone number must be at least 11 digits'),
   facilityName: z.string().min(1, 'Facility name is required'),
@@ -30,7 +31,8 @@ interface MembershipApplicationFormProps {
 }
 
 export const MembershipApplicationForm: React.FC<MembershipApplicationFormProps> = ({ onClose }) => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { idLabel, isFmck } = useTenantTerminology();
+  const [isLoading, setIsLoading] = useState(false);
 
   const {
     register,
@@ -67,7 +69,9 @@ export const MembershipApplicationForm: React.FC<MembershipApplicationFormProps>
   const totalContribution = savings + investment + targetSaving;
 
   const onSubmit = async (data: MembershipFormData) => {
-    setIsSubmitting(true);
+    if (isLoading) return;
+    setIsLoading(true);
+    await new Promise(resolve => setTimeout(resolve, 300));
     try {
       // Transform data to match backend schema
       const applicationData = {
@@ -107,7 +111,7 @@ export const MembershipApplicationForm: React.FC<MembershipApplicationFormProps>
       const message = error.response?.data?.message || error.response?.data?.detail || 'Failed to submit application. Please try again.';
       toast.error(message);
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
   };
 
@@ -150,13 +154,13 @@ export const MembershipApplicationForm: React.FC<MembershipApplicationFormProps>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  PSN (Personal Service Number) *
+                  {isFmck ? 'IPPIS Number *' : 'PSN (Personal Service Number) *'}
                 </label>
                 <input
                   {...register('psn')}
                   type="text"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-                  placeholder="Enter your PSN"
+                  placeholder={`Enter your ${idLabel}`}
                 />
                 {errors.psn && (
                   <p className="mt-1 text-sm text-red-600">{errors.psn.message}</p>
@@ -367,10 +371,17 @@ export const MembershipApplicationForm: React.FC<MembershipApplicationFormProps>
             </button>
             <button
               type="submit"
-              disabled={isSubmitting || totalContribution < 5000}
-              className="px-6 py-2 text-sm font-medium text-white bg-primary-500 border border-transparent rounded-md hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isLoading}
+              className="px-6 py-2 text-sm font-medium text-white bg-primary-500 border border-transparent rounded-md hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[200px]"
             >
-              {isSubmitting ? 'Submitting...' : 'Submit Application'}
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin mr-2 shrink-0" />
+                  <span>Submitting Application...</span>
+                </>
+              ) : (
+                'Submit Application'
+              )}
             </button>
           </div>
         </form>

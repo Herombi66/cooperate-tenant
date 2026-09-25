@@ -4,12 +4,14 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useLayout } from '../../contexts/LayoutContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useTenant } from '../../contexts/TenantContext';
+import { useTenantTerminology } from '../../utils/tenantTerminology';
 import { NotificationDropdown } from '@/features/notifications/components/NotificationDropdown';
 import { API_URL } from '../../config';
 
 export const Header = () => {
   const { user, logout } = useAuth();
   const { tenant } = useTenant();
+  const { idShort } = useTenantTerminology();
   const { toggleSidebar } = useLayout();
   const { isDark, toggleTheme } = useTheme();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -106,7 +108,7 @@ export const Header = () => {
                     {user?.name}
                   </div>
                   <div className="px-4 py-2 text-xs text-muted-foreground md:hidden border-b border-border">
-                    PSN: {user?.psn}
+                    {idShort}: {user?.psn}
                   </div>
                   <button
                     onClick={handleLogout}

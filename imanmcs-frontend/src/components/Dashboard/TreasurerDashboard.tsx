@@ -8,6 +8,7 @@ import { ApplicationReviewModal } from '../Modals/ApplicationReviewModal';
 import { LoanReviewModal } from '../Modals/LoanReviewModal';
 import toast from 'react-hot-toast';
 import api from '../../services/api';
+import { useTenantTerminology } from '../../utils/tenantTerminology';
 
 interface TreasurerStats {
   totalMembers: number;
@@ -283,6 +284,7 @@ const OverviewTab = () => {
 };
 
 const ApplicationsTab = ({ onReview }: { onReview: (app: any) => void }) => {
+  const { idLabel } = useTenantTerminology();
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -303,7 +305,7 @@ const ApplicationsTab = ({ onReview }: { onReview: (app: any) => void }) => {
 
   const columns = [
     { key: 'name', label: 'Name' },
-    { key: 'psn', label: 'PSN' },
+    { key: 'psn', label: idLabel },
     { key: 'email', label: 'Email' },
     { key: 'facility_name', label: 'Facility' },
     { 
@@ -360,6 +362,7 @@ const ApplicationsTab = ({ onReview }: { onReview: (app: any) => void }) => {
 };
 
 const ContributionsTab = () => {
+  const { idLabel } = useTenantTerminology();
   const [contributions, setContributions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedPeriod, setSelectedPeriod] = useState(new Date().toISOString().slice(0, 7));
@@ -383,7 +386,7 @@ const ContributionsTab = () => {
 
   const columns = [
     { key: 'member_name', label: 'Member' },
-    { key: 'psn', label: 'PSN' },
+    { key: 'psn', label: idLabel },
     { 
       key: 'savings', 
       label: 'Savings',
@@ -445,6 +448,7 @@ const ContributionsTab = () => {
 };
 
 const LoansTab = ({ onReview }: { onReview: (loan: any) => void }) => {
+  const { idLabel, formatLoanType } = useTenantTerminology();
   const [loans, setLoans] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -465,15 +469,19 @@ const LoansTab = ({ onReview }: { onReview: (loan: any) => void }) => {
 
   const columns = [
     { key: 'member_name', label: 'Member' },
-    { key: 'psn', label: 'PSN' },
-    { key: 'type', label: 'Type' },
+    { key: 'psn', label: idLabel },
+    { 
+      key: 'type', 
+      label: 'Type',
+      render: (row: any) => formatLoanType(row.type)
+    },
     { 
       key: 'amount', 
       label: 'Amount',
       render: (row: any) => `₦${row.amount.toLocaleString()}`
     },
     { key: 'tenure', label: 'Tenure (Months)' },
-    { key: 'grantor_psn', label: 'Grantor PSN' },
+    { key: 'grantor_psn', label: `Grantor ${idLabel}` },
     { 
       key: 'status', 
       label: 'Status',

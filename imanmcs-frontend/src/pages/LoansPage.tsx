@@ -6,13 +6,14 @@ import {
 import api from '../services/api';
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
+import { useTenantTerminology } from '../utils/tenantTerminology';
 
 interface Loan {
   id: number;
   memberPsn: string;
   memberName: string;
-  loan_type?: 'cash' | 'venture' | 'emergency';
-  type?: 'cash' | 'venture' | 'emergency';
+  loan_type?: string;
+  type?: string;
   amount: number;
   amount_requested?: number;
   amount_approved?: number | null;
@@ -31,6 +32,7 @@ interface Loan {
 
 export const LoansPage: React.FC = () => {
   const { user } = useAuth();
+  const { isFmck, idLabel, idPlaceholder, loanTypes, formatLoanType } = useTenantTerminology();
   const [showAddModal, setShowAddModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
@@ -48,7 +50,7 @@ export const LoansPage: React.FC = () => {
 
   const [newLoan, setNewLoan] = useState({
     memberPsn: '',
-    loanType: 'cash' as 'cash' | 'venture' | 'emergency',
+    loanType: 'cash',
     amount: '',
     purpose: '',
     tenure: '12',
@@ -129,6 +131,8 @@ export const LoansPage: React.FC = () => {
     switch (type) {
       case 'cash': return 'bg-primary-100 text-primary-800';
       case 'venture': return 'bg-purple-100 text-purple-800';
+      case 'investment': return 'bg-blue-100 text-blue-800';
+      case 'educational': return 'bg-indigo-100 text-indigo-800';
       case 'emergency': return 'bg-amber-100 text-amber-800';
       default: return 'bg-gray-100 text-gray-800';
     }
@@ -144,7 +148,7 @@ export const LoansPage: React.FC = () => {
       loan.amount_approved ?? loan.amount_requested ?? loan.amount ?? 0
     );
     const raw = prompt(
-      `Approve loan for ${loan.memberName} (PSN: ${loan.memberPsn})\n\nEnter approved amount:`,
+      `Approve loan for ${loan.memberName} (${idLabel}: ${loan.memberPsn})\n\nEnter approved amount:`,
       defaultAmount
     );
     if (raw === null) return;
@@ -162,7 +166,7 @@ export const LoansPage: React.FC = () => {
 
   const handleReject = async (loan: Loan) => {
     if (!canApprove) return toast.error('You do not have permission to reject loans');
-    const reason = prompt(`Reject loan for ${loan.memberName} (PSN: ${loan.memberPsn})\n\nReason:`);
+    const reason = prompt(`Reject loan for ${loan.memberName} (${idLabel}: ${loan.memberPsn})\n\nReason:`);
     if (!reason || reason.trim() === '') return;
 
     try {
@@ -176,7 +180,7 @@ export const LoansPage: React.FC = () => {
 
   const handleDisburse = async (loan: Loan) => {
     if (!canDisburse) return toast.error('You do not have permission to disburse loans');
-    if (!confirm(`Disburse loan for ${loan.memberName} (PSN: ${loan.memberPsn})?`)) return;
+    if (!confirm(`Disburse loan for ${loan.memberName} (${idLabel}: ${loan.memberPsn})?`)) return;
 
     try {
       await api.put(`/loans/${loan.id}`, { status: 'disbursed' });
@@ -243,7 +247,7 @@ export const LoansPage: React.FC = () => {
 
   const handleCreateLoan = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newLoan.memberPsn.trim()) return toast.error('Member PSN is required');
+    if (!newLoan.memberPsn.trim()) return toast.error(`Member ${idLabel} is required`);
     if (!newLoan.loanType) return toast.error('Loan type is required');
     const amount = Number(newLoan.amount);
     if (!Number.isFinite(amount) || amount <= 0) return toast.error('Enter a valid amount');
@@ -432,9 +436,9 @@ export const LoansPage: React.FC = () => {
                 className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
                 <option value="all">All Types</option>
-                <option value="cash">Cash Loan</option>
-                <option value="investment">Investment Loan</option>
-                <option value="educational">Educational Loan</option>
+                {loanTypes.map((t) => (
+                  <option key={t.id} value={t.id}>{formatLoanType(t.id)}</option>
+                ))}
               </select>
               <select
                 value={statusFilter}
@@ -487,7 +491,7 @@ export const LoansPage: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getTypeColor(loan.type || loan.loan_type)}`}>
-                        {(loan.type || loan.loan_type || 'cash')} loan
+                        {formatLoanType(loan.type || loan.loan_type || 'cash')}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
@@ -636,10 +640,10 @@ export const LoansPage: React.FC = () => {
 
             <form className="space-y-4" onSubmit={handleCreateLoan}>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Member PSN</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Member {idLabel}</label>
                 <input
                   type="text"
-                  placeholder="Enter member PSN"
+                  placeholder={idPlaceholder('enter')}
                   value={newLoan.memberPsn}
                   onChange={(e) => setNewLoan((p) => ({ ...p, memberPsn: e.target.value }))}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
@@ -653,9 +657,9 @@ export const LoansPage: React.FC = () => {
                   value={newLoan.loanType}
                   onChange={(e) => setNewLoan((p) => ({ ...p, loanType: e.target.value as any }))}
                 >
-                  <option value="cash">Cash Loan (Max ₦500,000)</option>
-                  <option value="venture">Venture Loan (Max ₦1,000,000)</option>
-                  <option value="emergency">Emergency Loan (Max ₦20,000)</option>
+                  {loanTypes.map((t) => (
+                    <option key={t.id} value={t.id}>{formatLoanType(t.id)}</option>
+                  ))}
                 </select>
               </div>
 
@@ -700,10 +704,10 @@ export const LoansPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Guarantor PSN (optional)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Guarantor {idLabel} (optional)</label>
                 <input
                   type="text"
-                  placeholder="Enter guarantor PSN"
+                  placeholder={`Enter guarantor ${idLabel}`}
                   value={newLoan.guarantorPsn}
                   onChange={(e) => setNewLoan((p) => ({ ...p, guarantorPsn: e.target.value }))}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
@@ -720,10 +724,33 @@ export const LoansPage: React.FC = () => {
                 />
               </div>
 
-              {newLoan.loanType === 'venture' && (
+              {newLoan.loanType === 'educational' && (
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Business Plan / Proposal (optional)</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Admission Letter (optional)</label>
+                    <input
+                      type="file"
+                      accept=".jpg,.jpeg,.png,.pdf"
+                      onChange={(e) => setAdmissionLetterFile(e.target.files?.[0] || null)}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Student ID Card (optional)</label>
+                    <input
+                      type="file"
+                      accept=".jpg,.jpeg,.png,.pdf"
+                      onChange={(e) => setStudentIdCardFile(e.target.files?.[0] || null)}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {(newLoan.loanType === 'venture' || newLoan.loanType === 'investment') && (
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Proposal / Business Plan (optional)</label>
                     <input
                       type="file"
                       accept=".jpg,.jpeg,.png,.pdf"
@@ -861,7 +888,7 @@ export const LoansPage: React.FC = () => {
                 <h4 className="text-md font-semibold text-gray-900 mb-3">Loan Information</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Member PSN</label>
+                    <label className="block text-sm font-medium text-gray-700">Member {idLabel}</label>
                     <p className="text-sm text-gray-900">{selectedLoan.memberPsn}</p>
                   </div>
                   <div>
@@ -870,7 +897,7 @@ export const LoansPage: React.FC = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Loan Type</label>
-                    <p className="text-sm text-gray-900 capitalize">{selectedLoan.type}</p>
+                    <p className="text-sm text-gray-900">{formatLoanType(selectedLoan.type || selectedLoan.loan_type)}</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Amount</label>

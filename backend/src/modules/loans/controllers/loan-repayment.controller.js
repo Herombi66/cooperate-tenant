@@ -45,7 +45,7 @@ const checkAndUpdateLoanStatus = async (loanId, transaction) => {
 
 const getLoanRepayments = async (req, res) => {
   try {
-    const { page = 1, limit = 20, status, user_id, loan_id, psn, search } = req.query;
+    const { page = 1, limit = 20, status, user_id, loan_id, psn, ippis, ippisNumber, ippis_number, search } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
 
     const whereClause = {};
@@ -93,10 +93,11 @@ const getLoanRepayments = async (req, res) => {
       }
     }
 
-    if (psn) {
-        // Find member by PSN first
+    const memberIdToFind = psn || ippis || ippisNumber || ippis_number;
+    if (memberIdToFind) {
+        // Find member by PSN/IPPIS
         const member = await MembershipApplication.findOne({
-             where: { psn: psn.toString().trim() }
+             where: { psn: memberIdToFind.toString().trim() }
         });
         
         if (member) {
@@ -1021,9 +1022,9 @@ async function bulkUploadLoanRepayments(req, res) {
 
     for (const row of rows) {
       try {
-        // Allow referencing either Loan ID or PSN
+        // Allow referencing either Loan ID or PSN/IPPIS
         const loanIdVal = getVal(row, ['Loan_ID', 'loan_id', 'LoanId', 'loanId', 'Loan ID']);
-        const psnVal = getVal(row, ['PSN', 'psn', 'Psn']);
+        const psnVal = getVal(row, ['PSN', 'psn', 'Psn', 'IPPIS', 'ippis', 'Ippis', 'IPPIS_Number', 'IPPIS Number', 'ippis_number', 'member_ippis', 'member_psn']);
 
         const amountVal = getVal(row, ['Repayment_Amount', 'repayment_amount', 'Amount', 'amount']);
         let dateVal = getVal(row, ['Repayment_Date', 'repayment_date', 'Date', 'date', 'Period', 'period']);
@@ -1045,7 +1046,7 @@ async function bulkUploadLoanRepayments(req, res) {
 
         if ((!loanIdVal && !psnVal) || !amountVal || !dateVal) {
           failed++;
-          errors.push({ row: row.__ROW_INDEX__, error: 'Missing required fields: Loan_ID/PSN, Repayment_Amount, Repayment_Date' });
+          errors.push({ row: row.__ROW_INDEX__, error: 'Missing required fields: Loan_ID/Identifier, Repayment_Amount, Repayment_Date' });
           continue;
         }
 
@@ -1085,7 +1086,7 @@ async function bulkUploadLoanRepayments(req, res) {
           });
           if (!user) {
             failed++;
-            errors.push({ row: row.__ROW_INDEX__, error: `No member found with PSN: ${psnVal}` });
+            errors.push({ row: row.__ROW_INDEX__, error: `No member found with identifier: ${psnVal}` });
             continue;
           }
           loan = await Loan.findOne({

@@ -237,6 +237,14 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   const hasFeature = (featureName: string) => {
+    if (featureName === 'withdrawals') {
+      const tid = tenant?.id?.toLowerCase() || '';
+      const tname = tenant?.name?.toLowerCase() || '';
+      const preview = typeof window !== 'undefined' ? (localStorage.getItem('previewTenantId')?.toLowerCase() || new URLSearchParams(window.location.search).get('tenant')?.toLowerCase() || '') : '';
+      if (tid === 'fmcksmcs' || tid === 'fmck' || preview === 'fmcksmcs' || preview === 'fmck' || tname.includes('kumo') || tname.includes('fmck')) {
+        return false;
+      }
+    }
     if (!tenant || !tenant.features) return true; // Default to true if not configured
     return tenant.features[featureName] !== false; // Only disable if explicitly false
   };

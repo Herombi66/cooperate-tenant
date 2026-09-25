@@ -119,8 +119,21 @@ export const Sidebar: React.FC = () => {
   const { isSidebarOpen, isSidebarCollapsed, toggleSidebarCollapse, closeSidebar } = useLayout();
   const { tenant, hasFeature } = useTenant();
 
+  const isFmcksmcs = tenant?.id?.toLowerCase() === 'fmcksmcs' || 
+    (typeof window !== 'undefined' && (
+      new URLSearchParams(window.location.search).get('tenant')?.toLowerCase() === 'fmcksmcs' || 
+      localStorage.getItem('previewTenantId')?.toLowerCase() === 'fmcksmcs'
+    )) ||
+    (tenant?.name?.toLowerCase().includes('kumo') ?? false);
+
   const rawItems = user ? (navigationItems[user.role] || []) : [];
   const items = rawItems.filter(i => {
+    // Hide Roles & Permissions for FMCKSMCS tenant
+    if (isFmcksmcs && i.href === '/roles') return false;
+
+    // Hide Withdrawals for FMCKSMCS tenant
+    if (isFmcksmcs && i.href === '/withdrawals') return false;
+
     // Role specific overrides
     if (i.href === '/admin-animal-requests' && user.role === 'admin' && !user.canCreateAnimalRequests) return false;
     

@@ -48,6 +48,8 @@ const buildProfilePayload = (user, application) => {
     id: user.id,
     username: psn,
     psn,
+    ippis: psn,
+    ippis_number: psn,
     name,
     email,
     role: user.role,
@@ -67,13 +69,15 @@ const buildProfilePayload = (user, application) => {
 const login = async (req, res) => {
   try {
     console.log('Login Body:', req.body);
-    const { psn, password } = req.body;
+    const rawId = req.body.psn || req.body.ippis || req.body.ippisNumber || req.body.ippis_number || req.body.username;
+    const psn = rawId ? String(rawId).trim() : '';
+    const { password } = req.body;
 
     // Validate input
     if (!psn || !password) {
       return res.status(400).json({
         success: false,
-        message: 'PSN and password are required'
+        message: 'PSN/IPPIS Number and password are required'
       });
     }
 

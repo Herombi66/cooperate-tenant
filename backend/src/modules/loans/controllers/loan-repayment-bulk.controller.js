@@ -303,7 +303,7 @@ const bulkUploadLoanRepayments = async (req, res) => {
 
       const loanIdVal = pick(row, ['loan_id', 'loanid', 'loan', 'loan_number', 'loan_no', 'loan id']);
       const contributorIdVal = pick(row, ['contributor_id', 'user_id', 'member_id', 'contributor id']);
-      const psnVal = pick(row, ['psn', 'member_psn', 'member psn']);
+      const psnVal = pick(row, ['psn', 'member_psn', 'member psn', 'ippis', 'ippis_number', 'ippis number', 'member_ippis', 'member ippis', 'ippis no', 'ippis_no']);
       const amountVal = pick(row, ['repayment_amount', 'amount', 'repayment amount', 'repayment']);
       const dateVal = pick(row, ['repayment_date', 'date', 'repayment date']);
       const methodVal = pick(row, ['payment_method', 'method', 'payment method']);

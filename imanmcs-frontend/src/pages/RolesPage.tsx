@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { Navigate } from 'react-router-dom';
 import { Shield, Plus, Edit, Trash2, Loader, Save, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import api from '../services/api';
 import toast from 'react-hot-toast';
+import { useTenant } from '../contexts/TenantContext';
 
 interface Permission {
   id: number;
@@ -19,6 +21,18 @@ interface Role {
 }
 
 export const RolesPage: React.FC = () => {
+  const { tenant } = useTenant();
+  const isFmcksmcs = tenant?.id?.toLowerCase() === 'fmcksmcs' || 
+    (typeof window !== 'undefined' && (
+      new URLSearchParams(window.location.search).get('tenant')?.toLowerCase() === 'fmcksmcs' || 
+      localStorage.getItem('previewTenantId')?.toLowerCase() === 'fmcksmcs'
+    )) ||
+    (tenant?.name?.toLowerCase().includes('kumo') ?? false);
+
+  if (isFmcksmcs) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
   const [roles, setRoles] = useState<Role[]>([]);
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [loading, setLoading] = useState(true);

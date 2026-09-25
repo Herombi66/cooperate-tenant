@@ -3,6 +3,7 @@ import { Megaphone, Send, FileText, RefreshCw, MessageSquare, Users } from 'luci
 import api from '../services/api';
 import toast from 'react-hot-toast';
 import { API_URL } from '../config';
+import { useTenantTerminology } from '../utils/tenantTerminology';
 
 type ComplaintRow = {
   id: number;
@@ -46,6 +47,7 @@ type BroadcastRow = {
 };
 
 export const CommunicationPage: React.FC = () => {
+  const { idLabel } = useTenantTerminology();
   const [loading, setLoading] = useState(false);
 
   const [broadcastForm, setBroadcastForm] = useState({
@@ -141,7 +143,7 @@ export const CommunicationPage: React.FC = () => {
 
   const sendDirectMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!dmForm.recipient_psn.trim()) return toast.error('Recipient PSN is required');
+    if (!dmForm.recipient_psn.trim()) return toast.error(`Recipient ${idLabel} is required`);
     if (!dmForm.subject.trim()) return toast.error('Subject is required');
     if (!dmForm.body.trim()) return toast.error('Message body is required');
 
@@ -285,7 +287,7 @@ export const CommunicationPage: React.FC = () => {
               <input
                 value={dmForm.recipient_psn}
                 onChange={(e) => setDmForm((p) => ({ ...p, recipient_psn: e.target.value }))}
-                placeholder="Recipient PSN"
+                placeholder={`Recipient ${idLabel}`}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               />
               <input
@@ -324,7 +326,7 @@ export const CommunicationPage: React.FC = () => {
               <input
                 value={dmLookupPsn}
                 onChange={(e) => setDmLookupPsn(e.target.value)}
-                placeholder="Member PSN"
+                placeholder={`Member ${idLabel}`}
                 className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               />
               <button onClick={loadConversation} className="px-3 py-2 border border-gray-300 rounded-lg bg-white hover:bg-gray-50">

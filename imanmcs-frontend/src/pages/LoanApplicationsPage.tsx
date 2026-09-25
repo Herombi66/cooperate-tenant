@@ -6,6 +6,7 @@ import {
 import api from '../services/api';
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
+import { useTenantTerminology } from '../utils/tenantTerminology';
 import type { PaginationMeta } from '../types';
 
 interface LoanAgreement {
@@ -18,7 +19,7 @@ interface LoanAgreement {
 interface LoanApplication {
   id: number;
   user_id: number;
-  loan_type: 'cash' | 'investment' | 'educational';
+  loan_type: string;
   amount_requested: number;
   amount_approved?: number;
   repayment_period_months: number;
@@ -61,6 +62,7 @@ interface LoanApplication {
 
 const LoanApplicationsPage: React.FC = () => {
   const { user } = useAuth();
+  const { isFmck, idLabel, idPlaceholder, loanTypes, formatLoanType } = useTenantTerminology();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
@@ -352,7 +354,7 @@ const LoanApplicationsPage: React.FC = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
                 type="text"
-                placeholder="Search by name, PSN, or loan ID..."
+                placeholder={`Search by name, ${idLabel}, or loan ID...`}
                 value={searchTerm}
                 onChange={(e) => {
                   setSearchTerm(e.target.value);
@@ -390,9 +392,9 @@ const LoanApplicationsPage: React.FC = () => {
               className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             >
               <option value="all">All Types</option>
-              <option value="cash">Cash Loan</option>
-              <option value="investment">Investment Loan</option>
-              <option value="educational">Educational Loan</option>
+              {loanTypes.map((t) => (
+                <option key={t.id} value={t.id}>{formatLoanType(t.id)}</option>
+              ))}
             </select>
 
             <select
@@ -413,12 +415,12 @@ const LoanApplicationsPage: React.FC = () => {
             onClick={() => {
               // Export applications data
               const csvContent = [
-                ['Loan ID', 'Member Name', 'PSN', 'Type', 'Amount', 'Tenure', 'Grantor', 'Status', 'Application Date'].join(','),
+                ['Loan ID', 'Member Name', idLabel, 'Type', 'Amount', 'Tenure', `Grantor ${idLabel}`, 'Status', 'Application Date'].join(','),
                 ...applications.map(app => [
                   app.id,
                   `"${app.memberName}"`,
                   app.memberPsn,
-                  app.loanType,
+                  formatLoanType(app.loanType),
                   app.amount,
                   app.tenure,
                   `"${app.grantorName}"`,
@@ -489,11 +491,7 @@ const LoanApplicationsPage: React.FC = () => {
                       <div>
                         <div className="text-sm font-medium text-gray-900">
                           <CreditCard className="w-4 h-4 inline mr-1" />
-                          {application.loanType === 'cash'
-                            ? 'Cash Loan'
-                            : application.loanType === 'investment'
-                              ? 'Investment Loan'
-                              : 'Educational Loan'}
+                          {formatLoanType(application.loanType)}
                         </div>
                         <div className="text-sm text-gray-900">₦{application.amount.toLocaleString()}</div>
                         <div className="text-sm text-gray-500">{application.tenure} months tenure</div>
@@ -700,7 +698,7 @@ const LoanApplicationsPage: React.FC = () => {
                     <p className="text-sm text-gray-900">{selectedApplication.memberName || 'Unknown User'}</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">PSN</label>
+                    <label className="block text-sm font-medium text-gray-700">{idLabel}</label>
                     <p className="text-sm text-gray-900">{selectedApplication.memberPsn || 'Unknown'}</p>
                   </div>
                   <div>
@@ -725,7 +723,7 @@ const LoanApplicationsPage: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Loan Type</label>
-                    <p className="text-sm text-gray-900 capitalize">{selectedApplication.loanType} Loan</p>
+                    <p className="text-sm text-gray-900">{formatLoanType(selectedApplication.loanType)}</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Amount</label>
@@ -766,7 +764,7 @@ const LoanApplicationsPage: React.FC = () => {
                     <p className="text-sm text-gray-900">{selectedApplication.grantorName}</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Grantor PSN</label>
+                    <label className="block text-sm font-medium text-gray-700">Grantor {idLabel}</label>
                     <p className="text-sm text-gray-900">{selectedApplication.grantorPsn}</p>
                   </div>
                   <div>

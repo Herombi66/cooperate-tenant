@@ -4,9 +4,11 @@ import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 import { API_URL } from '../config';
 import toast from 'react-hot-toast';
+import { useTenantTerminology } from '../utils/tenantTerminology';
 
 export const MemberProfile: React.FC = () => {
   const { user, refreshUser } = useAuth();
+  const { idLabel } = useTenantTerminology();
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -259,7 +261,7 @@ export const MemberProfile: React.FC = () => {
               )}
             </div>
             <h3 className="text-lg font-semibold text-gray-900">{formData.personalInfo.name}</h3>
-            <p className="text-gray-600">{formData.cooperativeInfo.psn}</p>
+            <p className="text-gray-600">{idLabel}: {formData.cooperativeInfo.psn}</p>
             <p className="text-sm text-gray-500">{formData.cooperativeInfo.membershipType}</p>
 
             <div className="mt-4 p-3 bg-green-50 rounded-lg">

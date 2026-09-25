@@ -1,7 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { Navigate } from 'react-router-dom';
 import { RefreshCw, CheckCircle, XCircle, DollarSign } from 'lucide-react';
 import api from '../services/api';
 import toast from 'react-hot-toast';
+import { useTenantTerminology } from '../utils/tenantTerminology';
 
 type WithdrawalRow = {
   id: number;
@@ -24,6 +26,11 @@ type WithdrawalRow = {
 };
 
 export const WithdrawalsAdminPage: React.FC = () => {
+  const { isFmck } = useTenantTerminology();
+  if (isFmck) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState('all');
   const [rows, setRows] = useState<WithdrawalRow[]>([]);

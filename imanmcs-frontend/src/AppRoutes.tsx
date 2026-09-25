@@ -90,8 +90,36 @@ const DashboardRouter: React.FC = () => {
 
 const WithdrawalsRouter: React.FC = () => {
   const { user } = useAuth();
+  const { tenant } = useTenant();
+  const isFmcksmcs = tenant?.id?.toLowerCase() === 'fmcksmcs' || 
+    (typeof window !== 'undefined' && (
+      new URLSearchParams(window.location.search).get('tenant')?.toLowerCase() === 'fmcksmcs' || 
+      localStorage.getItem('previewTenantId')?.toLowerCase() === 'fmcksmcs'
+    )) ||
+    (tenant?.name?.toLowerCase().includes('kumo') ?? false);
+
+  if (isFmcksmcs) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
   if (user?.role === 'member') return <WithdrawalsPage />;
   return <WithdrawalsAdminPage />;
+};
+
+const RolesRouter: React.FC = () => {
+  const { tenant } = useTenant();
+  const isFmcksmcs = tenant?.id?.toLowerCase() === 'fmcksmcs' || 
+    (typeof window !== 'undefined' && (
+      new URLSearchParams(window.location.search).get('tenant')?.toLowerCase() === 'fmcksmcs' || 
+      localStorage.getItem('previewTenantId')?.toLowerCase() === 'fmcksmcs'
+    )) ||
+    (tenant?.name?.toLowerCase().includes('kumo') ?? false);
+
+  if (isFmcksmcs) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return <RolesPage />;
 };
 
 export const AppRoutes: React.FC = () => {
@@ -171,6 +199,9 @@ export const AppRoutes: React.FC = () => {
           </AppLayout>
         }
       />
+      <Route path="/withdrawal" element={<Navigate to="/withdrawals" replace />} />
+      <Route path="/finance/withdrawals" element={<Navigate to="/withdrawals" replace />} />
+      <Route path="/member/withdrawals" element={<Navigate to="/withdrawals" replace />} />
       <Route
         path="/expenses"
         element={
@@ -426,7 +457,7 @@ export const AppRoutes: React.FC = () => {
         element={
           <AppLayout>
             <ProtectedRoute>
-              <RolesPage />
+              <RolesRouter />
             </ProtectedRoute>
           </AppLayout>
         }

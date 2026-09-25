@@ -3,6 +3,30 @@ const router = express.Router();
 const withdrawalController = require('../controllers/withdrawalController');
 const { authenticateToken, authorizeRole } = require('../middleware/auth');
 
+/**
+ * Check if withdrawals are disabled for this tenant (FMCKSMCS)
+ */
+const checkTenantWithdrawalAccess = (req, res, next) => {
+  const tenantId = req.tenant?.id || req.headers['x-tenant-id'] || req.headers['X-Tenant-Id'] || req.user?.tenant_id || req.query?.tenant || '';
+  const tenantName = (req.tenant?.name || '').toLowerCase();
+  const normalizedId = String(tenantId).toLowerCase();
+
+  const isFmck = normalizedId === 'fmcksmcs' || 
+                 normalizedId === 'fmck' || 
+                 tenantName.includes('kumo') || 
+                 tenantName.includes('fmck');
+
+  if (isFmck) {
+    return res.status(403).json({
+      success: false,
+      message: 'Withdrawals module is not available for this cooperative.'
+    });
+  }
+  next();
+};
+
+router.use(checkTenantWithdrawalAccess);
+
 // Get eligibility (Member)
 router.get('/eligibility', authenticateToken, withdrawalController.getEligibility);
 

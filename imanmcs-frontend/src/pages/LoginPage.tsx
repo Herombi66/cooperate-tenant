@@ -8,9 +8,11 @@ import { Eye, EyeOff, Heart } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTenant } from '../contexts/TenantContext';
 import toast from 'react-hot-toast';
+import fmckLogo from '../Assets/logo.png';
+import { useTenantTerminology } from '../utils/tenantTerminology';
 
 const loginSchema = z.object({
-  psn: z.string().min(1, 'PSN is required'),
+  psn: z.string().min(1, 'This field is required'),
   password: z.string().min(1, 'Password is required'),
 });
 
@@ -51,7 +53,13 @@ export const LoginPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
   const { tenant } = useTenant();
+  const { idLabel, isFmck } = useTenantTerminology();
   const navigate = useNavigate();
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const currentTenantId = tenant?.id || urlParams.get('tenant') || localStorage.getItem('previewTenantId') || '';
+  const isFmcksmcs = currentTenantId.toLowerCase() === 'fmcksmcs' || (tenant?.name?.toLowerCase().includes('kumo') ?? false) || isFmck;
+  const homepageUrl = isFmcksmcs ? '/fmcksmcs' : (currentTenantId && currentTenantId !== 'default' ? `/${currentTenantId}` : '/');
 
   const {
     register,
@@ -68,7 +76,7 @@ export const LoginPage: React.FC = () => {
       toast.success('Login successful!');
       navigate('/dashboard');
     } catch (error) {
-      toast.error('Invalid PSN or password');
+      toast.error(`Invalid ${idLabel} or password`);
     } finally {
       setIsLoading(false);
     }
@@ -89,9 +97,27 @@ export const LoginPage: React.FC = () => {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            <div className="w-16 h-16 bg-primary-500 rounded-full flex items-center justify-center">
-              <Heart className="w-8 h-8 text-white" />
-            </div>
+            {isFmcksmcs ? (
+              <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center p-1.5 shadow-md border border-gray-100 ring-2 ring-primary-100">
+                <img
+                  src={tenant?.theme?.logoUrl || fmckLogo}
+                  alt={tenant?.name || 'FMC Kumo Logo'}
+                  className="w-full h-full object-contain rounded-full"
+                />
+              </div>
+            ) : tenant?.theme?.logoUrl ? (
+              <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center p-1.5 shadow-md border border-gray-100 ring-2 ring-primary-100">
+                <img
+                  src={tenant.theme.logoUrl}
+                  alt={tenant?.name || 'Cooperative Logo'}
+                  className="w-full h-full object-contain rounded-full"
+                />
+              </div>
+            ) : (
+              <div className="w-16 h-16 bg-primary-500 rounded-full flex items-center justify-center">
+                <Heart className="w-8 h-8 text-white" />
+              </div>
+            )}
           </motion.div>
           <motion.h2
             className="mt-6 text-3xl font-bold text-gray-900"
@@ -114,13 +140,13 @@ export const LoginPage: React.FC = () => {
           <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
             <div>
               <label htmlFor="psn" className="block text-sm font-medium text-gray-700">
-                PSN (Personal Service Number)
+                {isFmck ? 'IPPIS Number' : 'PSN (Personal Service Number)'}
               </label>
               <input
                 {...register('psn')}
                 type="text"
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-                placeholder="Enter your PSN"
+                placeholder={`Enter your ${idLabel}`}
               />
               {errors.psn && (
                 <p className="mt-1 text-sm text-red-600">{errors.psn.message}</p>
@@ -171,7 +197,7 @@ export const LoginPage: React.FC = () => {
 
           <div className="mt-6 text-center">
             <Link
-              to="/"
+              to={homepageUrl}
               className="text-sm text-primary-600 hover:text-primary-500"
             >
               ← Back to Homepage

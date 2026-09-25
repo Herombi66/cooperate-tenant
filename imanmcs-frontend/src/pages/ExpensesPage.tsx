@@ -9,10 +9,11 @@ import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 import { API_URL } from '../config';
 import toast from 'react-hot-toast';
+import { useTenantTerminology } from '../utils/tenantTerminology';
 
 interface Expense {
   id: string;
-  type: 'loan_disbursement' | 'office_expense' | 'maintenance' | 'utilities' | 'salary' | 'other';
+  type: 'loan_disbursement' | 'office_expense' | 'maintenance' | 'utilities' | 'salary' | 'other' | 'app_hosting_maintenance' | string;
   description: string;
   amount: number;
   requestedBy: string;
@@ -67,6 +68,7 @@ const tableRowVariants = {
 
 export const ExpensesPage: React.FC = () => {
   const { user } = useAuth();
+  const { isFmck } = useTenantTerminology();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
@@ -96,7 +98,7 @@ export const ExpensesPage: React.FC = () => {
       const response = await api.get(`/expenses/?${params}`);
       const expenseData = response.data.expenses.map((exp: any) => ({
         id: exp.id.toString(),
-        type: exp.type || 'office_expense',
+        type: exp.type || (exp.category === 'App hosting maintainance' || exp.category === 'app_hosting_maintenance' ? 'app_hosting_maintenance' : 'office_expense'),
         description: exp.description || '',
         amount: parseFloat(exp.amount || 0), // Ensure it's a number
         requestedBy: 'ADMIN001', // Default for now
@@ -335,6 +337,9 @@ export const ExpensesPage: React.FC = () => {
               <option value="office_expense">Office Expense</option>
               <option value="utilities">Utilities</option>
               <option value="maintenance">Maintenance</option>
+              {isFmck && (
+                <option value="App hosting maintainance">App hosting maintainance</option>
+              )}
               <option value="other">Other</option>
             </select>
           </div>
@@ -409,7 +414,11 @@ export const ExpensesPage: React.FC = () => {
                     <div>
                       <div className="text-sm font-medium text-gray-900">{expense.description}</div>
                       <div className="text-sm text-gray-500">{expense.id} • {expense.category}</div>
-                      <div className="text-sm text-gray-500 capitalize">{expense.type ? expense.type.replace('_', ' ') : 'Office Expense'}</div>
+                      <div className="text-sm text-gray-500 capitalize">
+                        {expense.type === 'app_hosting_maintenance' || expense.category === 'App hosting maintainance'
+                          ? 'App hosting maintainance'
+                          : expense.type ? expense.type.replace('_', ' ') : 'Office Expense'}
+                      </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -579,7 +588,11 @@ export const ExpensesPage: React.FC = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Type</label>
-                    <p className="text-sm text-gray-900 capitalize">{selectedExpense.type ? selectedExpense.type.replace('_', ' ') : 'Office Expense'}</p>
+                    <p className="text-sm text-gray-900 capitalize">
+                      {selectedExpense.type === 'app_hosting_maintenance' || selectedExpense.category === 'App hosting maintainance'
+                        ? 'App hosting maintainance'
+                        : selectedExpense.type ? selectedExpense.type.replace('_', ' ') : 'Office Expense'}
+                    </p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Amount</label>

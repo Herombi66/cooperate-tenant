@@ -7,6 +7,11 @@ const MembershipApplication = sequelize.define('MembershipApplication', {
     primaryKey: true,
     autoIncrement: true
   },
+  tenant_id: {
+    type: DataTypes.STRING(100),
+    allowNull: false,
+    defaultValue: 'default'
+  },
   name: {
     type: DataTypes.STRING(255),
     allowNull: false

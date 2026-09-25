@@ -5,9 +5,10 @@ import { z } from 'zod';
 import { Upload, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../services/api';
+import { useTenantTerminology } from '../../utils/tenantTerminology';
 
 const expenseSchema = z.object({
-  type: z.enum(['loan_disbursement', 'office_expense', 'maintenance', 'utilities', 'salary', 'other']),
+  type: z.string().min(1, 'Type is required'),
   description: z.string().min(5, 'Description must be at least 5 characters'),
   amount: z.number().min(1, 'Amount must be greater than 0'),
   category: z.string().min(1, 'Category is required'),
@@ -26,6 +27,7 @@ interface ExpenseFormProps {
 }
 
 export const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, onSubmit }) => {
+  const { isFmck } = useTenantTerminology();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
@@ -33,6 +35,7 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, onSubmit }) =
     register,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<ExpenseFormData>({
     resolver: zodResolver(expenseSchema),
@@ -54,10 +57,18 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, onSubmit }) =
 
       // Add basic expense data
       formDataToSend.append('description', data.description);
-      formDataToSend.append('category', data.category);
+      formDataToSend.append(
+        'category',
+        data.category || (data.type === 'app_hosting_maintenance' ? 'App hosting maintainance' : data.type)
+      );
+      formDataToSend.append('type', data.type);
       formDataToSend.append('amount', data.amount.toString());
       formDataToSend.append('expense_date', data.date);
       formDataToSend.append('recipient', data.recipient);
+      formDataToSend.append('payment_method', data.paymentMethod);
+      if (data.recipientAccount) {
+        formDataToSend.append('recipient_account', data.recipientAccount);
+      }
       if (data.notes) {
         formDataToSend.append('notes', data.notes);
       }
@@ -122,6 +133,12 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, onSubmit }) =
             </label>
             <select
               {...register('type')}
+              onChange={(e) => {
+                register('type').onChange(e);
+                if (e.target.value === 'app_hosting_maintenance') {
+                  setValue('category', 'App hosting maintainance');
+                }
+              }}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             >
               <option value="loan_disbursement">Loan Disbursement</option>
@@ -129,6 +146,9 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, onSubmit }) =
               <option value="maintenance">Maintenance</option>
               <option value="utilities">Utilities</option>
               <option value="salary">Salary</option>
+              {isFmck && (
+                <option value="app_hosting_maintenance">App hosting maintainance</option>
+              )}
               <option value="other">Other</option>
             </select>
             {errors.type && (
@@ -174,10 +194,19 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, onSubmit }) =
               </label>
               <input
                 {...register('category')}
+                list="expense-category-suggestions"
                 type="text"
                 placeholder="Enter category"
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               />
+              <datalist id="expense-category-suggestions">
+                {isFmck && <option value="App hosting maintainance" />}
+                <option value="Office Supplies" />
+                <option value="Software & IT" />
+                <option value="Repairs & Maintenance" />
+                <option value="Utilities" />
+                <option value="Rent & Facilities" />
+              </datalist>
               {errors.category && (
                 <p className="mt-1 text-sm text-red-600">{errors.category.message}</p>
               )}

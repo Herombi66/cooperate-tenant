@@ -1,11 +1,24 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { User, Briefcase, FileText, CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../services/api';
 import { useTenant } from '../contexts/TenantContext';
+import { FmcksApplicationForm } from '../components/FmcksApplicationForm';
 
 export const MemberApplicationPage: React.FC = () => {
   const { tenant } = useTenant();
+  const [searchParams] = useSearchParams();
+  const tenantSlug = (searchParams.get('tenant') || tenant?.id || '').toLowerCase();
+
+  if (tenantSlug === 'fmcksmcs' || tenantSlug === 'fmck') {
+    return (
+      <div className="min-h-screen bg-slate-100/70 py-8 px-4 sm:px-6 cursor-default">
+        <FmcksApplicationForm />
+      </div>
+    );
+  }
+
   const [customFields, setCustomFields] = useState<any[]>([]);
   const [formData, setFormData] = useState({
     personalInfo: {
@@ -711,12 +724,12 @@ export const MemberApplicationPage: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                  className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[200px]"
                 >
                   {isSubmitting ? (
                     <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Submitting...
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+                      <span>Submitting Application...</span>
                     </>
                   ) : (
                     'Submit Application'

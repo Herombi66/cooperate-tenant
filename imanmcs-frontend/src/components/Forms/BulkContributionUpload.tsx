@@ -2,12 +2,14 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { X, Upload, Download, AlertCircle, FileText } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../services/api';
+import { useTenantTerminology } from '../../utils/tenantTerminology';
 
 interface BulkContributionUploadProps {
   onClose: () => void;
 }
 
 export const BulkContributionUpload: React.FC<BulkContributionUploadProps> = ({ onClose }) => {
+  const { idLabel, isFmck } = useTenantTerminology();
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [batchId, setBatchId] = useState<number | null>(null);
@@ -28,16 +30,21 @@ export const BulkContributionUpload: React.FC<BulkContributionUploadProps> = ({ 
   };
 
   const downloadTemplate = () => {
-    const csvContent = `PSN,Period,Savings,Investment,Target_Saving
-12345,2024-01,50000,25000,10000
-67890,2024-01,75000,30000,15000`;
+    const idCol = isFmck ? 'IPPIS' : 'PSN';
+    const sample1 = isFmck ? 'IPPIS001' : '12345';
+    const sample2 = isFmck ? 'IPPIS002' : '67890';
+    const csvContent = `${idCol},Period,Savings,Investment,Target_Saving
+${sample1},2024-01,50000,25000,10000
+${sample2},2024-01,75000,30000,15000`;
     
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
     a.download = 'contribution_template.csv';
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
   };
 
@@ -154,7 +161,7 @@ export const BulkContributionUpload: React.FC<BulkContributionUploadProps> = ({ 
                       <ul className="list-disc pl-5 space-y-1">
                         <li>Download the CSV template below</li>
                         <li>Fill in the contribution data for each member</li>
-                        <li>Ensure PSN values match existing members</li>
+                        <li>Ensure {idLabel} values match existing members</li>
                         <li>Use YYYY-MM format for periods (e.g., 2024-01)</li>
                         <li>Upload the completed CSV/Excel file</li>
                       </ul>

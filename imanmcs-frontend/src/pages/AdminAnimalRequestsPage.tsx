@@ -6,6 +6,7 @@ import api from '../services/api';
 import { AnimalRequestService } from '../services/animalRequestService';
 import type { AnimalAcquisitionRequest, AnimalCatalogItem, PaginationMeta } from '../types';
 import { useAuth } from '../contexts/AuthContext';
+import { useTenantTerminology } from '../utils/tenantTerminology';
 
 type MemberRow = {
   id: number;
@@ -111,6 +112,7 @@ const RichTextEditor: React.FC<{
 
 export const AdminAnimalRequestsPage: React.FC = () => {
   const { user } = useAuth();
+  const { idLabel } = useTenantTerminology();
 
   const canAccess = user?.role === 'super_admin' || (user?.role === 'admin' && user?.canCreateAnimalRequests);
   const token = typeof window !== 'undefined' ? window.localStorage.getItem('token') : null;
@@ -473,7 +475,7 @@ export const AdminAnimalRequestsPage: React.FC = () => {
                           value={memberSearch}
                           onChange={(e) => setMemberSearch(e.target.value)}
                           className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm"
-                          placeholder="Name, email, PSN..."
+                          placeholder={`Name, email, ${idLabel}...`}
                         />
                       </div>
                       <div>
@@ -503,7 +505,7 @@ export const AdminAnimalRequestsPage: React.FC = () => {
                         <thead className="bg-gray-50">
                           <tr>
                             <th className="text-left px-3 py-2">Member</th>
-                            <th className="text-left px-3 py-2">PSN</th>
+                            <th className="text-left px-3 py-2">{idLabel}</th>
                             <th className="text-left px-3 py-2">Email</th>
                             <th className="text-left px-3 py-2">Facility</th>
                             <th className="text-right px-3 py-2">Select</th>
@@ -756,7 +758,7 @@ export const AdminAnimalRequestsPage: React.FC = () => {
                 value={reqSearch}
                 onChange={(e) => setReqSearch(e.target.value)}
                 className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm"
-                placeholder="Member name, email, PSN..."
+                placeholder={`Member name, email, ${idLabel}...`}
               />
             </div>
             <div>

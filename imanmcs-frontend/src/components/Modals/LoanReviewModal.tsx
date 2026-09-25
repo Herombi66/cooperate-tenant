@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, DollarSign, Calendar, User, FileText, Check, XIcon } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../services/api';
+import { useTenantTerminology } from '../../utils/tenantTerminology';
 
 interface LoanReviewModalProps {
   loan: any;
@@ -9,6 +10,7 @@ interface LoanReviewModalProps {
 }
 
 export const LoanReviewModal: React.FC<LoanReviewModalProps> = ({ loan, onClose }) => {
+  const { idLabel, formatLoanType } = useTenantTerminology();
   const [isProcessing, setIsProcessing] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
   const [showRejectionForm, setShowRejectionForm] = useState(false);
@@ -91,8 +93,8 @@ export const LoanReviewModal: React.FC<LoanReviewModalProps> = ({ loan, onClose 
                 <p className="text-sm text-gray-900 font-medium">{loan.member_name}</p>
               </div>
               <div className="bg-gray-50 p-3 rounded-md">
-                <label className="block text-sm font-medium text-gray-600">PSN</label>
-                <p className="text-sm text-gray-900 font-medium">{loan.psn}</p>
+                <label className="block text-sm font-medium text-gray-600">{idLabel}</label>
+                <p className="text-sm text-gray-900 font-medium">{loan.psn || loan.ippis || loan.ippis_number}</p>
               </div>
             </div>
           </div>
@@ -107,7 +109,7 @@ export const LoanReviewModal: React.FC<LoanReviewModalProps> = ({ loan, onClose 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-gray-50 p-3 rounded-md">
                 <label className="block text-sm font-medium text-gray-600">Loan Type</label>
-                <p className="text-sm text-gray-900 font-medium capitalize">{loan.type}</p>
+                <p className="text-sm text-gray-900 font-medium capitalize">{formatLoanType(loan.type || loan.loan_type)}</p>
               </div>
               <div className="bg-primary-50 p-3 rounded-md border border-primary-200">
                 <label className="block text-sm font-medium text-primary-600">Amount</label>
@@ -139,7 +141,7 @@ export const LoanReviewModal: React.FC<LoanReviewModalProps> = ({ loan, onClose 
           </div>
 
           {/* Grantor Information */}
-          {loan.grantor_psn && (
+          {(loan.grantor_psn || loan.grantor_ippis) && (
             <div className="space-y-4">
               <h3 className="text-lg font-medium text-gray-900 flex items-center">
                 <User className="w-5 h-5 mr-2 text-green-500" />
@@ -147,8 +149,8 @@ export const LoanReviewModal: React.FC<LoanReviewModalProps> = ({ loan, onClose 
               </h3>
               
               <div className="bg-gray-50 p-3 rounded-md">
-                <label className="block text-sm font-medium text-gray-600">Grantor PSN</label>
-                <p className="text-sm text-gray-900 font-medium">{loan.grantor_psn}</p>
+                <label className="block text-sm font-medium text-gray-600">Grantor {idLabel}</label>
+                <p className="text-sm text-gray-900 font-medium">{loan.grantor_psn || loan.grantor_ippis}</p>
               </div>
             </div>
           )}
