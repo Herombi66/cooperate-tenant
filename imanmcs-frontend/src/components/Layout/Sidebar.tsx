@@ -2,7 +2,7 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   Home, Users, DollarSign, CreditCard, TrendingUp,
-  Settings, FileText, ChevronLeft, ChevronRight, Receipt, Upload, UserPlus, Heart, Shield, Bell, X, CheckCircle, Percent, MessageSquare, ShoppingCart
+  Settings, FileText, ChevronLeft, ChevronRight, Receipt, Upload, UserPlus, Heart, Shield, Bell, X, CheckCircle, Percent, MessageSquare, ShoppingCart, ShieldAlert, Palette, FileSignature
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLayout } from '../../contexts/LayoutContext';
@@ -44,6 +44,9 @@ const navigationItems: Record<string, Array<{ name: string; href: string; icon: 
     { name: 'Reports', href: '/reports', icon: FileText },
     { name: 'Withdrawals', href: '/withdrawals', icon: Percent },
     { name: 'Communication', href: '/communication', icon: MessageSquare },
+    { name: 'Security Center', href: '/security-center', icon: ShieldAlert },
+    { name: 'Receipt Designer', href: '/receipt-designer', icon: Palette },
+    { name: 'Document Designer', href: '/document-designer', icon: FileSignature },
     { name: 'Settings', href: '/settings', icon: Settings },
   ],
   'super_admin': [
@@ -64,6 +67,9 @@ const navigationItems: Record<string, Array<{ name: string; href: string; icon: 
     { name: 'Reports', href: '/reports', icon: FileText },
     { name: 'Withdrawals', href: '/withdrawals', icon: Percent },
     { name: 'Communication', href: '/communication', icon: MessageSquare },
+    { name: 'Security Center', href: '/security-center', icon: ShieldAlert },
+    { name: 'Receipt Designer', href: '/receipt-designer', icon: Palette },
+    { name: 'Document Designer', href: '/document-designer', icon: FileSignature },
     { name: 'Settings', href: '/settings', icon: Settings },
   ],
   member: [

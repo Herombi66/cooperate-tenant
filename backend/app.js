@@ -29,6 +29,10 @@ const treasurerRouter = require('./routes/treasurer');
 const withdrawalsRouter = require('./routes/withdrawals');
 const complaintsRouter = require('./routes/complaints');
 const bulkUploadsRouter = require('./routes/bulkUploads');
+const auditRouter = require('./routes/audit');
+const securityRouter = require('./routes/security');
+const receiptTemplatesRouter = require('./routes/receiptTemplates');
+const documentTemplatesRouter = require('./routes/documentTemplates');
 
 // Import new middleware
 const tenantContext = require('./src/middleware/tenant-context');
@@ -248,6 +252,12 @@ apiRouter.use('/treasurer', treasurerRouter);
 apiRouter.use('/withdrawals', withdrawalsRouter);
 apiRouter.use('/complaints', complaintsRouter);
 apiRouter.use('/bulk-uploads', bulkUploadsRouter);
+apiRouter.use('/audit', auditRouter);
+apiRouter.use('/security', securityRouter);
+apiRouter.use('/receipt-templates', receiptTemplatesRouter);
+apiRouter.use('/receipts', receiptTemplatesRouter);
+apiRouter.use('/document-templates', documentTemplatesRouter);
+apiRouter.use('/documents', documentTemplatesRouter);
 
 // Support both /api/* and root /* paths
 app.use('/api', apiRouter);

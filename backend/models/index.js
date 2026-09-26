@@ -26,6 +26,13 @@ const LoanLiquidation = require('./LoanLiquidation');
 const UploadBatch = require('./UploadBatch');
 const UploadRecordError = require('./UploadRecordError');
 const UploadBatchBackup = require('./UploadBatchBackup');
+const AuditNote = require('./AuditNote');
+const SystemBackup = require('./SystemBackup');
+const ReceiptTemplate = require('./ReceiptTemplate');
+const ReceiptTemplateVersion = require('./ReceiptTemplateVersion');
+const ReceiptRecord = require('./ReceiptRecord');
+const DocumentTemplate = require('./DocumentTemplate');
+const DocumentTemplateVersion = require('./DocumentTemplateVersion');
 
 // Platform and Tenant Models
 const Tenant = require('./Tenant');
@@ -476,6 +483,82 @@ Permission.belongsTo(PermissionCategory, {
   as: 'category'
 });
 
+// Audit Note associations
+AuditNote.belongsTo(User, {
+  foreignKey: 'auditor_id',
+  as: 'auditor'
+});
+User.hasMany(AuditNote, {
+  foreignKey: 'auditor_id',
+  as: 'auditNotes'
+});
+
+// System backup associations
+SystemBackup.belongsTo(User, {
+  foreignKey: 'created_by',
+  as: 'creator'
+});
+User.hasMany(SystemBackup, {
+  foreignKey: 'created_by',
+  as: 'systemBackups'
+});
+
+// Receipt Template associations
+ReceiptTemplate.belongsTo(User, {
+  foreignKey: 'created_by',
+  as: 'creator'
+});
+ReceiptTemplate.belongsTo(User, {
+  foreignKey: 'updated_by',
+  as: 'updater'
+});
+ReceiptTemplate.hasMany(ReceiptTemplateVersion, {
+  foreignKey: 'template_id',
+  as: 'versions',
+  onDelete: 'CASCADE'
+});
+ReceiptTemplateVersion.belongsTo(ReceiptTemplate, {
+  foreignKey: 'template_id',
+  as: 'template'
+});
+ReceiptTemplateVersion.belongsTo(User, {
+  foreignKey: 'created_by',
+  as: 'creator'
+});
+
+// Receipt Record associations
+ReceiptRecord.belongsTo(User, {
+  foreignKey: 'member_id',
+  as: 'member'
+});
+ReceiptRecord.belongsTo(ReceiptTemplate, {
+  foreignKey: 'template_id',
+  as: 'template'
+});
+
+// Document Template associations
+DocumentTemplate.belongsTo(User, {
+  foreignKey: 'created_by',
+  as: 'creator'
+});
+DocumentTemplate.belongsTo(User, {
+  foreignKey: 'updated_by',
+  as: 'updater'
+});
+DocumentTemplate.hasMany(DocumentTemplateVersion, {
+  foreignKey: 'template_id',
+  as: 'versions',
+  onDelete: 'CASCADE'
+});
+DocumentTemplateVersion.belongsTo(DocumentTemplate, {
+  foreignKey: 'template_id',
+  as: 'template'
+});
+DocumentTemplateVersion.belongsTo(User, {
+  foreignKey: 'created_by',
+  as: 'creator'
+});
+
 // Export models
 const models = {
   User,
@@ -489,6 +572,7 @@ const models = {
   LoanRepayment,
   LoanLiquidation,
   ActivityLog,
+  AuditNote,
   Settings,
   LayyahApplication,
   AnimalAcquisitionRequest,
@@ -510,6 +594,12 @@ const models = {
   PermissionCategory,
   RolePermission,
   UserRole,
+  SystemBackup,
+  ReceiptTemplate,
+  ReceiptTemplateVersion,
+  ReceiptRecord,
+  DocumentTemplate,
+  DocumentTemplateVersion,
   sequelize
 };
 

@@ -1,0 +1,2 @@
+Connection has been established successfully.
+Unable to connect to the database: SQLITE_ERROR: no such table: users

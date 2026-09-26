@@ -44,6 +44,23 @@ import { RolesPage } from './pages/RolesPage';
 import { PlatformLoginPage } from './pages/PlatformLoginPage';
 import { PlatformAdminDashboard } from './pages/PlatformAdminDashboard';
 import { LandingPageEditor } from './pages/LandingPageEditor';
+import { DocumentDesignerPage } from './pages/DocumentDesignerPage';
+import { ReceiptDesignerPage } from './pages/ReceiptDesignerPage';
+import { SecurityCenterPage } from './pages/SecurityCenterPage';
+import { VerifyAgreementPage } from './pages/VerifyAgreementPage';
+import { VerifyReceiptPage } from './pages/VerifyReceiptPage';
+import { AuditorTransactionsPage } from './pages/auditor/AuditorTransactionsPage';
+import { AuditorMemberAuditPage } from './pages/auditor/AuditorMemberAuditPage';
+import { AuditorLoansPage } from './pages/auditor/AuditorLoansPage';
+import { AuditorContributionsPage } from './pages/auditor/AuditorContributionsPage';
+import { AuditorInvestmentsPage } from './pages/auditor/AuditorInvestmentsPage';
+import { AuditorProfitPage } from './pages/auditor/AuditorProfitPage';
+import { AuditorIncomeExpensesPage } from './pages/auditor/AuditorIncomeExpensesPage';
+import { AuditorReconciliationPage } from './pages/auditor/AuditorReconciliationPage';
+import { AuditorExceptionsPage } from './pages/auditor/AuditorExceptionsPage';
+import { AuditorActivityLogsPage } from './pages/auditor/AuditorActivityLogsPage';
+import { AuditorNotesPage } from './pages/auditor/AuditorNotesPage';
+import { AuditorReportsPage } from './pages/auditor/AuditorReportsPage';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, isLoading } = useAuth();
@@ -136,6 +153,10 @@ export const AppRoutes: React.FC = () => {
       <Route path="/platform/dashboard" element={<PlatformAdminDashboard />} />
       <Route path="/platform/tenants/:tenantId/landing-page" element={<LandingPageEditor />} />
       <Route path="/apply-membership" element={<MemberApplicationPage />} />
+      <Route path="/verify-receipt/:receiptNumber" element={<VerifyReceiptPage />} />
+      <Route path="/receipts/verify/:receiptNumber" element={<VerifyReceiptPage />} />
+      <Route path="/verify/agreement/:agreementRef" element={<VerifyAgreementPage />} />
+      <Route path="/verify-agreement/:agreementRef" element={<VerifyAgreementPage />} />
 
       {/* Protected routes with layout */}
       <Route
@@ -458,6 +479,186 @@ export const AppRoutes: React.FC = () => {
           <AppLayout>
             <ProtectedRoute>
               <RolesRouter />
+            </ProtectedRoute>
+          </AppLayout>
+        }
+      />
+      <Route
+        path="/receipt-designer"
+        element={
+          <AppLayout>
+            <ProtectedRoute>
+              <ReceiptDesignerPage />
+            </ProtectedRoute>
+          </AppLayout>
+        }
+      />
+      <Route
+        path="/settings/receipt-designer"
+        element={
+          <AppLayout>
+            <ProtectedRoute>
+              <ReceiptDesignerPage />
+            </ProtectedRoute>
+          </AppLayout>
+        }
+      />
+      <Route
+        path="/document-designer"
+        element={
+          <AppLayout>
+            <ProtectedRoute>
+              <DocumentDesignerPage />
+            </ProtectedRoute>
+          </AppLayout>
+        }
+      />
+      <Route
+        path="/settings/document-designer"
+        element={
+          <AppLayout>
+            <ProtectedRoute>
+              <DocumentDesignerPage />
+            </ProtectedRoute>
+          </AppLayout>
+        }
+      />
+      <Route
+        path="/security-center"
+        element={
+          <AppLayout>
+            <ProtectedRoute>
+              <SecurityCenterPage />
+            </ProtectedRoute>
+          </AppLayout>
+        }
+      />
+      <Route
+        path="/auditor/transactions"
+        element={
+          <AppLayout>
+            <ProtectedRoute>
+              <AuditorTransactionsPage />
+            </ProtectedRoute>
+          </AppLayout>
+        }
+      />
+      <Route
+        path="/auditor/members"
+        element={
+          <AppLayout>
+            <ProtectedRoute>
+              <AuditorMemberAuditPage />
+            </ProtectedRoute>
+          </AppLayout>
+        }
+      />
+      <Route
+        path="/auditor/member-statements"
+        element={
+          <AppLayout>
+            <ProtectedRoute>
+              <AuditorMemberAuditPage />
+            </ProtectedRoute>
+          </AppLayout>
+        }
+      />
+      <Route
+        path="/auditor/loans"
+        element={
+          <AppLayout>
+            <ProtectedRoute>
+              <AuditorLoansPage />
+            </ProtectedRoute>
+          </AppLayout>
+        }
+      />
+      <Route
+        path="/auditor/contributions"
+        element={
+          <AppLayout>
+            <ProtectedRoute>
+              <AuditorContributionsPage />
+            </ProtectedRoute>
+          </AppLayout>
+        }
+      />
+      <Route
+        path="/auditor/investments"
+        element={
+          <AppLayout>
+            <ProtectedRoute>
+              <AuditorInvestmentsPage />
+            </ProtectedRoute>
+          </AppLayout>
+        }
+      />
+      <Route
+        path="/auditor/profit-distribution"
+        element={
+          <AppLayout>
+            <ProtectedRoute>
+              <AuditorProfitPage />
+            </ProtectedRoute>
+          </AppLayout>
+        }
+      />
+      <Route
+        path="/auditor/income-expenses"
+        element={
+          <AppLayout>
+            <ProtectedRoute>
+              <AuditorIncomeExpensesPage />
+            </ProtectedRoute>
+          </AppLayout>
+        }
+      />
+      <Route
+        path="/auditor/reconciliation"
+        element={
+          <AppLayout>
+            <ProtectedRoute>
+              <AuditorReconciliationPage />
+            </ProtectedRoute>
+          </AppLayout>
+        }
+      />
+      <Route
+        path="/auditor/exceptions"
+        element={
+          <AppLayout>
+            <ProtectedRoute>
+              <AuditorExceptionsPage />
+            </ProtectedRoute>
+          </AppLayout>
+        }
+      />
+      <Route
+        path="/auditor/activity-logs"
+        element={
+          <AppLayout>
+            <ProtectedRoute>
+              <AuditorActivityLogsPage />
+            </ProtectedRoute>
+          </AppLayout>
+        }
+      />
+      <Route
+        path="/auditor/notes"
+        element={
+          <AppLayout>
+            <ProtectedRoute>
+              <AuditorNotesPage />
+            </ProtectedRoute>
+          </AppLayout>
+        }
+      />
+      <Route
+        path="/auditor/reports"
+        element={
+          <AppLayout>
+            <ProtectedRoute>
+              <AuditorReportsPage />
             </ProtectedRoute>
           </AppLayout>
         }

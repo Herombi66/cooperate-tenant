@@ -480,6 +480,27 @@ async function repairDatabase() {
         CHECK (quantity > 0);
       `);
     }
+
+    await sequelize.query(`
+      ALTER TABLE animal_acquisition_requests
+      ADD COLUMN IF NOT EXISTS applied_amount DECIMAL(12, 2);
+    `);
+
+    await sequelize.query(`
+      ALTER TABLE animal_acquisition_requests
+      ADD COLUMN IF NOT EXISTS layyah_application_id INTEGER REFERENCES layyah_applications(id);
+    `);
+
+    await sequelize.query(`
+      CREATE INDEX IF NOT EXISTS idx_animal_acq_req_applied_amount
+      ON animal_acquisition_requests(applied_amount);
+    `);
+
+    await sequelize.query(`
+      CREATE INDEX IF NOT EXISTS idx_animal_acq_req_layyah_app_id
+      ON animal_acquisition_requests(layyah_application_id);
+    `);
+
     log('✅ Ensured animal_acquisition_requests table exists.');
 
     // 9. Ensure contribution_amount_commitment exists in membership_applications
@@ -673,6 +694,130 @@ async function repairDatabase() {
     await sequelize.query(`
       CREATE INDEX IF NOT EXISTS idx_loan_liquidations_created_at ON loan_liquidations(created_at DESC);
     `);
+
+    // 14. Ensure system_backups table exists
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS system_backups (
+        id SERIAL PRIMARY KEY,
+        filename VARCHAR(255) NOT NULL,
+        filepath VARCHAR(500) NOT NULL,
+        format VARCHAR(20) NOT NULL DEFAULT 'json',
+        file_size BIGINT NOT NULL DEFAULT 0,
+        total_records INTEGER NOT NULL DEFAULT 0,
+        table_counts JSONB,
+        status VARCHAR(30) NOT NULL DEFAULT 'completed',
+        error_message TEXT,
+        notes TEXT,
+        created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    await sequelize.query(`
+      CREATE INDEX IF NOT EXISTS idx_system_backups_created_at ON system_backups(created_at DESC);
+    `);
+    await sequelize.query(`
+      CREATE INDEX IF NOT EXISTS idx_system_backups_status ON system_backups(status);
+    `);
+    log('✅ Ensured system_backups table exists.');
+
+    // 15. Ensure receipt designer tables exist
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS receipt_templates (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(150) NOT NULL,
+        type VARCHAR(50) NOT NULL DEFAULT 'default',
+        paper_size VARCHAR(20) NOT NULL DEFAULT 'A4',
+        is_active BOOLEAN DEFAULT TRUE,
+        is_default BOOLEAN DEFAULT FALSE,
+        version INTEGER DEFAULT 1,
+        layout_config JSONB NOT NULL,
+        created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        updated_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_receipt_templates_type ON receipt_templates(type);`);
+    await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_receipt_templates_is_active ON receipt_templates(is_active);`);
+    await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_receipt_templates_is_default ON receipt_templates(is_default);`);
+
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS receipt_template_versions (
+        id SERIAL PRIMARY KEY,
+        template_id INTEGER NOT NULL REFERENCES receipt_templates(id) ON DELETE CASCADE,
+        version INTEGER NOT NULL,
+        layout_config JSONB NOT NULL,
+        change_summary VARCHAR(255),
+        created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_receipt_template_versions_template_id ON receipt_template_versions(template_id);`);
+
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS receipt_records (
+        id SERIAL PRIMARY KEY,
+        receipt_number VARCHAR(64) NOT NULL UNIQUE,
+        transaction_type VARCHAR(50) NOT NULL,
+        transaction_id INTEGER,
+        member_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        amount DECIMAL(14,2) NOT NULL DEFAULT 0.00,
+        payment_method VARCHAR(50) DEFAULT 'Bank Transfer',
+        snapshot_data JSONB NOT NULL,
+        template_id INTEGER REFERENCES receipt_templates(id) ON DELETE SET NULL,
+        template_version INTEGER DEFAULT 1,
+        verification_hash VARCHAR(128) NOT NULL,
+        issued_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_receipt_records_receipt_number ON receipt_records(receipt_number);`);
+    await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_receipt_records_member_id ON receipt_records(member_id);`);
+    await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_receipt_records_verification_hash ON receipt_records(verification_hash);`);
+    log('✅ Ensured receipt_templates, receipt_template_versions, and receipt_records tables exist.');
+
+    // 16. Ensure document_templates, document_template_versions exist and loan_agreements has snapshot columns
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS document_templates (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(150) NOT NULL,
+        type VARCHAR(50) NOT NULL DEFAULT 'murabaha_contract',
+        version INTEGER DEFAULT 1,
+        is_active BOOLEAN DEFAULT TRUE,
+        is_default BOOLEAN DEFAULT FALSE,
+        layout_config JSONB NOT NULL,
+        created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        updated_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_document_templates_type ON document_templates(type);`);
+    await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_document_templates_is_active ON document_templates(is_active);`);
+    await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_document_templates_is_default ON document_templates(is_default);`);
+
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS document_template_versions (
+        id SERIAL PRIMARY KEY,
+        template_id INTEGER NOT NULL REFERENCES document_templates(id) ON DELETE CASCADE,
+        version INTEGER NOT NULL,
+        layout_config JSONB NOT NULL,
+        change_summary VARCHAR(255),
+        created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_doc_template_versions_template_id ON document_template_versions(template_id);`);
+
+    // Ensure loan_agreements has snapshot_data and signature_reference
+    await sequelize.query(`
+      ALTER TABLE loan_agreements ADD COLUMN IF NOT EXISTS snapshot_data JSONB;
+    `);
+    await sequelize.query(`
+      ALTER TABLE loan_agreements ADD COLUMN IF NOT EXISTS signature_reference VARCHAR(100);
+    `);
+    log('✅ Ensured document_templates, document_template_versions, and loan_agreements snapshot columns exist.');
 
     log('✅ Database repair check completed.');
     return { success: true, logs };
