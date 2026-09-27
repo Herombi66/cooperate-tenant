@@ -129,17 +129,18 @@ const generatePalette = (hex: string): Record<string, string> => {
  * Apply the full generated palette to the document root as CSS custom properties.
  * Also sets the base --primary variable used by shadcn-style components.
  */
-const applyThemePalette = (hex: string) => {
+const applyThemePalette = (hex: string, isDark: boolean = false) => {
   const palette = generatePalette(hex);
   const root = document.documentElement;
 
   for (const [shade, hsl] of Object.entries(palette)) {
     root.style.setProperty(`--primary-${shade}`, hsl);
   }
-  // Set the base --primary (used by shadcn DEFAULT) to match shade 600
-  root.style.setProperty('--primary', palette['600']);
-  // Set --ring to match the primary for focus-ring consistency
-  root.style.setProperty('--ring', palette['500']);
+  // In light mode: shade 600 provides rich contrast against light surfaces.
+  // In dark mode: shade 400 provides high contrast and accessibility on dark surfaces.
+  root.style.setProperty('--primary', isDark ? palette['400'] : palette['600']);
+  // Set --ring for focus consistency
+  root.style.setProperty('--ring', isDark ? palette['400'] : palette['500']);
 };
 
 export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -191,16 +192,35 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       
       if (response.data.success && response.data.data) {
         const config = response.data.data;
+        const isFmck = (config.id?.toLowerCase() === 'fmcksmcs' || 
+          config.id?.toLowerCase() === 'fmck' || 
+          (config.name?.toLowerCase().includes('kumo') ?? false) || 
+          (config.name?.toLowerCase().includes('fmck') ?? false));
+
+        // Enforce official FMCKSMCS brand colors: Primary #03490b, Secondary #5cd674
+        if (isFmck) {
+          config.theme = config.theme || {};
+          config.theme.primaryColor = config.theme.primaryColor || '#03490b';
+          config.theme.secondaryColor = config.theme.secondaryColor || '#5cd674';
+        }
+
         setTenant(config);
+
+        const isCurrentlyDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
 
         // Apply full primary color palette to the document
         if (config.theme?.primaryColor) {
-          applyThemePalette(config.theme.primaryColor);
+          applyThemePalette(config.theme.primaryColor, isCurrentlyDark);
         }
         // Apply secondary color if provided
         if (config.theme?.secondaryColor) {
           const sec = hexToRgb(config.theme.secondaryColor);
           document.documentElement.style.setProperty('--secondary', rgbToHslString(sec.r, sec.g, sec.b));
+        }
+
+        if (isFmck && typeof document !== 'undefined') {
+          document.documentElement.style.setProperty('--fmck-primary', '#03490b');
+          document.documentElement.style.setProperty('--fmck-secondary', '#5cd674');
         }
       } else {
         setError('Failed to load tenant configuration');
@@ -222,10 +242,25 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     };
 
     window.addEventListener('tenantChanged', handleTenantChange);
+
+    const observer = typeof MutationObserver !== 'undefined' && typeof document !== 'undefined'
+      ? new MutationObserver(() => {
+          const isCurrentlyDark = document.documentElement.classList.contains('dark');
+          if (tenant?.theme?.primaryColor) {
+            applyThemePalette(tenant.theme.primaryColor, isCurrentlyDark);
+          }
+        })
+      : null;
+
+    if (observer && typeof document !== 'undefined') {
+      observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    }
+
     return () => {
       window.removeEventListener('tenantChanged', handleTenantChange);
+      if (observer) observer.disconnect();
     };
-  }, []);
+  }, [tenant?.theme?.primaryColor]);
 
   const setTenantId = (tenantId: string) => {
     localStorage.setItem('previewTenantId', tenantId);

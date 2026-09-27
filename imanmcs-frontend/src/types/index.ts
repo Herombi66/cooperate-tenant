@@ -33,6 +33,7 @@ export interface Application {
   facility_name: string;
   next_of_kin_name: string;
   next_of_kin_phone: string;
+  contribution?: number;
   savings: number;
   investment: number;
   target_saving: number;

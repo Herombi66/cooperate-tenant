@@ -43,8 +43,12 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       // Only redirect if not already on login page to avoid loops or bad UX
       if (!window.location.pathname.includes('/login')) {
-          localStorage.removeItem('token');
-          window.location.href = '/login';
+        const tenantParam = localStorage.getItem('previewTenantId') || localStorage.getItem('tenant_id');
+        const isFmck = tenantParam?.toLowerCase() === 'fmcksmcs' || tenantParam?.toLowerCase() === 'fmck';
+        const resolvedTenant = isFmck ? 'fmcksmcs' : (tenantParam && tenantParam !== 'default' ? tenantParam : '');
+        localStorage.removeItem('token');
+        const loginUrl = resolvedTenant ? `/login?tenant=${encodeURIComponent(resolvedTenant)}` : '/login';
+        window.location.href = loginUrl;
       }
     }
     return Promise.reject(error);

@@ -10,6 +10,7 @@ import { StatsCard } from '../UI/StatsCard';
 import { RecentActivity } from '../UI/RecentActivity';
 import { DashboardService, DashboardStats, ActivityLog, ActivityLogsResponse, ExpenseData } from '../../services/dashboardService';
 import { useAuth } from '../../contexts/AuthContext';
+import { useTenantTerminology } from '../../utils/tenantTerminology';
 import toast from 'react-hot-toast';
 
 interface ActivityItem {
@@ -21,6 +22,7 @@ interface ActivityItem {
 
 export const AdminDashboard: React.FC = () => {
   const { user, isLoading } = useAuth();
+  const { isFmck } = useTenantTerminology();
   const [activeTab, setActiveTab] = useState('overview');
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -250,30 +252,34 @@ export const AdminDashboard: React.FC = () => {
             <StatsCard
               title="Total Members"
               value={currentStats.totalMembers.toLocaleString()}
-              icon={Users}
+              icon={isFmck ? undefined : Users}
               color="blue"
               trend={{ value: 12, isPositive: true }}
+              description="Active registered members"
             />
             <StatsCard
               title="Total Contributions"
               value={`₦${(currentStats.totalContributions / 1000000).toFixed(1)}M`}
-              icon={DollarSign}
+              icon={isFmck ? undefined : DollarSign}
               color="green"
               trend={{ value: 8.5, isPositive: true }}
+              description="Cumulative savings & funds"
             />
             <StatsCard
               title="Pending Loans"
               value={currentStats.pendingLoans.toString()}
-              icon={CreditCard}
+              icon={isFmck ? undefined : CreditCard}
               color="yellow"
               trend={{ value: 3, isPositive: false }}
+              description="Awaiting administrative review"
             />
             <StatsCard
               title="Monthly Expenses"
               value={`₦${(currentStats.monthlyExpenses / 1000).toFixed(0)}K`}
-              icon={Receipt}
+              icon={isFmck ? undefined : Receipt}
               color="orange"
               trend={{ value: 5.2, isPositive: false }}
+              description="Current monthly operational costs"
             />
           </div>
 
@@ -282,55 +288,34 @@ export const AdminDashboard: React.FC = () => {
             <StatsCard
               title="Profit Shared"
               value={`₦${(currentStats.totalProfitShared / 1000000).toFixed(1)}M`}
-              icon={TrendingUp}
+              icon={isFmck ? undefined : TrendingUp}
               color="purple"
               trend={{ value: 15.2, isPositive: true }}
+              description="Total distributed dividends"
             />
             <StatsCard
               title="Total Reserves"
               value={`₦${(currentStats.totalReserves / 1000000).toFixed(1)}M`}
-              icon={Calculator}
+              icon={isFmck ? undefined : Calculator}
               color="gold"
               trend={{ value: 8.7, isPositive: true }}
+              description="Statutory institutional reserve"
             />
             <StatsCard
               title="Pending Expenses"
               value={currentStats.pendingExpenses.toString()}
-              icon={AlertCircle}
+              icon={isFmck ? undefined : AlertCircle}
               color="orange"
               trend={{ value: 2, isPositive: false }}
+              description="Awaiting disbursement review"
             />
             <StatsCard
               title="New Applications"
               value={currentStats.activeApplications.toString()}
-              icon={FileText}
+              icon={isFmck ? undefined : FileText}
               color="blue"
               trend={{ value: 4, isPositive: true }}
-            />
-          </div>
-
-          {/* Layyah Stats Row */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <StatsCard
-              title="Layyah Applications"
-              value={currentStats.totalLayyahApplications.toString()}
-              icon={Heart}
-              color="green"
-              trend={{ value: 12, isPositive: true }}
-            />
-            <StatsCard
-              title="Pending Layyah"
-              value={currentStats.pendingLayyahApplications.toString()}
-              icon={AlertCircle}
-              color="yellow"
-              trend={{ value: 2, isPositive: false }}
-            />
-            <StatsCard
-              title="Active Groups"
-              value={currentStats.activeLayyahGroups.toString()}
-              icon={Users}
-              color="blue"
-              trend={{ value: 1, isPositive: true }}
+              description="Pending membership requests"
             />
           </div>
         </>
@@ -411,14 +396,16 @@ export const AdminDashboard: React.FC = () => {
             <div className="font-medium">View Reports</div>
             <div className="text-sm text-gray-500">Generate financial reports</div>
           </button>
-          <button
-            onClick={() => navigate('/admin-layyah')}
-            className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left transition-colors"
-          >
-            <Heart className="w-6 h-6 text-primary-500 mb-2" />
-            <div className="font-medium">Layyah Management</div>
-            <div className="text-sm text-gray-500">Manage commodity trading applications</div>
-          </button>
+          {!isFmck && (
+            <button
+              onClick={() => navigate('/admin-layyah')}
+              className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left transition-colors"
+            >
+              <Heart className="w-6 h-6 text-primary-500 mb-2" />
+              <div className="font-medium">Layyah Management</div>
+              <div className="text-sm text-gray-500">Manage commodity trading applications</div>
+            </button>
+          )}
         </div>
       </div>
 
@@ -814,68 +801,68 @@ export const AdminDashboard: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <button
               onClick={() => navigate('/reports')}
-              className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left"
+              className="p-4 border border-gray-200 dark:border-border rounded-lg hover:bg-gray-50 dark:hover:bg-white/5 text-left transition-colors"
             >
-              <DollarSign className="w-6 h-6 text-green-500 mb-2" />
-              <div className="font-medium">Financial Reports</div>
-              <div className="text-sm text-gray-500">Contributions, loans, profits</div>
+              <DollarSign className="w-6 h-6 text-primary-600 dark:text-primary-400 mb-2" />
+              <div className="font-medium text-foreground">Financial Reports</div>
+              <div className="text-sm text-muted-foreground">Contributions, loans, profits</div>
             </button>
             <button
               onClick={() => navigate('/reports')}
-              className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left"
+              className="p-4 border border-gray-200 dark:border-border rounded-lg hover:bg-gray-50 dark:hover:bg-white/5 text-left transition-colors"
             >
-              <Users className="w-6 h-6 text-primary-500 mb-2" />
-              <div className="font-medium">Member Reports</div>
-              <div className="text-sm text-gray-500">Activity and engagement</div>
+              <Users className="w-6 h-6 text-primary-600 dark:text-primary-400 mb-2" />
+              <div className="font-medium text-foreground">Member Reports</div>
+              <div className="text-sm text-muted-foreground">Activity and engagement</div>
             </button>
             <button
               onClick={() => navigate('/reports')}
-              className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left"
+              className="p-4 border border-gray-200 dark:border-border rounded-lg hover:bg-gray-50 dark:hover:bg-white/5 text-left transition-colors"
             >
-              <FileText className="w-6 h-6 text-purple-500 mb-2" />
-              <div className="font-medium">Compliance Reports</div>
-              <div className="text-sm text-gray-500">Regulatory compliance</div>
+              <FileText className="w-6 h-6 text-primary-600 dark:text-primary-400 mb-2" />
+              <div className="font-medium text-foreground">Compliance Reports</div>
+              <div className="text-sm text-muted-foreground">Regulatory compliance</div>
             </button>
           </div>
         </div>
       )}
       {activeTab === 'settings' && (
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white dark:bg-card rounded-lg shadow-sm border border-border p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">System Settings</h3>
+            <h3 className="text-lg font-semibold text-foreground">System Settings</h3>
             <button
               onClick={() => navigate('/settings')}
-              className="flex items-center px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600"
+              className="flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
             >
               <Settings className="w-4 h-4 mr-2" />
               Go to Settings
             </button>
           </div>
-          <p className="text-gray-600 mb-4">Configure cooperative parameters and system preferences.</p>
+          <p className="text-muted-foreground mb-4">Configure cooperative parameters and system preferences.</p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <button
               onClick={() => navigate('/settings')}
-              className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left"
+              className="p-4 border border-gray-200 dark:border-border rounded-lg hover:bg-gray-50 dark:hover:bg-white/5 text-left transition-colors"
             >
-              <DollarSign className="w-6 h-6 text-green-500 mb-2" />
-              <div className="font-medium">Contribution Settings</div>
-              <div className="text-sm text-gray-500">Minimum amounts and ratios</div>
+              <DollarSign className="w-6 h-6 text-primary-600 dark:text-primary-400 mb-2" />
+              <div className="font-medium text-foreground">Contribution Settings</div>
+              <div className="text-sm text-muted-foreground">Minimum amounts and ratios</div>
             </button>
             <button
               onClick={() => navigate('/settings')}
-              className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left"
+              className="p-4 border border-gray-200 dark:border-border rounded-lg hover:bg-gray-50 dark:hover:bg-white/5 text-left transition-colors"
             >
-              <CreditCard className="w-6 h-6 text-primary-500 mb-2" />
-              <div className="font-medium">Loan Configuration</div>
-              <div className="text-sm text-gray-500">Limits and repayment terms</div>
+              <CreditCard className="w-6 h-6 text-primary-600 dark:text-primary-400 mb-2" />
+              <div className="font-medium text-foreground">Loan Configuration</div>
+              <div className="text-sm text-muted-foreground">Limits and repayment terms</div>
             </button>
             <button
               onClick={() => navigate('/settings')}
-              className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left"
+              className="p-4 border border-gray-200 dark:border-border rounded-lg hover:bg-gray-50 dark:hover:bg-white/5 text-left transition-colors"
             >
-              <TrendingUp className="w-6 h-6 text-purple-500 mb-2" />
-              <div className="font-medium">Profit Sharing</div>
-              <div className="text-sm text-gray-500">Distribution frequency and fees</div>
+              <TrendingUp className="w-6 h-6 text-primary-600 dark:text-primary-400 mb-2" />
+              <div className="font-medium text-foreground">Profit Sharing</div>
+              <div className="text-sm text-muted-foreground">Distribution frequency and fees</div>
             </button>
           </div>
         </div>

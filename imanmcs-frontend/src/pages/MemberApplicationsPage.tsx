@@ -174,17 +174,43 @@ export const MemberApplicationsPage: React.FC = () => {
     return app.gender || app.metadata?.gender || '—';
   };
 
-  const getAppTotalContribution = (app: Application) => {
+  const getAppContribution = (app: Application) => {
+    if (app.contribution !== undefined && app.contribution !== null && Number(app.contribution) > 0) {
+      return Number(app.contribution);
+    }
+    if (app.metadata?.contribution !== undefined && app.metadata?.contribution !== null && Number(app.metadata.contribution) > 0) {
+      return Number(app.metadata.contribution);
+    }
     if (app.metadata?.total_initial_contribution) {
       return Number(app.metadata.total_initial_contribution);
     }
     return (Number(app.savings) || 0) + (Number(app.investment) || 0);
   };
 
+  const getAppEntranceFee = (app: Application) => {
+    if (app.metadata?.entrance_fee !== undefined && app.metadata?.entrance_fee !== null) {
+      return Number(app.metadata.entrance_fee);
+    }
+    return isFmck ? 1500 : 0;
+  };
+
+  const getAppRemainingContribution = (app: Application) => {
+    if (app.metadata?.remaining_contribution !== undefined && app.metadata?.remaining_contribution !== null) {
+      return Number(app.metadata.remaining_contribution);
+    }
+    const total = getAppContribution(app);
+    const fee = getAppEntranceFee(app);
+    return Math.max(0, total - fee);
+  };
+
+  const getAppTotalContribution = (app: Application) => {
+    return getAppContribution(app);
+  };
+
   // Actions
   const handleApprove = async (application: Application) => {
     const refNo = getAppRefNo(application);
-    const confirmMsg = `Approve membership application for ${application.name} (${refNo})?\n\nThis will:\n• Approve the application\n• Create their cooperative member account\n• Record initial approved contribution (₦${getAppTotalContribution(application).toLocaleString()})\n• Send a welcome notification with credentials`;
+    const confirmMsg = `Approve membership application for ${application.name} (${refNo})?\n\nThis will:\n• Approve the application\n• Create their cooperative member account\n• Record initial approved contribution (₦${getAppContribution(application).toLocaleString()})\n• Send a welcome notification with credentials`;
 
     if (!window.confirm(confirmMsg)) return;
 
@@ -318,9 +344,9 @@ export const MemberApplicationsPage: React.FC = () => {
       'Department',
       'Unit',
       'Cadre',
-      'Initial Savings (NGN)',
-      'Initial Investment (NGN)',
-      'Total Contribution (NGN)',
+      'Contribution (NGN)',
+      'Entrance Fee (NGN)',
+      'Remaining Contribution (NGN)',
       'Status',
       'Application Date'
     ];
@@ -334,9 +360,9 @@ export const MemberApplicationsPage: React.FC = () => {
       `"${getAppDept(app)}"`,
       `"${getAppUnit(app)}"`,
       `"${getAppCadre(app)}"`,
-      (Number(app.savings) || 0),
-      (Number(app.investment) || 0),
-      getAppTotalContribution(app),
+      getAppContribution(app),
+      getAppEntranceFee(app),
+      getAppRemainingContribution(app),
       `"${app.status}"`,
       `"${app.application_date || app.created_at || ''}"`
     ]);
@@ -641,7 +667,7 @@ export const MemberApplicationsPage: React.FC = () => {
                     Department & Cadre
                   </th>
                   <th className="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    Initial Contribution
+                    Contribution
                   </th>
                   <th className="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                     Date & Status
@@ -654,7 +680,9 @@ export const MemberApplicationsPage: React.FC = () => {
               <tbody className="bg-white divide-y divide-gray-100 text-sm">
                 {applications.map((app) => {
                   const refNo = getAppRefNo(app);
-                  const totalInitial = getAppTotalContribution(app);
+                  const contribution = getAppContribution(app);
+                  const entranceFee = getAppEntranceFee(app);
+                  const remainingContribution = getAppRemainingContribution(app);
                   const dept = getAppDept(app);
                   const cadre = getAppCadre(app);
                   const unit = getAppUnit(app);
@@ -706,17 +734,17 @@ export const MemberApplicationsPage: React.FC = () => {
                         </div>
                       </td>
 
-                      {/* Initial Contribution */}
+                      {/* Contribution */}
                       <td className="px-5 py-4 whitespace-nowrap">
                         <div className="space-y-0.5">
                           <div className="font-bold text-gray-900 text-sm">
-                            ₦{totalInitial.toLocaleString()}
+                            ₦{contribution.toLocaleString()}
                           </div>
-                          <div className="text-[11px] text-gray-500">
-                            Savings: ₦{(Number(app.savings) || 0).toLocaleString()} • Invest: ₦{(Number(app.investment) || 0).toLocaleString()}
+                          <div className="text-[11px] text-amber-700 font-medium">
+                            ₦{entranceFee.toLocaleString()} entrance fee deducted
                           </div>
-                          <div className="text-[10px] text-emerald-700 font-medium">
-                            + ₦1,500 entrance fee
+                          <div className="text-[10px] text-gray-500 font-mono">
+                            Remaining: ₦{remainingContribution.toLocaleString()}
                           </div>
                         </div>
                       </td>
@@ -969,7 +997,7 @@ export const MemberApplicationsPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Section 5: Financial Contribution Plan */}
+              {/* Section 4: Initial Financial Contributions */}
               <div className="border border-emerald-200 bg-emerald-50/30 rounded-xl p-4">
                 <h4 className="text-xs uppercase font-bold text-emerald-800 tracking-wider mb-3 flex items-center gap-1.5">
                   <Award className="w-4 h-4 text-emerald-600" />
@@ -977,22 +1005,25 @@ export const MemberApplicationsPage: React.FC = () => {
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="bg-white p-3 rounded-lg border border-emerald-100">
-                    <span className="text-xs text-gray-500 block">Initial Savings</span>
+                    <span className="text-xs text-gray-500 block">Contribution</span>
                     <span className="text-base font-bold text-gray-900">
-                      ₦{(Number(selectedApplication.savings) || 0).toLocaleString()}
+                      ₦{getAppContribution(selectedApplication).toLocaleString()}
                     </span>
+                    <span className="text-[10px] text-gray-400 block mt-0.5">Total amount submitted</span>
                   </div>
-                  <div className="bg-white p-3 rounded-lg border border-emerald-100">
-                    <span className="text-xs text-gray-500 block">Initial Investment</span>
-                    <span className="text-base font-bold text-gray-900">
-                      ₦{(Number(selectedApplication.investment) || 0).toLocaleString()}
+                  <div className="bg-white p-3 rounded-lg border border-amber-200">
+                    <span className="text-xs text-amber-800 font-medium block">Entrance Fee</span>
+                    <span className="text-base font-bold text-amber-700">
+                      ₦{getAppEntranceFee(selectedApplication).toLocaleString()}
                     </span>
+                    <span className="text-[10px] text-amber-600 block mt-0.5">Deducted from first contribution</span>
                   </div>
                   <div className="bg-white p-3 rounded-lg border border-emerald-200">
-                    <span className="text-xs text-emerald-800 font-semibold block">Total Initial Contribution</span>
+                    <span className="text-xs text-emerald-800 font-semibold block">Remaining Contribution</span>
                     <span className="text-base font-bold text-emerald-700">
-                      ₦{getAppTotalContribution(selectedApplication).toLocaleString()}
+                      ₦{getAppRemainingContribution(selectedApplication).toLocaleString()}
                     </span>
+                    <span className="text-[10px] text-emerald-600 block mt-0.5">Credited to member savings</span>
                   </div>
                 </div>
                 <div className="mt-3 text-xs text-gray-600 flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-emerald-100">
@@ -1000,7 +1031,7 @@ export const MemberApplicationsPage: React.FC = () => {
                     <strong>Target Monthly Savings:</strong> ₦{(Number(selectedApplication.target_saving) || 0).toLocaleString()} / month
                   </span>
                   <span className="text-emerald-800 font-medium">
-                    ✓ Mandatory ₦1,500 entrance fee applies to first contribution
+                    ✓ ₦1,500 entrance fee deducted from first contribution
                   </span>
                 </div>
               </div>

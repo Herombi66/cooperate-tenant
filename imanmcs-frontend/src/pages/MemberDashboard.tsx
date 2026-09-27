@@ -383,42 +383,50 @@ export const MemberDashboard: React.FC = () => {
 
       {/* Quick Stats Cards */}
       <motion.div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6" variants={cardVariants}>
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-card text-card-foreground border border-border p-6 rounded-xl shadow-sm">
           <div className="flex items-center">
-            <PiggyBank className="w-8 h-8 text-primary-500" />
+            <div className="p-3 rounded-lg bg-primary-50 dark:bg-primary-950/40 text-primary-600 dark:text-primary-400">
+              <PiggyBank className="w-6 h-6" />
+            </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Savings</p>
-              <p className="text-2xl font-bold text-gray-900">{toCurrency(memberData.totalSavings)}</p>
+              <p className="text-sm font-medium text-muted-foreground">Total Savings</p>
+              <p className="text-2xl font-bold text-foreground">{toCurrency(memberData.totalSavings)}</p>
             </div>
           </div>
         </div>
         
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-card text-card-foreground border border-border p-6 rounded-xl shadow-sm">
           <div className="flex items-center">
-            <TrendingUp className="w-8 h-8 text-purple-500" />
+            <div className="p-3 rounded-lg bg-primary-50 dark:bg-primary-950/40 text-primary-600 dark:text-primary-400">
+              <TrendingUp className="w-6 h-6" />
+            </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Investment Base</p>
-              <p className="text-2xl font-bold text-gray-900">{toCurrency(memberData.totalInvestment)}</p>
+              <p className="text-sm font-medium text-muted-foreground">Investment Base</p>
+              <p className="text-2xl font-bold text-foreground">{toCurrency(memberData.totalInvestment)}</p>
             </div>
           </div>
         </div>
         
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-card text-card-foreground border border-border p-6 rounded-xl shadow-sm">
           <div className="flex items-center">
-            <CreditCard className="w-8 h-8 text-orange-500" />
+            <div className="p-3 rounded-lg bg-primary-50 dark:bg-primary-950/40 text-primary-600 dark:text-primary-400">
+              <CreditCard className="w-6 h-6" />
+            </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Loan Balance</p>
-              <p className="text-2xl font-bold text-gray-900">{toCurrency(memberData.loanBalance)}</p>
+              <p className="text-sm font-medium text-muted-foreground">Loan Balance</p>
+              <p className="text-2xl font-bold text-foreground">{toCurrency(memberData.loanBalance)}</p>
             </div>
           </div>
         </div>
         
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-card text-card-foreground border border-border p-6 rounded-xl shadow-sm">
           <div className="flex items-center">
-            <Trophy className="w-8 h-8 text-green-500" />
+            <div className="p-3 rounded-lg bg-primary-50 dark:bg-primary-950/40 text-primary-600 dark:text-primary-400">
+              <Trophy className="w-6 h-6" />
+            </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Profit Earned</p>
-              <p className="text-2xl font-bold text-gray-900">{toCurrency(memberData.profitEarned)}</p>
+              <p className="text-sm font-medium text-muted-foreground">Profit Earned</p>
+              <p className="text-2xl font-bold text-foreground">{toCurrency(memberData.profitEarned)}</p>
             </div>
           </div>
         </div>
@@ -428,46 +436,46 @@ export const MemberDashboard: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         {/* Share Eligibility */}
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-            <Target className="w-5 h-5 mr-2 text-purple-500" />
+        <div className="bg-card text-card-foreground border border-border p-6 rounded-xl shadow-sm">
+          <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
+            <Target className="w-5 h-5 mr-2 text-primary-600 dark:text-primary-400" />
             Share Eligibility
           </h3>
           <div className="space-y-4">
-            <div className="flex justify-between items-center p-3 bg-purple-50 rounded-lg">
-              <span className="text-sm font-medium text-purple-800">Minimum Shares Required</span>
-              <span className="font-bold text-purple-900">{toCurrency(memberData.settings.minimum_shares || 20000)}</span>
+            <div className="flex justify-between items-center p-3 bg-primary-50/50 dark:bg-primary-950/30 border border-primary-100 dark:border-primary-900/40 rounded-lg">
+              <span className="text-sm font-medium text-primary-900 dark:text-primary-200">Minimum Shares Required</span>
+              <span className="font-bold text-primary-900 dark:text-primary-200">{toCurrency(memberData.settings.minimum_shares || 20000)}</span>
             </div>
-            <div className="flex justify-between items-center p-3 bg-primary-50 rounded-lg">
-              <span className="text-sm font-medium text-primary-800">Maximum Shares Eligibility</span>
-              <span className="font-bold text-primary-900">{memberData.settings.maximum_shares_percent || 20}% of total</span>
+            <div className="flex justify-between items-center p-3 bg-primary-50 dark:bg-primary-950/40 border border-primary-100 dark:border-primary-900/40 rounded-lg">
+              <span className="text-sm font-medium text-primary-900 dark:text-primary-200">Maximum Shares Eligibility</span>
+              <span className="font-bold text-primary-900 dark:text-primary-200">{memberData.settings.maximum_shares_percent || 20}% of total</span>
             </div>
           </div>
         </div>
 
         {/* Loan Eligibility */}
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-            <CreditCard className="w-5 h-5 mr-2 text-green-500" />
+        <div className="bg-card text-card-foreground border border-border p-6 rounded-xl shadow-sm">
+          <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
+            <CreditCard className="w-5 h-5 mr-2 text-primary-600 dark:text-primary-400" />
             Loan Eligibility
           </h3>
           <div className={`grid grid-cols-1 md:grid-cols-3 ${isFmck ? 'lg:grid-cols-4' : ''} gap-4`}>
-            <div className="p-3 bg-green-50 rounded-lg border border-green-100">
-              <div className="text-xs text-green-600 font-semibold mb-1">Emergency Loan</div>
-              <div className="text-lg font-bold text-green-800">{toCurrency(memberData.settings.emergency_loan_limit || 20000)}</div>
+            <div className="p-3 bg-primary-50/40 dark:bg-primary-950/30 rounded-lg border border-primary-100 dark:border-primary-900/40">
+              <div className="text-xs text-primary-700 dark:text-primary-300 font-semibold mb-1">Emergency Loan</div>
+              <div className="text-lg font-bold text-primary-900 dark:text-primary-100">{toCurrency(memberData.settings.emergency_loan_limit || 20000)}</div>
             </div>
-            <div className="p-3 bg-primary-50 rounded-lg border border-primary-100">
-              <div className="text-xs text-primary-600 font-semibold mb-1">Cash Loan</div>
-              <div className="text-lg font-bold text-primary-800">{toCurrency(memberData.settings.cash_loan_limit || 500000)}</div>
+            <div className="p-3 bg-primary-50/60 dark:bg-primary-950/40 rounded-lg border border-primary-100 dark:border-primary-900/40">
+              <div className="text-xs text-primary-700 dark:text-primary-300 font-semibold mb-1">Cash Loan</div>
+              <div className="text-lg font-bold text-primary-900 dark:text-primary-100">{toCurrency(memberData.settings.cash_loan_limit || 500000)}</div>
             </div>
-            <div className="p-3 bg-orange-50 rounded-lg border border-orange-100">
-              <div className="text-xs text-orange-600 font-semibold mb-1">{formatLoanType('venture')}</div>
-              <div className="text-lg font-bold text-orange-800">{toCurrency(memberData.settings.venture_loan_limit || memberData.settings.investment_loan_limit || 1000000)}</div>
+            <div className="p-3 bg-primary-50/80 dark:bg-primary-950/50 rounded-lg border border-primary-100 dark:border-primary-900/40">
+              <div className="text-xs text-primary-700 dark:text-primary-300 font-semibold mb-1">{formatLoanType('venture')}</div>
+              <div className="text-lg font-bold text-primary-900 dark:text-primary-100">{toCurrency(memberData.settings.venture_loan_limit || memberData.settings.investment_loan_limit || 1000000)}</div>
             </div>
             {isFmck && (
-              <div className="p-3 bg-purple-50 rounded-lg border border-purple-100">
-                <div className="text-xs text-purple-600 font-semibold mb-1">Educational Loan</div>
-                <div className="text-lg font-bold text-purple-800">{toCurrency(memberData.settings.educational_loan_limit || 500000)}</div>
+              <div className="p-3 bg-primary-100/50 dark:bg-primary-950/60 rounded-lg border border-primary-200 dark:border-primary-900/50">
+                <div className="text-xs text-primary-700 dark:text-primary-300 font-semibold mb-1">Educational Loan</div>
+                <div className="text-lg font-bold text-primary-900 dark:text-primary-100">{toCurrency(memberData.settings.educational_loan_limit || 500000)}</div>
               </div>
             )}
           </div>
@@ -476,25 +484,25 @@ export const MemberDashboard: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         {/* Savings Progress */}
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-            <Target className="w-5 h-5 mr-2" />
+        <div className="bg-card text-card-foreground border border-border p-6 rounded-xl shadow-sm">
+          <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
+            <Target className="w-5 h-5 mr-2 text-primary-600 dark:text-primary-400" />
             Savings Target Progress
           </h3>
           <div className="space-y-4">
             <div className="flex justify-between text-sm">
-              <span>Current: {toCurrency(memberData.totalSavings)}</span>
-              <span>Target: {toCurrency(memberData.targetSavings)}</span>
+              <span className="text-muted-foreground">Current: {toCurrency(memberData.totalSavings)}</span>
+              <span className="text-muted-foreground">Target: {toCurrency(memberData.targetSavings)}</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-4">
+            <div className="w-full bg-muted rounded-full h-4">
               <div 
-                className="bg-primary-500 h-4 rounded-full flex items-center justify-center text-white text-xs font-medium"
+                className="bg-primary-600 dark:bg-primary-500 h-4 rounded-full flex items-center justify-center text-white text-xs font-medium"
                 style={{ width: `${Math.min(savingsProgress, 100)}%` }}
               >
                 {savingsProgress.toFixed(1)}%
               </div>
             </div>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               {toCurrency((memberData.targetSavings || 0) - (memberData.totalSavings || 0))} remaining to reach your target
             </p>
           </div>
@@ -502,19 +510,19 @@ export const MemberDashboard: React.FC = () => {
 
         {/* Loan Repayment Progress */}
         {memberData.activeLoan && (
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-              <CreditCard className="w-5 h-5 mr-2" />
+          <div className="bg-card text-card-foreground border border-border p-6 rounded-xl shadow-sm">
+            <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
+              <CreditCard className="w-5 h-5 mr-2 text-primary-600 dark:text-primary-400" />
               Loan Repayment Progress
             </h3>
             <div className="space-y-4">
               <div className="flex justify-between text-sm">
-                <span>Paid: {toCurrency((memberData.activeLoan.amount || 0) - (memberData.activeLoan.balance || 0))}</span>
-                <span>Total: {toCurrency(memberData.activeLoan.amount)}</span>
+                <span className="text-muted-foreground">Paid: {toCurrency((memberData.activeLoan.amount || 0) - (memberData.activeLoan.balance || 0))}</span>
+                <span className="text-muted-foreground">Total: {toCurrency(memberData.activeLoan.amount)}</span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-4">
+              <div className="w-full bg-muted rounded-full h-4">
                 <div 
-                  className="bg-green-500 h-4 rounded-full flex items-center justify-center text-white text-xs font-medium"
+                  className="bg-primary-600 dark:bg-primary-500 h-4 rounded-full flex items-center justify-center text-white text-xs font-medium"
                   style={{ width: `${loanProgress}%` }}
                 >
                   {loanProgress.toFixed(1)}%
@@ -522,12 +530,12 @@ export const MemberDashboard: React.FC = () => {
               </div>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <span className="text-gray-600">Next Payment:</span>
-                  <p className="font-medium">{toCurrency(memberData.activeLoan.monthlyPayment)}</p>
+                  <span className="text-muted-foreground">Next Payment:</span>
+                  <p className="font-medium text-foreground">{toCurrency(memberData.activeLoan.monthlyPayment)}</p>
                 </div>
                 <div>
-                  <span className="text-gray-600">Due Date:</span>
-                  <p className="font-medium">{memberData.activeLoan.nextPayment}</p>
+                  <span className="text-muted-foreground">Due Date:</span>
+                  <p className="font-medium text-foreground">{memberData.activeLoan.nextPayment}</p>
                 </div>
               </div>
             </div>
@@ -537,31 +545,31 @@ export const MemberDashboard: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Contributions Activity */}
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-            <DollarSign className="w-5 h-5 mr-2 text-green-500" />
+        <div className="bg-card text-card-foreground border border-border p-6 rounded-xl shadow-sm">
+          <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
+            <DollarSign className="w-5 h-5 mr-2 text-primary-600 dark:text-primary-400" />
             CONTRIBUTIONS
           </h3>
           <div className="space-y-3">
             {safeMap(memberData.recentContributions, (contribution: Contribution) => (
-              <div key={contribution.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
+              <div key={contribution.id} className="flex items-center justify-between p-3 bg-muted/40 dark:bg-muted/20 rounded-lg border border-border">
                 <div className="flex items-center">
-                  <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center mr-3">
-                    <DollarSign className="w-4 h-4 text-green-600" />
+                  <div className="w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-950/60 flex items-center justify-center mr-3">
+                    <DollarSign className="w-4 h-4 text-primary-700 dark:text-primary-300" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-900 capitalize">
+                    <p className="text-sm font-medium text-foreground capitalize">
                       {contribution.type === 'fixed_deposit' ? 'Fixed Deposit' : 
                        contribution.type === 'investment' ? 'Investment Fund' : 
                        contribution.type === 'savings' ? 'Monthly Savings' : contribution.type}
                     </p>
-                    <p className="text-xs text-gray-500">{contribution.date}</p>
+                    <p className="text-xs text-muted-foreground">{contribution.date}</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-medium text-gray-900">{toCurrency(contribution.amount)}</p>
+                  <p className="text-sm font-medium text-foreground">{toCurrency(contribution.amount)}</p>
                   <span className={`text-xs px-2 py-1 rounded-full ${
-                    contribution.status === 'confirmed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                    contribution.status === 'confirmed' ? 'bg-primary-100 text-primary-800 dark:bg-primary-950/60 dark:text-primary-300' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-950/40 dark:text-yellow-400'
                   }`}>
                     {contribution.status === 'confirmed' ? <CheckCircle className="w-3 h-3 inline mr-1" /> : <Clock className="w-3 h-3 inline mr-1" />}
                     {contribution.status}
@@ -573,21 +581,21 @@ export const MemberDashboard: React.FC = () => {
         </div>
 
         {/* Profit Shares */}
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Profit Shares</h3>
+        <div className="bg-card text-card-foreground border border-border p-6 rounded-xl shadow-sm">
+          <h3 className="text-lg font-semibold text-foreground mb-4">Recent Profit Shares</h3>
           <div className="space-y-3">
             {safeMap(memberData.profitShares, (share: ProfitShare, index: number) => (
-              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div key={index} className="flex items-center justify-between p-3 bg-muted/40 dark:bg-muted/20 rounded-lg border border-border">
                 <div className="flex items-center">
-                  <Trophy className="w-4 h-4 text-purple-500 mr-2" />
+                  <Trophy className="w-4 h-4 text-primary-600 dark:text-primary-400 mr-2" />
                   <div>
-                    <p className="text-sm font-medium text-gray-900">{share.period}</p>
-                    <p className="text-xs text-gray-500">Quarterly Distribution</p>
+                    <p className="text-sm font-medium text-foreground">{share.period}</p>
+                    <p className="text-xs text-muted-foreground">Quarterly Distribution</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-medium text-gray-900">{toCurrency(share.amount)}</p>
-                  <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-800">
+                  <p className="text-sm font-medium text-foreground">{toCurrency(share.amount)}</p>
+                  <span className="text-xs px-2 py-1 rounded-full bg-primary-100 text-primary-800 dark:bg-primary-950/60 dark:text-primary-300">
                     <CheckCircle className="w-3 h-3 inline mr-1" />
                     {share.status}
                   </span>
@@ -598,13 +606,13 @@ export const MemberDashboard: React.FC = () => {
         </div>
 
         {/* Loans Activity */}
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-card text-card-foreground border border-border p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-              <CreditCard className="w-5 h-5 mr-2 text-primary-500" />
+            <h3 className="text-lg font-semibold text-foreground flex items-center">
+              <CreditCard className="w-5 h-5 mr-2 text-primary-600 dark:text-primary-400" />
               LOANS
             </h3>
-            <button className="text-sm text-primary-600 hover:text-primary-700 font-medium">
+            <button className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 font-medium">
               View All Loans
             </button>
           </div>
@@ -612,57 +620,57 @@ export const MemberDashboard: React.FC = () => {
           <div className="space-y-3">
             {memberData.activeLoan ? (
               <>
-                <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg border border-gray-100">
-                  <span className="text-sm font-medium text-gray-700">Loan application submitted:</span>
-                  <span className="text-sm font-bold text-gray-900">{new Date(memberData.activeLoan.startDate).toLocaleDateString()}</span>
+                <div className="flex justify-between items-center p-3 bg-muted/40 dark:bg-muted/20 rounded-lg border border-border">
+                  <span className="text-sm font-medium text-muted-foreground">Loan application submitted:</span>
+                  <span className="text-sm font-bold text-foreground">{new Date(memberData.activeLoan.startDate).toLocaleDateString()}</span>
                 </div>
-                <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg border border-gray-100">
-                  <span className="text-sm font-medium text-gray-700">Amount approved:</span>
-                  <span className="text-sm font-bold text-green-600">{toCurrency(memberData.activeLoan.amount)}</span>
+                <div className="flex justify-between items-center p-3 bg-muted/40 dark:bg-muted/20 rounded-lg border border-border">
+                  <span className="text-sm font-medium text-muted-foreground">Amount approved:</span>
+                  <span className="text-sm font-bold text-primary-600 dark:text-primary-400">{toCurrency(memberData.activeLoan.amount)}</span>
                 </div>
-                <div className="flex justify-between items-center p-3 bg-primary-50 rounded-lg border border-primary-100">
-                  <span className="text-sm font-medium text-primary-900">Outstanding balance:</span>
-                  <span className="text-lg font-bold text-red-600">{toCurrency(memberData.activeLoan.balance)}</span>
+                <div className="flex justify-between items-center p-3 bg-primary-50 dark:bg-primary-950/40 rounded-lg border border-primary-100 dark:border-primary-900/40">
+                  <span className="text-sm font-medium text-primary-900 dark:text-primary-200">Outstanding balance:</span>
+                  <span className="text-lg font-bold text-red-600 dark:text-red-400">{toCurrency(memberData.activeLoan.balance)}</span>
                 </div>
               </>
             ) : (
-              <div className="text-center p-6 bg-gray-50 rounded-lg border border-gray-200">
-                <p className="text-sm text-gray-500">No active loans.</p>
+              <div className="text-center p-6 bg-muted/20 rounded-lg border border-border">
+                <p className="text-sm text-muted-foreground">No active loans.</p>
               </div>
             )}
           </div>
         </div>
 
         {/* Layyah Applications */}
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-card text-card-foreground border border-border p-6 rounded-xl shadow-sm">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-              <Heart className="w-5 h-5 mr-2 text-green-500" />
+            <h3 className="text-lg font-semibold text-foreground flex items-center">
+              <Heart className="w-5 h-5 mr-2 text-primary-600 dark:text-primary-400" />
               Layyah Applications
             </h3>
-            <button className="text-sm text-green-600 hover:text-green-700 font-medium">
+            <button className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 font-medium">
               View All
             </button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-            <div className="text-center p-3 bg-green-50 rounded-lg">
-              <div className="text-2xl font-bold text-green-600">{memberData.layyahApplications}</div>
-              <div className="text-sm text-gray-600">My Applications</div>
+            <div className="text-center p-3 bg-primary-50/50 dark:bg-primary-950/30 border border-primary-100 dark:border-primary-900/40 rounded-lg">
+              <div className="text-2xl font-bold text-primary-700 dark:text-primary-300">{memberData.layyahApplications}</div>
+              <div className="text-sm text-muted-foreground">My Applications</div>
             </div>
-            <div className="text-center p-3 bg-primary-50 rounded-lg">
-              <div className="text-2xl font-bold text-primary-600">{memberData.activeLayyahGroups}</div>
-              <div className="text-sm text-gray-600">Active Groups</div>
+            <div className="text-center p-3 bg-primary-50 dark:bg-primary-950/40 border border-primary-100 dark:border-primary-900/40 rounded-lg">
+              <div className="text-2xl font-bold text-primary-700 dark:text-primary-300">{memberData.activeLayyahGroups}</div>
+              <div className="text-sm text-muted-foreground">Active Groups</div>
             </div>
-            <div className="text-center p-3 bg-yellow-50 rounded-lg">
-              <div className="text-2xl font-bold text-yellow-600">{memberData.pendingInvitations}</div>
-              <div className="text-sm text-gray-600">Pending Invites</div>
+            <div className="text-center p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/40 rounded-lg">
+              <div className="text-2xl font-bold text-amber-700 dark:text-amber-400">{memberData.pendingInvitations}</div>
+              <div className="text-sm text-muted-foreground">Pending Invites</div>
             </div>
           </div>
 
           <div className="flex space-x-3">
             <button
-              className="flex-1 flex items-center justify-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              className="flex-1 flex items-center justify-center space-x-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
               type="button"
               onClick={() => navigate('/my-layyah')}
             >
@@ -670,7 +678,7 @@ export const MemberDashboard: React.FC = () => {
               <span>New Application</span>
             </button>
             <button
-              className="flex-1 flex items-center justify-center space-x-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+              className="flex-1 flex items-center justify-center space-x-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 transition-colors"
               type="button"
               onClick={() => navigate('/browse-layyah')}
             >
@@ -683,7 +691,7 @@ export const MemberDashboard: React.FC = () => {
             <a
               href={whatsappInviteUrl}
               onClick={handleWhatsappInviteClick}
-              className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
               aria-label="Join the cooperative WhatsApp group"
               rel="noopener noreferrer"
             >
@@ -703,15 +711,15 @@ export const MemberDashboard: React.FC = () => {
       {/* Loan Repayment Overview */}
       {memberData.activeLoan && (
         <motion.div className="mt-6" variants={cardVariants}>
-          <div className="bg-white p-6 rounded-lg shadow">
+          <div className="bg-card text-card-foreground border border-border p-6 rounded-xl shadow-sm">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                <Receipt className="w-5 h-5 mr-2 text-primary-500" />
+              <h3 className="text-lg font-semibold text-foreground flex items-center">
+                <Receipt className="w-5 h-5 mr-2 text-primary-600 dark:text-primary-400" />
                 Loan Repayment Overview
               </h3>
               <button
                 onClick={() => window.location.href = '/my-loans'}
-                className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+                className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 font-medium"
               >
                 View Full Details →
               </button>
@@ -719,34 +727,34 @@ export const MemberDashboard: React.FC = () => {
 
             {/* Loan Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-              <div className="p-4 bg-primary-50 rounded-lg">
-                <div className="text-sm text-primary-700">Loan Amount</div>
-                <div className="text-xl font-bold text-primary-900">{toCurrency(memberData.activeLoan.amount)}</div>
+              <div className="p-4 bg-primary-50/50 dark:bg-primary-950/30 border border-primary-100 dark:border-primary-900/40 rounded-lg">
+                <div className="text-sm text-primary-700 dark:text-primary-300">Loan Amount</div>
+                <div className="text-xl font-bold text-primary-900 dark:text-primary-100">{toCurrency(memberData.activeLoan.amount)}</div>
               </div>
-              <div className="p-4 bg-green-50 rounded-lg">
-                <div className="text-sm text-green-700">Amount Paid</div>
-                <div className="text-xl font-bold text-green-900">{toCurrency((memberData.activeLoan.amount || 0) - (memberData.activeLoan.balance || 0))}</div>
+              <div className="p-4 bg-primary-50 dark:bg-primary-950/40 border border-primary-100 dark:border-primary-900/40 rounded-lg">
+                <div className="text-sm text-primary-700 dark:text-primary-300">Amount Paid</div>
+                <div className="text-xl font-bold text-primary-900 dark:text-primary-100">{toCurrency((memberData.activeLoan.amount || 0) - (memberData.activeLoan.balance || 0))}</div>
               </div>
-              <div className="p-4 bg-orange-50 rounded-lg">
-                <div className="text-sm text-orange-700">Outstanding</div>
-                <div className="text-xl font-bold text-orange-900">{toCurrency(memberData.activeLoan.balance)}</div>
+              <div className="p-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/40 rounded-lg">
+                <div className="text-sm text-amber-700 dark:text-amber-300">Outstanding</div>
+                <div className="text-xl font-bold text-amber-900 dark:text-amber-100">{toCurrency(memberData.activeLoan.balance)}</div>
               </div>
-              <div className="p-4 bg-purple-50 rounded-lg">
-                <div className="text-sm text-purple-700">Monthly Payment</div>
-                <div className="text-xl font-bold text-purple-900">{toCurrency(memberData.activeLoan.monthlyPayment)}</div>
+              <div className="p-4 bg-primary-100/50 dark:bg-primary-950/60 border border-primary-200 dark:border-primary-900/50 rounded-lg">
+                <div className="text-sm text-primary-700 dark:text-primary-300">Monthly Payment</div>
+                <div className="text-xl font-bold text-primary-900 dark:text-primary-100">{toCurrency(memberData.activeLoan.monthlyPayment)}</div>
               </div>
             </div>
 
             {/* Next Payment Alert */}
-            <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <div className="p-4 bg-amber-50/70 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 rounded-lg">
               <div className="flex items-center">
-                <AlertCircle className="w-5 h-5 text-yellow-600 mr-3" />
+                <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 mr-3" />
                 <div>
-                  <div className="text-sm font-medium text-yellow-800">Next Payment Due</div>
-                  <div className="text-sm text-yellow-700">
+                  <div className="text-sm font-medium text-amber-900 dark:text-amber-200">Next Payment Due</div>
+                  <div className="text-sm text-amber-800 dark:text-amber-300">
                     {toCurrency(memberData.activeLoan.monthlyPayment)} due on {memberData.activeLoan.nextPayment}
                   </div>
-                  <div className="text-xs text-yellow-600 mt-1">
+                  <div className="text-xs text-amber-700 dark:text-amber-400 mt-1">
                     {memberData.activeLoan.paymentsLeft} payments remaining
                   </div>
                 </div>

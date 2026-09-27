@@ -35,23 +35,23 @@ export const StatCard: React.FC<StatCardProps> = ({
 
   return (
     <motion.div
-      className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100"
+      className="bg-card text-card-foreground p-6 rounded-2xl shadow-sm border border-border"
       variants={cardVariants}
     >
       <div className="flex justify-between items-start">
         <div className="space-y-1">
-          <p className="text-sm font-medium text-gray-500">{title}</p>
-          <p className="text-3xl font-bold text-gray-900">{value}</p>
+          <p className="text-sm font-medium text-muted-foreground">{title}</p>
+          <p className="text-3xl font-bold text-foreground mt-1">{value}</p>
         </div>
-        <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
-          <Icon className="w-6 h-6 text-primary-500" />
+        <div className="w-12 h-12 bg-primary-50 dark:bg-primary-950/40 border border-primary-200/50 dark:border-primary-800/40 rounded-full flex items-center justify-center flex-shrink-0">
+          <Icon className="w-6 h-6 text-primary-600 dark:text-primary-400" />
         </div>
       </div>
       {change !== undefined && changeText && (
         <div className="mt-4 flex items-center space-x-1 text-sm">
           <ChangeIcon className={`w-4 h-4 ${changeColor}`} />
           <span className={`${changeColor} font-semibold`}>{change}</span>
-          <span className="text-gray-500">{changeText}</span>
+          <span className="text-muted-foreground">{changeText}</span>
         </div>
       )}
     </motion.div>

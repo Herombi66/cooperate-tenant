@@ -183,4 +183,62 @@ describe('AuthProvider idle logout', () => {
 
     expect(localStorage.getItem('token')).toBe('t');
   });
+
+  it('redirects member from fmcksmcs tenant to tenant login page on logout', async () => {
+    localStorage.setItem('token', 't');
+    localStorage.setItem('user', JSON.stringify({ id: '1', role: 'member', tenant_id: 'fmcksmcs' }));
+    localStorage.setItem('previewTenantId', 'fmcksmcs');
+
+    mockAxiosInstance.get.mockImplementation((url: string) => {
+      if (url === '/health') return Promise.resolve({ data: { status: 'OK' } });
+      if (url === '/auth/me') {
+        return Promise.resolve({
+          data: {
+            user: {
+              id: 1,
+              psn: 'IPPIS001',
+              name: 'Dr. Aisha',
+              email: 'aisha@fmck.local',
+              role: 'member',
+              tenant_id: 'fmcksmcs',
+              is_default_password: false,
+              status: 'active'
+            }
+          }
+        });
+      }
+      return Promise.reject(new Error('unexpected'));
+    });
+
+    const { AuthProvider, useAuth } = await import('./AuthContext');
+
+    let logoutFn: any;
+    const Probe = () => {
+      const auth = useAuth();
+      logoutFn = auth.logout;
+      return <div>{auth.isAuthenticated ? 'yes' : 'no'}</div>;
+    };
+
+    render(
+      <AuthProvider>
+        <Probe />
+      </AuthProvider>
+    );
+
+    await act(async () => {
+      for (let i = 0; i < 8; i++) await Promise.resolve();
+    });
+
+    await act(async () => {
+      logoutFn();
+    });
+
+    await act(async () => {
+      vi.advanceTimersByTime(1_000);
+    });
+
+    expect(localStorage.getItem('token')).toBe(null);
+    expect(localStorage.getItem('previewTenantId')).toBe('fmcksmcs');
+    expect(window.location.href).toBe('/login?tenant=fmcksmcs');
+  });
 });

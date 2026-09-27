@@ -173,6 +173,117 @@
     --tw-ring-color: hsl(var(--border));
   }
 
+  /* FMCKSMCS Sidebar Theme - Light Mode */
+  .fmck-white-sidebar {
+    background-color: #ffffff !important;
+    color: #111827 !important;
+    border-color: #e5e7eb !important;
+  }
+
+  .fmck-white-sidebar .fmck-brand-title {
+    color: #111827 !important;
+  }
+
+  .fmck-white-sidebar .fmck-nav-item {
+    color: #4b5563 !important;
+    background-color: transparent !important;
+  }
+
+  .fmck-white-sidebar .fmck-nav-item:hover {
+    background-color: #f9fafb !important;
+    color: #111827 !important;
+  }
+
+  .fmck-white-sidebar .fmck-nav-item-active {
+    background-color: #f3f4f6 !important;
+    color: #111827 !important;
+    border-left-color: #03490b !important;
+  }
+
+  .fmck-white-sidebar .fmck-nav-item-active svg {
+    color: #03490b !important;
+  }
+
+  .fmck-white-sidebar .fmck-nav-item svg {
+    color: #6b7280 !important;
+  }
+
+  .fmck-white-sidebar .fmck-nav-item:hover svg {
+    color: #111827 !important;
+  }
+
+  .fmck-white-sidebar .fmck-sidebar-btn {
+    color: #6b7280 !important;
+  }
+
+  .fmck-white-sidebar .fmck-sidebar-btn:hover {
+    background-color: #f3f4f6 !important;
+    color: #111827 !important;
+  }
+
+  /* FMCKSMCS Sidebar Theme - Dark Mode (Fully Responsive) */
+  .dark .fmck-white-sidebar {
+    background-color: hsl(var(--card)) !important;
+    color: hsl(var(--foreground)) !important;
+    border-color: hsl(var(--border)) !important;
+  }
+
+  .dark .fmck-white-sidebar .fmck-brand-title {
+    color: #ffffff !important;
+  }
+
+  .dark .fmck-white-sidebar .fmck-nav-item {
+    color: hsl(var(--muted-foreground)) !important;
+    background-color: transparent !important;
+  }
+
+  .dark .fmck-white-sidebar .fmck-nav-item:hover {
+    background-color: hsl(var(--muted) / 0.5) !important;
+    color: #ffffff !important;
+  }
+
+  .dark .fmck-white-sidebar .fmck-nav-item-active {
+    background-color: hsl(var(--muted)) !important;
+    color: #ffffff !important;
+    border-left-color: #5cd674 !important;
+  }
+
+  .dark .fmck-white-sidebar .fmck-nav-item-active svg {
+    color: #5cd674 !important;
+  }
+
+  .dark .fmck-white-sidebar .fmck-nav-item svg {
+    color: hsl(var(--muted-foreground)) !important;
+  }
+
+  .dark .fmck-white-sidebar .fmck-nav-item:hover svg {
+    color: #ffffff !important;
+  }
+
+  .dark .fmck-white-sidebar .fmck-sidebar-btn {
+    color: hsl(var(--muted-foreground)) !important;
+  }
+
+  .dark .fmck-white-sidebar .fmck-sidebar-btn:hover {
+    background-color: hsl(var(--muted)) !important;
+    color: #ffffff !important;
+  }
+
+  /* Enhanced Table & Form Dark Mode Support */
+  .dark table thead th {
+    background-color: hsl(var(--card)) !important;
+    color: hsl(var(--foreground)) !important;
+    border-color: hsl(var(--border)) !important;
+  }
+
+  .dark table tbody tr {
+    border-color: hsl(var(--border)) !important;
+  }
+
+  .dark table tbody tr:hover {
+    background-color: hsl(var(--muted) / 0.4) !important;
+  }
+
   .loan-stripe {
     background: linear-gradient(90deg, #1e3a8a 0%, #ffffff 50%, #1e3a8a 100%);
     background-size: 200% 100%;

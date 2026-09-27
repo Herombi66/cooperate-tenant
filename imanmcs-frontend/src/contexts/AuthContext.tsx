@@ -23,7 +23,7 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (psn: string, password: string) => Promise<void>;
-  logout: (options?: { reason?: 'manual' | 'idle' | 'expired'; suppressToast?: boolean }) => void;
+  logout: (options?: { reason?: 'manual' | 'idle' | 'expired'; suppressToast?: boolean; tenantId?: string }) => void;
   changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   refreshUser: () => Promise<void>;
 }
@@ -83,12 +83,16 @@ axiosInstance.interceptors.response.use(
     
     if (error.response?.status === 401) {
       console.log('🛡️ Unauthorized, clearing token');
+      const tenantParam = localStorage.getItem('previewTenantId') || localStorage.getItem('tenant_id');
+      const isFmck = tenantParam?.toLowerCase() === 'fmcksmcs' || tenantParam?.toLowerCase() === 'fmck';
+      const resolvedTenant = isFmck ? 'fmcksmcs' : (tenantParam && tenantParam !== 'default' ? tenantParam : '');
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       localStorage.removeItem('iman.idle.lastActivityAt');
       // Don't redirect if we're already on login page
       if (!window.location.pathname.includes('/login')) {
-        window.location.href = '/login';
+        const loginUrl = resolvedTenant ? `/login?tenant=${encodeURIComponent(resolvedTenant)}` : '/login';
+        window.location.href = loginUrl;
       }
     }
     
@@ -242,6 +246,9 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
       
       // If it's a 401 error, clear everything and redirect to login
       if ((error as any).response?.status === 401) {
+        const tenantParam = user?.tenant_id || user?.tenantId || localStorage.getItem('previewTenantId') || localStorage.getItem('tenant_id');
+        const isFmck = tenantParam?.toLowerCase() === 'fmcksmcs' || tenantParam?.toLowerCase() === 'fmck';
+        const resolvedTenant = isFmck ? 'fmcksmcs' : (tenantParam && tenantParam !== 'default' ? tenantParam : '');
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         setUser(null);
@@ -250,7 +257,8 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
         
         // Only redirect if not already on login page
         if (!window.location.pathname.includes('/login')) {
-          window.location.href = '/login';
+          const loginUrl = resolvedTenant ? `/login?tenant=${encodeURIComponent(resolvedTenant)}` : '/login';
+          window.location.href = loginUrl;
         }
       } else {
         // For other errors, keep the user logged in but show warning
@@ -334,19 +342,52 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
     }
   };
 
-  const logout = (options?: { reason?: 'manual' | 'idle' | 'expired'; suppressToast?: boolean }): void => {
+  const logout = (options?: { reason?: 'manual' | 'idle' | 'expired'; suppressToast?: boolean; tenantId?: string }): void => {
     const reason = options?.reason || 'manual';
     console.log('🚪 Logging out...', { reason });
     clearIdleTimers();
     try {
       axiosInstance.post('/auth/logout').catch(() => {});
     } catch {}
+
+    // Resolve tenant before clearing user/tokens
+    const detectedTenantId = 
+      options?.tenantId ||
+      user?.tenant_id || 
+      user?.tenantId || 
+      localStorage.getItem('previewTenantId') || 
+      localStorage.getItem('tenant_id') ||
+      (() => {
+        try {
+          const stored = localStorage.getItem('user');
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            return parsed?.tenant_id || parsed?.tenantId;
+          }
+        } catch {}
+        return '';
+      })() ||
+      new URLSearchParams(window.location.search).get('tenant') ||
+      '';
+
+    const isFmck = detectedTenantId.toLowerCase() === 'fmcksmcs' || 
+                   detectedTenantId.toLowerCase() === 'fmck';
+    const resolvedTenantId = isFmck ? 'fmcksmcs' : (detectedTenantId && detectedTenantId !== 'default' ? detectedTenantId : '');
+
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    localStorage.removeItem('tenant_id');
-    localStorage.removeItem('previewTenantId');
     localStorage.removeItem(LAST_ACTIVITY_KEY);
-    window.dispatchEvent(new CustomEvent('tenantChanged', { detail: 'default' }));
+
+    if (resolvedTenantId) {
+      localStorage.setItem('tenant_id', resolvedTenantId);
+      localStorage.setItem('previewTenantId', resolvedTenantId);
+      window.dispatchEvent(new CustomEvent('tenantChanged', { detail: resolvedTenantId }));
+    } else {
+      localStorage.removeItem('tenant_id');
+      localStorage.removeItem('previewTenantId');
+      window.dispatchEvent(new CustomEvent('tenantChanged', { detail: 'default' }));
+    }
+
     setUser(null);
     setIsAuthenticated(false);
     if (!options?.suppressToast) {
@@ -355,9 +396,12 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
       else toast.success('Successfully logged out');
     }
     
-    // Redirect to login
+    // Redirect to tenant-specific login or default login
     setTimeout(() => {
-      window.location.href = '/login';
+      const redirectUrl = resolvedTenantId 
+        ? `/login?tenant=${encodeURIComponent(resolvedTenantId)}` 
+        : '/login';
+      window.location.href = redirectUrl;
     }, 500);
   };
 

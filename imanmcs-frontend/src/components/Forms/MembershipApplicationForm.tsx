@@ -20,8 +20,8 @@ const membershipSchema = z.object({
   targetSaving: z.number().min(0, 'Target saving cannot be negative').optional(),
   targetPeriod: z.number().min(1, 'Target period must be at least 1 month').optional(),
 }).refine((data) => data.savings + data.investment >= 5000, {
-  message: 'Combined savings and investment must be at least ₦5,000',
-  path: ['investment'],
+  message: 'Minimum initial contribution is ₦5,000. ₦1,500 entrance fee will be deducted from this amount.',
+  path: ['savings'],
 });
 
 type MembershipFormData = z.infer<typeof membershipSchema>;
@@ -73,6 +73,11 @@ export const MembershipApplicationForm: React.FC<MembershipApplicationFormProps>
     setIsLoading(true);
     await new Promise(resolve => setTimeout(resolve, 300));
     try {
+      const isFmckTenant = isFmck;
+      const contribAmount = data.savings + (isFmckTenant ? 0 : data.investment);
+      const entranceFee = isFmckTenant ? 1500 : 0;
+      const remainingContribution = Math.max(0, contribAmount - entranceFee);
+
       // Transform data to match backend schema
       const applicationData = {
         name: data.name,
@@ -82,10 +87,19 @@ export const MembershipApplicationForm: React.FC<MembershipApplicationFormProps>
         facility_name: data.facilityName,
         next_of_kin_name: data.nextOfKinName,
         next_of_kin_phone: data.nextOfKinPhone,
-        savings: data.savings,
-        investment: data.investment,
+        contribution: contribAmount,
+        savings: isFmckTenant ? remainingContribution : data.savings,
+        investment: isFmckTenant ? 0 : data.investment,
+        total_initial_contribution: contribAmount,
         target_saving: data.targetSaving || 0,
         target_period: data.targetPeriod || 12,
+        metadata: {
+          contribution: contribAmount,
+          entrance_fee: entranceFee,
+          remaining_contribution: remainingContribution,
+          initial_contribution: contribAmount,
+          total_initial_contribution: contribAmount
+        }
       };
 
       try {
@@ -266,56 +280,97 @@ export const MembershipApplicationForm: React.FC<MembershipApplicationFormProps>
           <div className="space-y-4">
             <h3 className="text-lg font-medium text-gray-900 flex items-center">
               <DollarSign className="w-5 h-5 mr-2 text-primary-500" />
-              Initial Contributions (Minimum ₦5,000 combined)
+              {isFmck ? 'Initial Contribution' : 'Initial Contributions (Minimum ₦5,000 combined)'}
             </h3>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Savings (₦)
-                </label>
-                <input
-                  {...register('savings', { valueAsNumber: true })}
-                  type="number"
-                  min="0"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-                  placeholder="0"
-                />
-                {errors.savings && (
-                  <p className="mt-1 text-sm text-red-600">{errors.savings.message}</p>
-                )}
-              </div>
+            {isFmck ? (
+              <div className="space-y-3">
+                <div className="max-w-md">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Contribution (₦) *
+                  </label>
+                  <input
+                    {...register('savings', { valueAsNumber: true })}
+                    type="number"
+                    min="5000"
+                    step="500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                    placeholder="5000"
+                  />
+                  <p className="text-xs text-gray-600 mt-1 font-medium">
+                    Minimum required: ₦5,000. ₦1,500 entrance fee will be deducted from your first contribution.
+                  </p>
+                  {errors.savings && (
+                    <p className="mt-1 text-sm text-red-600">{errors.savings.message}</p>
+                  )}
+                </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Investment/Shares (₦)
-                </label>
-                <input
-                  {...register('investment', { valueAsNumber: true })}
-                  type="number"
-                  min="0"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-                  placeholder="0"
-                />
-                {errors.investment && (
-                  <p className="mt-1 text-sm text-red-600">{errors.investment.message}</p>
-                )}
+                <div className="bg-emerald-50/50 border border-emerald-200/80 p-3 rounded-lg max-w-md space-y-1.5 text-xs">
+                  <div className="flex justify-between text-gray-700">
+                    <span>Contribution:</span>
+                    <span className="font-semibold text-gray-900">₦{savings.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between text-amber-800">
+                    <span>Entrance Fee (deducted):</span>
+                    <span className="font-semibold">-₦1,500.00</span>
+                  </div>
+                  <div className="flex justify-between font-bold text-emerald-800 pt-1 border-t border-emerald-200 text-sm">
+                    <span>Remaining Contribution:</span>
+                    <span>₦{Math.max(0, savings - 1500).toLocaleString()}</span>
+                  </div>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Savings (₦)
+                  </label>
+                  <input
+                    {...register('savings', { valueAsNumber: true })}
+                    type="number"
+                    min="0"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                    placeholder="0"
+                  />
+                  {errors.savings && (
+                    <p className="mt-1 text-sm text-red-600">{errors.savings.message}</p>
+                  )}
+                </div>
 
-            <div className="bg-gray-50 p-3 rounded-md">
-              <p className="text-sm text-gray-600">
-                Total Initial Contribution: <span className="font-semibold">₦{totalContribution.toLocaleString()}</span>
-                {totalContribution < 5000 && (
-                  <span className="text-red-600 ml-2">
-                    (Minimum ₦5,000 required)
-                  </span>
-                )}
-              </p>
-              <p className="text-xs text-gray-500 mt-1">
-                Note: ₦1,500 entrance fee will be deducted from your first contribution
-              </p>
-            </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Investment/Shares (₦)
+                  </label>
+                  <input
+                    {...register('investment', { valueAsNumber: true })}
+                    type="number"
+                    min="0"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                    placeholder="0"
+                  />
+                  {errors.investment && (
+                    <p className="mt-1 text-sm text-red-600">{errors.investment.message}</p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {!isFmck && (
+              <div className="bg-gray-50 p-3 rounded-md">
+                <p className="text-sm text-gray-600">
+                  Total Initial Contribution: <span className="font-semibold">₦{totalContribution.toLocaleString()}</span>
+                  {totalContribution < 5000 && (
+                    <span className="text-red-600 ml-2">
+                      (Minimum ₦5,000 required)
+                    </span>
+                  )}
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  Note: ₦1,500 entrance fee will be deducted from your first contribution
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Optional Target Savings */}

@@ -2006,50 +2006,42 @@
             <span>2. Initial Contribution</span>
           </div>
           <div class="form-section-desc">
-            Enter your opening savings and investment allocation. The total must meet the minimum threshold.
+            Setup your opening cooperative contribution. ₦1,500 entrance fee will be deducted from this amount.
           </div>
 
-          <div class="form-grid-2">
-            <div>
-              <label for="appInitialSaving">Initial Saving Amount (₦) <span class="req">*</span></label>
-              <input type="number" id="appInitialSaving" min="0" step="500" placeholder="e.g. 3000" required oninput="handleContributionInput()">
-              <div class="field-error-msg" id="err-appInitialSaving">Please enter a valid saving amount.</div>
-              <span id="previewSavingFmt" style="font-family:var(--mono); font-size:0.75rem; color:var(--ink-muted); display:block; margin-top:4px;"></span>
+          <div style="max-width:480px;">
+            <label for="appContribution">Contribution (₦) <span class="req">*</span></label>
+            <input type="number" id="appContribution" min="5000" step="500" placeholder="e.g. 5000" required oninput="handleContributionInput()">
+            <div style="font-size:0.8rem; color:var(--ink-soft); margin-top:5px; font-weight:500;">
+              Minimum required: ₦5,000. ₦1,500 entrance fee will be deducted from your first contribution.
             </div>
-            <div>
-              <label for="appInitialInvestment">Initial Investment Amount (₦) <span class="req">*</span></label>
-              <input type="number" id="appInitialInvestment" min="0" step="500" placeholder="e.g. 2000" required oninput="handleContributionInput()">
-              <div class="field-error-msg" id="err-appInitialInvestment">Please enter a valid investment amount.</div>
-              <span id="previewInvestFmt" style="font-family:var(--mono); font-size:0.75rem; color:var(--ink-muted); display:block; margin-top:4px;"></span>
-            </div>
+            <div class="field-error-msg" id="err-appContribution">Minimum initial contribution is ₦5,000. ₦1,500 entrance fee will be deducted from this amount.</div>
           </div>
 
-          <!-- Total Initial Contribution (Read-Only Calculated Field) -->
-          <div class="calculated-box">
-            <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:8px;">
-              <div>
-                <span style="font-family:var(--mono); font-size:0.7rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--ink-muted); display:block;">
-                  Read-Only Calculated Field
-                </span>
-                <span style="font-size:1.05rem; font-weight:700; color:var(--ink);">
-                  Total Initial Contribution
-                </span>
-                <span style="font-size:0.8rem; color:var(--ink-muted); display:block;">
-                  (Initial Saving + Initial Investment)
-                </span>
-              </div>
-              <div class="total-val" id="appTotalContributionDisplay">₦0.00</div>
+          <!-- Contribution Breakdown Box -->
+          <div class="calculated-box" style="max-width:540px; margin-top:16px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e2e8f0; padding-bottom:8px; margin-bottom:12px;">
+              <span style="font-family:var(--mono); font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--ink-muted); font-weight:600;">
+                Contribution Breakdown
+              </span>
+              <span style="font-family:var(--mono); font-size:0.7rem; color:var(--primary); background:rgba(15,61,61,0.06); padding:2px 8px; border-radius:4px;">
+                FMCK Opening Ledger
+              </span>
             </div>
 
-            <!-- Minimum Requirement Notice Directly Below Total -->
-            <div class="fee-notice-banner">
-              <strong>Minimum required: ₦5,000 combined. ₦1,500 entrance fee will be deducted from your first contribution.</strong>
-              <div style="font-size:0.78rem; color:var(--ink-soft); margin-top:4px;">
-                Example: Initial Saving: ₦3,000 + Initial Investment: ₦2,000 = Total Initial Contribution: ₦5,000.
-              </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.88rem; margin-bottom:8px;">
+              <span style="color:var(--ink-muted);">Contribution:</span>
+              <span style="font-family:var(--mono); font-weight:700; color:var(--ink);" id="appContributionDisplay">₦0.00</span>
             </div>
-            <div class="field-error-msg" id="err-totalContribution" style="margin-top:8px;">
-              The combined contribution is currently below the required ₦5,000 minimum threshold.
+
+            <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.82rem; color:#b7791f; margin-bottom:10px;">
+              <span>Entrance Fee (deducted):</span>
+              <span style="font-family:var(--mono); font-weight:600;">-₦1,500.00</span>
+            </div>
+
+            <div style="display:flex; justify-content:space-between; align-items:baseline; border-top:1px solid #e2e8f0; padding-top:10px;">
+              <span style="font-weight:700; color:var(--teal); font-size:0.95rem;">Remaining Contribution:</span>
+              <div class="total-val" id="appRemainingContributionDisplay">₦0.00</div>
             </div>
           </div>
         </div>
@@ -2130,10 +2122,10 @@
         <div>EMAIL ADDRESS: <span id="slipEmail"></span></div>
         <div>PHONE NUMBER: <span id="slipPhone"></span></div>
         <div style="border-top:1px dashed var(--line); margin:12px 0;"></div>
-        <div>INITIAL SAVING: <strong id="slipInitialSaving"></strong></div>
-        <div>INITIAL INVESTMENT: <strong id="slipInitialInvestment"></strong></div>
+        <div>CONTRIBUTION: <strong id="slipContribution"></strong></div>
+        <div style="color:#b7791f;">ENTRANCE FEE (deducted): <strong id="slipEntranceFee">-₦1,500.00</strong></div>
         <div style="font-size:1rem; font-weight:bold; color:var(--teal); margin:6px 0;">
-          TOTAL INITIAL CONTRIBUTION: <span id="slipTotalContribution"></span>
+          REMAINING CONTRIBUTION: <span id="slipRemainingContribution"></span>
         </div>
         <div style="color:var(--gold); font-size:0.8rem;">★ Note: ₦1,500 entrance fee will be deducted from your first contribution.</div>
         <div id="slipTargetSavingRow" style="margin-top:6px;">TARGET MONTHLY SAVING: <span id="slipTargetSaving"></span></div>
@@ -2467,35 +2459,28 @@
   }
 
   function handleContributionInput() {
-    const savingInput = document.getElementById('appInitialSaving');
-    const investInput = document.getElementById('appInitialInvestment');
-    const savingVal = parseFloat(savingInput.value) || 0;
-    const investVal = parseFloat(investInput.value) || 0;
-    const total = savingVal + investVal;
+    const contribInput = document.getElementById('appContribution');
+    const contribVal = parseFloat(contribInput.value) || 0;
+    const entranceFee = 1500;
+    const remaining = Math.max(0, contribVal - entranceFee);
 
-    // Previews
-    document.getElementById('previewSavingFmt').textContent = savingVal > 0 ? 'Preview: ' + fmtNaira(savingVal) : '';
-    document.getElementById('previewInvestFmt').textContent = investVal > 0 ? 'Preview: ' + fmtNaira(investVal) : '';
+    // Displays
+    document.getElementById('appContributionDisplay').textContent = fmtNaira(contribVal);
+    document.getElementById('appRemainingContributionDisplay').textContent = fmtNaira(remaining);
 
-    // Total display
-    const totalDisplay = document.getElementById('appTotalContributionDisplay');
-    totalDisplay.textContent = fmtNaira(total);
-
-    // Minimum requirement validation
-    const errTotal = document.getElementById('err-totalContribution');
-    const btnSubmit = document.getElementById('btnSubmitApp');
-
-    if (savingVal > 0 || investVal > 0) {
-      if (total < 5000) {
-        errTotal.classList.add('show');
-        totalDisplay.style.color = '#e53e3e';
+    // Validation
+    const errContrib = document.getElementById('err-appContribution');
+    if (contribVal > 0) {
+      if (contribVal < 5000) {
+        errContrib.classList.add('show');
+        document.getElementById('appContributionDisplay').style.color = '#e53e3e';
       } else {
-        errTotal.classList.remove('show');
-        totalDisplay.style.color = '';
+        errContrib.classList.remove('show');
+        document.getElementById('appContributionDisplay').style.color = '';
       }
     } else {
-      errTotal.classList.remove('show');
-      totalDisplay.style.color = '';
+      errContrib.classList.remove('show');
+      document.getElementById('appContributionDisplay').style.color = '';
     }
   }
 
@@ -2509,21 +2494,20 @@
     if (confirm('Are you sure you want to reset and clear the application form?')) {
       document.getElementById('fmckMemberForm').reset();
       document.querySelectorAll('.field-error-msg').forEach(e => e.classList.remove('show'));
-      document.getElementById('previewSavingFmt').textContent = '';
-      document.getElementById('previewInvestFmt').textContent = '';
+      document.getElementById('appContributionDisplay').textContent = '₦0.00';
+      document.getElementById('appContributionDisplay').style.color = '';
+      document.getElementById('appRemainingContributionDisplay').textContent = '₦0.00';
       document.getElementById('previewTargetFmt').textContent = '';
-      document.getElementById('appTotalContributionDisplay').textContent = '₦0.00';
-      document.getElementById('appTotalContributionDisplay').style.color = '';
     }
   }
 
   function handleAnotherApplication() {
     document.getElementById('fmckMemberForm').reset();
     document.querySelectorAll('.field-error-msg').forEach(e => e.classList.remove('show'));
-    document.getElementById('previewSavingFmt').textContent = '';
-    document.getElementById('previewInvestFmt').textContent = '';
+    document.getElementById('appContributionDisplay').textContent = '₦0.00';
+    document.getElementById('appContributionDisplay').style.color = '';
+    document.getElementById('appRemainingContributionDisplay').textContent = '₦0.00';
     document.getElementById('previewTargetFmt').textContent = '';
-    document.getElementById('appTotalContributionDisplay').textContent = '₦0.00';
     document.getElementById('printSlipView').style.display = 'none';
     document.getElementById('applicationFormContainer').style.display = 'block';
   }
@@ -2565,19 +2549,18 @@
         }
       });
 
-      const savingInput = document.getElementById('appInitialSaving');
-      const investInput = document.getElementById('appInitialInvestment');
-      const savingVal = parseFloat(savingInput.value) || 0;
-      const investVal = parseFloat(investInput.value) || 0;
-      const total = savingVal + investVal;
+      const contribInput = document.getElementById('appContribution');
+      const contribVal = parseFloat(contribInput.value) || 0;
+      const entranceFee = 1500;
+      const remaining = Math.max(0, contribVal - entranceFee);
 
-      const errTotal = document.getElementById('err-totalContribution');
-      if (total < 5000) {
-        errTotal.classList.add('show');
+      const errContrib = document.getElementById('err-appContribution');
+      if (contribVal < 5000) {
+        errContrib.classList.add('show');
         hasErrors = true;
-        if (!firstInvalid) firstInvalid = savingInput;
+        if (!firstInvalid) firstInvalid = contribInput;
       } else {
-        errTotal.classList.remove('show');
+        errContrib.classList.remove('show');
       }
 
       if (hasErrors) {
@@ -2615,9 +2598,10 @@
         cadre: cadre,
         date_of_birth: dob,
         gender: gender,
-        savings: savingVal,
-        investment: investVal,
-        total_initial_contribution: total,
+        contribution: contribVal,
+        savings: remaining,
+        investment: 0,
+        total_initial_contribution: contribVal,
         target_saving: targetMonthly,
         target_period: 12,
         reference_number: refNumber,
@@ -2630,9 +2614,13 @@
           department: dept,
           unit: unit,
           cadre: cadre,
-          initial_saving: savingVal,
-          initial_investment: investVal,
-          total_initial_contribution: total,
+          contribution: contribVal,
+          entrance_fee: entranceFee,
+          remaining_contribution: remaining,
+          initial_contribution: contribVal,
+          total_initial_contribution: contribVal,
+          initial_saving: remaining,
+          initial_investment: 0,
           target_monthly_saving: targetMonthly,
           reason_for_joining: reason,
           entrance_fee: 1500,
@@ -2680,9 +2668,9 @@
       document.getElementById('slipUnitCadre').textContent = unit + ' • ' + cadre;
       document.getElementById('slipEmail').textContent = email;
       document.getElementById('slipPhone').textContent = phone;
-      document.getElementById('slipInitialSaving').textContent = fmtNaira(savingVal);
-      document.getElementById('slipInitialInvestment').textContent = fmtNaira(investVal);
-      document.getElementById('slipTotalContribution').textContent = fmtNaira(total);
+      document.getElementById('slipContribution').textContent = fmtNaira(contribVal);
+      document.getElementById('slipEntranceFee').textContent = '-₦1,500.00';
+      document.getElementById('slipRemainingContribution').textContent = fmtNaira(remaining);
       document.getElementById('slipTargetSaving').textContent = targetMonthly > 0 ? fmtNaira(targetMonthly) + ' / month' : 'Not specified';
       document.getElementById('slipDate').textContent = dateFormatted;
 

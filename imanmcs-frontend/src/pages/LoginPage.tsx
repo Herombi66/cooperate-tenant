@@ -57,9 +57,19 @@ export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
 
   const urlParams = new URLSearchParams(window.location.search);
-  const currentTenantId = tenant?.id || urlParams.get('tenant') || localStorage.getItem('previewTenantId') || '';
-  const isFmcksmcs = currentTenantId.toLowerCase() === 'fmcksmcs' || (tenant?.name?.toLowerCase().includes('kumo') ?? false) || isFmck;
+  const queryTenant = urlParams.get('tenant');
+  const currentTenantId = (queryTenant && queryTenant !== 'default')
+    ? queryTenant
+    : (tenant?.id && tenant.id !== 'default' ? tenant.id : localStorage.getItem('previewTenantId') || '');
+  const isFmcksmcs = currentTenantId.toLowerCase() === 'fmcksmcs' || currentTenantId.toLowerCase() === 'fmck' || (tenant?.name?.toLowerCase().includes('kumo') ?? false) || isFmck;
   const homepageUrl = isFmcksmcs ? '/fmcksmcs' : (currentTenantId && currentTenantId !== 'default' ? `/${currentTenantId}` : '/');
+
+  React.useEffect(() => {
+    if (queryTenant && queryTenant !== 'default') {
+      localStorage.setItem('previewTenantId', queryTenant);
+      localStorage.setItem('tenant_id', queryTenant);
+    }
+  }, [queryTenant]);
 
   const {
     register,
@@ -129,7 +139,7 @@ export const LoginPage: React.FC = () => {
             className="mt-2 text-sm text-gray-600"
             variants={itemVariants}
           >
-            Sign in to your {tenant?.name || 'Cooperative'} account
+            Sign in to your {tenant?.name || (isFmcksmcs ? 'FMC Kumo Staff MPCS Ltd' : 'Cooperative')} account
           </motion.p>
         </motion.div>
 

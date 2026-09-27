@@ -540,7 +540,7 @@ export const ProfitSharingPage: React.FC = () => {
                     <h4 className="text-sm font-semibold text-primary-900 mb-3">🔒 Auto-Calculated Financial Data</h4>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Total Investment Pool (From Member Contributions) $
+                        Total Investment Pool (From Member Contributions) ₦
                       </label>
                       <input
                         type="number"
@@ -553,7 +553,7 @@ export const ProfitSharingPage: React.FC = () => {
                     </div>
                     <div className="mt-4">
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Total Profit Generated (Revenue - Expenses) $
+                        Total Profit Generated (Revenue - Expenses) ₦
                       </label>
                       <input
                         type="number"

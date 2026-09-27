@@ -7,6 +7,8 @@ import {
 import { useAuth } from '../../contexts/AuthContext';
 import { useLayout } from '../../contexts/LayoutContext';
 import { useTenant } from '../../contexts/TenantContext';
+import { isFmckTenant } from '../../utils/tenantTerminology';
+import { API_URL } from '../../config';
 import { cn } from '../../lib/utils';
 
 const featureMap: Record<string, string> = {
@@ -125,12 +127,12 @@ export const Sidebar: React.FC = () => {
   const { isSidebarOpen, isSidebarCollapsed, toggleSidebarCollapse, closeSidebar } = useLayout();
   const { tenant, hasFeature } = useTenant();
 
-  const isFmcksmcs = tenant?.id?.toLowerCase() === 'fmcksmcs' || 
-    (typeof window !== 'undefined' && (
-      new URLSearchParams(window.location.search).get('tenant')?.toLowerCase() === 'fmcksmcs' || 
-      localStorage.getItem('previewTenantId')?.toLowerCase() === 'fmcksmcs'
-    )) ||
-    (tenant?.name?.toLowerCase().includes('kumo') ?? false);
+  const isFmcksmcs = isFmckTenant(tenant);
+
+  const rawLogo = tenant?.theme?.logoUrl || (isFmcksmcs ? '/fmck-logo.png' : undefined);
+  const logoSrc = rawLogo
+    ? (rawLogo.startsWith('http') || rawLogo.startsWith('/') ? rawLogo : `${API_URL}${rawLogo}`)
+    : undefined;
 
   const rawItems = user ? (navigationItems[user.role] || []) : [];
   const items = rawItems.filter(i => {
@@ -152,8 +154,18 @@ export const Sidebar: React.FC = () => {
 
   if (!user) {
     return (
-      <div className="bg-gray-900 w-64 flex items-center justify-center hidden md:flex">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-400"></div>
+      <div
+        className={cn(
+          "w-64 flex items-center justify-center hidden md:flex",
+          isFmcksmcs ? "fmck-white-sidebar bg-white border-r border-gray-200" : "bg-gray-900"
+        )}
+      >
+        <div
+          className={cn(
+            "animate-spin rounded-full h-8 w-8 border-b-2",
+            isFmcksmcs ? "border-primary-600" : "border-primary-400"
+          )}
+        ></div>
       </div>
     );
   }
@@ -171,22 +183,66 @@ export const Sidebar: React.FC = () => {
       {/* Sidebar */}
       <div
         className={cn(
-          "fixed inset-y-0 left-0 z-50 bg-gray-900 text-white transition-all duration-300",
+          "fixed inset-y-0 left-0 z-50 transition-all duration-300",
+          isFmcksmcs
+            ? "fmck-white-sidebar bg-white dark:bg-card text-gray-900 dark:text-gray-100 border-r border-gray-200 dark:border-border"
+            : "bg-gray-900 text-white",
           isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
           isSidebarCollapsed ? "w-16" : "w-64"
         )}
       >
-        <div className="p-4 flex items-center justify-between">
-          {(!isSidebarCollapsed || isSidebarOpen) && (
-            <h2 className="text-lg font-semibold text-primary-400 truncate uppercase">
-              {tenant?.name || 'Cooperative'}
-            </h2>
+        <div
+          className={cn(
+            "p-4 flex items-center transition-all",
+            isSidebarCollapsed && !isSidebarOpen
+              ? "flex-col justify-center space-y-2"
+              : "justify-between",
+            isFmcksmcs ? "border-b border-gray-100 dark:border-border" : ""
+          )}
+        >
+          {(!isSidebarCollapsed || isSidebarOpen) ? (
+            <div className="flex items-center space-x-2.5 min-w-0 mr-2">
+              {logoSrc && (
+                <img
+                  src={logoSrc}
+                  alt={tenant?.name || 'FMCK Logo'}
+                  className="w-7 h-7 rounded object-contain flex-shrink-0"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              )}
+              <h2
+                className={cn(
+                  "text-sm font-bold truncate uppercase tracking-tight",
+                  isFmcksmcs ? "fmck-brand-title text-gray-900 dark:text-white" : "text-primary-400 text-lg font-semibold"
+                )}
+              >
+                {tenant?.name || (isFmcksmcs ? 'FMCK SMCS' : 'Cooperative')}
+              </h2>
+            </div>
+          ) : (
+            isFmcksmcs && logoSrc && (
+              <img
+                src={logoSrc}
+                alt={tenant?.name || 'FMCK Logo'}
+                className="w-7 h-7 rounded object-contain hidden md:block"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+            )
           )}
 
           {/* Desktop Collapse Button */}
           <button
             onClick={toggleSidebarCollapse}
-            className="hidden md:block p-1 rounded hover:bg-gray-800"
+            className={cn(
+              "hidden md:flex items-center justify-center p-1.5 rounded transition-colors",
+              isFmcksmcs
+                ? "fmck-sidebar-btn text-gray-500 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-white/10"
+                : "hover:bg-gray-800 text-gray-300 hover:text-white"
+            )}
             aria-label={isSidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
           >
             {isSidebarCollapsed ? (
@@ -199,14 +255,19 @@ export const Sidebar: React.FC = () => {
           {/* Mobile Close Button */}
           <button
             onClick={closeSidebar}
-            className="md:hidden p-1 rounded hover:bg-gray-800"
+            className={cn(
+              "md:hidden p-1.5 rounded transition-colors",
+              isFmcksmcs
+                ? "fmck-sidebar-btn text-gray-500 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-white/10"
+                : "hover:bg-gray-800 text-gray-300 hover:text-white"
+            )}
             aria-label="Close Sidebar"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <nav className="mt-8 overflow-y-auto h-[calc(100vh-5rem)]">
+        <nav className="mt-4 overflow-y-auto h-[calc(100vh-5rem)]">
           {items.map((item) => (
             <NavLink
               key={item.name}
@@ -214,24 +275,45 @@ export const Sidebar: React.FC = () => {
               onClick={() => closeSidebar()} // Close on mobile click
               className={({ isActive }) =>
                 cn(
-                  "flex items-center px-4 py-3 text-sm font-medium transition-colors",
-                  isActive
-                    ? "bg-primary-600 text-white border-r-2 border-primary-400"
-                    : "text-gray-300 hover:bg-gray-800 hover:text-white"
+                  "flex items-center px-4 py-3 text-sm font-medium transition-colors group",
+                  isFmcksmcs
+                    ? cn(
+                        "fmck-nav-item border-l-4",
+                        isActive
+                          ? "fmck-nav-item-active bg-gray-100 text-gray-900 font-semibold border-[#03490b] dark:bg-white/10 dark:text-white dark:border-[#5cd674]"
+                          : "border-transparent text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-white/5 dark:hover:text-white"
+                      )
+                    : (isActive
+                        ? "bg-primary-600 text-white border-r-2 border-primary-400"
+                        : "text-gray-300 hover:bg-gray-800 hover:text-white")
                 )
               }
               title={isSidebarCollapsed ? item.name : undefined}
             >
-              <item.icon className="w-5 h-5 flex-shrink-0" />
-              <span className={cn(
-                "ml-3 transition-opacity duration-200",
-                isSidebarCollapsed ? "hidden md:hidden" : "block",
-                // Show text on mobile even if "collapsed" state is true (collapsed concept is desktop only usually, but good to handle)
-                isSidebarOpen && "block"
-              )}>
-                {item.name}
-              </span>
-              {/* Tooltip for collapsed mode could be added here */}
+              {({ isActive }) => (
+                <>
+                  <item.icon
+                    className={cn(
+                      "w-5 h-5 flex-shrink-0 transition-colors",
+                      isFmcksmcs
+                        ? (isActive
+                            ? "text-[#03490b] dark:text-[#5cd674]"
+                            : "text-gray-500 group-hover:text-gray-800 dark:text-gray-400 dark:group-hover:text-gray-200")
+                        : ""
+                    )}
+                  />
+                  <span
+                    className={cn(
+                      "ml-3 transition-opacity duration-200",
+                      isSidebarCollapsed ? "hidden md:hidden" : "block",
+                      // Show text on mobile even if "collapsed" state is true
+                      isSidebarOpen && "block"
+                    )}
+                  >
+                    {item.name}
+                  </span>
+                </>
+              )}
             </NavLink>
           ))}
         </nav>

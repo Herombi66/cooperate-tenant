@@ -398,47 +398,47 @@ const [loadingDetails, setLoadingDetails] = useState(false);
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-card text-card-foreground border border-border p-6 rounded-xl shadow-sm">
           <div className="flex items-center">
-            <div className="p-2 bg-primary-100 rounded-lg">
-              <Users className="w-6 h-6 text-primary-600" />
+            <div className="p-3 rounded-lg bg-primary-50 dark:bg-primary-950/40 text-primary-600 dark:text-primary-400">
+              <Users className="w-6 h-6" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Members</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.totalMembers}</p>
+              <p className="text-sm font-medium text-muted-foreground">Total Members</p>
+              <p className="text-2xl font-bold text-foreground">{stats.totalMembers}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-card text-card-foreground border border-border p-6 rounded-xl shadow-sm">
           <div className="flex items-center">
-            <div className="p-2 bg-green-100 rounded-lg">
-              <UserCheck className="w-6 h-6 text-green-600" />
+            <div className="p-3 rounded-lg bg-primary-50 dark:bg-primary-950/40 text-primary-600 dark:text-primary-400">
+              <UserCheck className="w-6 h-6" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Active Members</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.activeMembers}</p>
+              <p className="text-sm font-medium text-muted-foreground">Active Members</p>
+              <p className="text-2xl font-bold text-foreground">{stats.activeMembers}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-card text-card-foreground border border-border p-6 rounded-xl shadow-sm">
           <div className="flex items-center">
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <Users className="w-6 h-6 text-purple-600" />
+            <div className="p-3 rounded-lg bg-primary-50 dark:bg-primary-950/40 text-primary-600 dark:text-primary-400">
+              <Users className="w-6 h-6" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Contributions</p>
-              <p className="text-2xl font-bold text-gray-900">₦{(stats.totalContributions / 1000000).toFixed(1)}M</p>
+              <p className="text-sm font-medium text-muted-foreground">Total Contributions</p>
+              <p className="text-2xl font-bold text-foreground">₦{(stats.totalContributions / 1000000).toFixed(1)}M</p>
             </div>
           </div>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-card text-card-foreground border border-border p-6 rounded-xl shadow-sm">
           <div className="flex items-center">
-            <div className="p-2 bg-orange-100 rounded-lg">
-              <UserX className="w-6 h-6 text-orange-600" />
+            <div className="p-3 rounded-lg bg-primary-50 dark:bg-primary-950/40 text-primary-600 dark:text-primary-400">
+              <UserX className="w-6 h-6" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">With Active Loans</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.membersWithLoans}</p>
+              <p className="text-sm font-medium text-muted-foreground">With Active Loans</p>
+              <p className="text-2xl font-bold text-foreground">{stats.membersWithLoans}</p>
             </div>
           </div>
         </div>
@@ -718,10 +718,10 @@ const [loadingDetails, setLoadingDetails] = useState(false);
               <div className="bg-primary-50 p-3 rounded-lg">
                 <h4 className="text-sm font-medium text-primary-900 mb-1">Required Columns:</h4>
                 <p className="text-xs text-primary-700">
-                  {idLabel.replace(/\s+/g, '_')}, Name, Email, Phone, Facility_Name, Next_Of_Kin_Name, Next_Of_Kin_Phone, Savings, Investment, Target_Saving, Target_Period
+                  {idLabel.replace(/\s+/g, '_')}, Name, Email, Phone, Facility_Name, Next_Of_Kin_Name, Next_Of_Kin_Phone, {isFmck ? 'Contribution' : 'Savings, Investment'}, Target_Saving, Target_Period
                 </p>
                 <p className="text-xs text-primary-700 mt-1">
-                  <strong>Note:</strong> Combined Savings + Investment must be at least ₦5,000. All membership application fields are required.
+                  <strong>Note:</strong> {isFmck ? 'Initial Contribution must be at least ₦5,000 (₦1,500 entrance fee will be deducted).' : 'Combined Savings + Investment must be at least ₦5,000.'} All membership application fields are required.
                 </p>
               </div>
 
@@ -882,20 +882,43 @@ const [loadingDetails, setLoadingDetails] = useState(false);
                   {/* Right Column */}
                   <div className="space-y-6">
                     <div className="bg-white border border-gray-200 rounded-lg p-6">
-                      <h4 className="text-lg font-semibold text-gray-900 mb-4">Savings & Investment</h4>
+                      <h4 className="text-lg font-semibold text-gray-900 mb-4">{isFmck ? 'Initial Contribution' : 'Savings & Investment'}</h4>
                       <div className="space-y-3">
-                        <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
-                          <span className="text-sm font-medium text-green-700">Initial Savings</span>
-                          <span className="text-sm font-semibold text-green-900">₦{(memberDetails.membershipApplication?.savings || 0).toLocaleString()}</span>
-                        </div>
-                        <div className="flex justify-between items-center p-3 bg-primary-50 rounded-lg">
-                          <span className="text-sm font-medium text-primary-700">Investment Amount</span>
-                          <span className="text-sm font-semibold text-primary-900">₦{(memberDetails.membershipApplication?.investment || 0).toLocaleString()}</span>
-                        </div>
-                        <div className="flex justify-between items-center p-3 bg-purple-50 rounded-lg border-2 border-purple-200">
-                          <span className="text-sm font-medium text-purple-700">Total Initial Contribution</span>
-                          <span className="text-sm font-bold text-purple-900">₦{((memberDetails.membershipApplication?.savings || 0) + (memberDetails.membershipApplication?.investment || 0)).toLocaleString()}</span>
-                        </div>
+                        {isFmck ? (
+                          <>
+                            <div className="flex justify-between items-center p-3 bg-purple-50 rounded-lg border-2 border-purple-200">
+                              <span className="text-sm font-medium text-purple-700">Total Contribution</span>
+                              <span className="text-sm font-bold text-purple-900">
+                                ₦{(memberDetails.membershipApplication?.contribution || (memberDetails.membershipApplication?.savings || 0) + (memberDetails.membershipApplication?.investment || 0)).toLocaleString()}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg border border-gray-200">
+                              <span className="text-sm font-medium text-gray-600">Entrance Fee (Deducted)</span>
+                              <span className="text-sm font-semibold text-gray-700">-₦1,500</span>
+                            </div>
+                            <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
+                              <span className="text-sm font-medium text-green-700">Net Credited to Savings</span>
+                              <span className="text-sm font-semibold text-green-900">
+                                ₦{Math.max(0, (memberDetails.membershipApplication?.contribution ? memberDetails.membershipApplication.contribution - 1500 : (memberDetails.membershipApplication?.savings || 0))).toLocaleString()}
+                              </span>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
+                              <span className="text-sm font-medium text-green-700">Initial Savings</span>
+                              <span className="text-sm font-semibold text-green-900">₦{(memberDetails.membershipApplication?.savings || 0).toLocaleString()}</span>
+                            </div>
+                            <div className="flex justify-between items-center p-3 bg-primary-50 rounded-lg">
+                              <span className="text-sm font-medium text-primary-700">Investment Amount</span>
+                              <span className="text-sm font-semibold text-primary-900">₦{(memberDetails.membershipApplication?.investment || 0).toLocaleString()}</span>
+                            </div>
+                            <div className="flex justify-between items-center p-3 bg-purple-50 rounded-lg border-2 border-purple-200">
+                              <span className="text-sm font-medium text-purple-700">Total Initial Contribution</span>
+                              <span className="text-sm font-bold text-purple-900">₦{((memberDetails.membershipApplication?.savings || 0) + (memberDetails.membershipApplication?.investment || 0)).toLocaleString()}</span>
+                            </div>
+                          </>
+                        )}
                       </div>
                     </div>
 
@@ -1266,31 +1289,49 @@ const [loadingDetails, setLoadingDetails] = useState(false);
               </div>
 
               {/* Initial Contributions */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {isFmck ? (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Savings (₦)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Contribution (₦) *</label>
                   <input
                     type="number"
-                    name="savings"
-                    min="0"
-                    placeholder="0"
+                    name="contribution"
+                    min="5000"
+                    step="500"
+                    placeholder="e.g. 5000"
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     required
                   />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Minimum required: ₦5,000. ₦1,500 entrance fee will be deducted from your first contribution.
+                  </p>
                 </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Savings (₦)</label>
+                    <input
+                      type="number"
+                      name="savings"
+                      min="0"
+                      placeholder="0"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      required
+                    />
+                  </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Investment/Shares (₦)</label>
-                  <input
-                    type="number"
-                    name="investment"
-                    min="0"
-                    placeholder="0"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    required
-                  />
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Investment/Shares (₦)</label>
+                    <input
+                      type="number"
+                      name="investment"
+                      min="0"
+                      placeholder="0"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      required
+                    />
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Target Savings */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1341,6 +1382,19 @@ const [loadingDetails, setLoadingDetails] = useState(false);
 
                     const passwordVal = (formData.get('password') as string || '').trim();
 
+                    const contributionVal = parseFloat(formData.get('contribution') as string || '0');
+                    const savingsVal = parseFloat(formData.get('savings') as string || '0');
+                    const investmentVal = parseFloat(formData.get('investment') as string || '0');
+
+                    const finalContribution = isFmck ? contributionVal : (savingsVal + investmentVal);
+                    const entranceFee = isFmck ? 1500 : 0;
+                    const remainingContribution = Math.max(0, finalContribution - entranceFee);
+
+                    if (isFmck && finalContribution < 5000) {
+                      toast.error('Minimum initial contribution is ₦5,000. ₦1,500 entrance fee will be deducted from this amount.');
+                      return;
+                    }
+
                     const memberData: any = {
                       psn: formData.get('psn') as string,
                       name: formData.get('name') as string,
@@ -1349,10 +1403,17 @@ const [loadingDetails, setLoadingDetails] = useState(false);
                       facility_name: formData.get('facility_name') as string,
                       next_of_kin_name: formData.get('next_of_kin_name') as string,
                       next_of_kin_phone: formData.get('next_of_kin_phone') as string,
-                      savings: parseFloat(formData.get('savings') as string || '0'),
-                      investment: parseFloat(formData.get('investment') as string || '0'),
+                      contribution: finalContribution,
+                      savings: isFmck ? remainingContribution : savingsVal,
+                      investment: isFmck ? 0 : investmentVal,
                       target_saving: parseFloat(formData.get('target_saving') as string || '0'),
-                      target_period: parseInt(formData.get('target_period') as string || '12')
+                      target_period: parseInt(formData.get('target_period') as string || '12'),
+                      tenant_id: isFmck ? 'fmcksmcs' : undefined,
+                      metadata: isFmck ? {
+                        contribution: finalContribution,
+                        entrance_fee: entranceFee,
+                        remaining_contribution: remainingContribution
+                      } : undefined
                     };
 
                     if (passwordVal) {
@@ -1478,29 +1539,46 @@ const [loadingDetails, setLoadingDetails] = useState(false);
               </div>
 
               {/* Initial Contributions */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {isFmck ? (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Savings (₦)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Contribution (₦)</label>
                   <input
                     type="number"
-                    name="savings"
-                    min="0"
-                    defaultValue={memberDetails.membershipApplication?.savings || 0}
+                    name="contribution"
+                    min="5000"
+                    step="500"
+                    defaultValue={memberDetails.membershipApplication?.contribution || ((memberDetails.membershipApplication?.savings || 0) + (memberDetails.membershipApplication?.investment || 0)) || 5000}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Minimum required: ₦5,000. ₦1,500 entrance fee will be deducted from your first contribution.
+                  </p>
                 </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Savings (₦)</label>
+                    <input
+                      type="number"
+                      name="savings"
+                      min="0"
+                      defaultValue={memberDetails.membershipApplication?.savings || 0}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    />
+                  </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Investment/Shares (₦)</label>
-                  <input
-                    type="number"
-                    name="investment"
-                    min="0"
-                    defaultValue={memberDetails.membershipApplication?.investment || 0}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  />
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Investment/Shares (₦)</label>
+                    <input
+                      type="number"
+                      name="investment"
+                      min="0"
+                      defaultValue={memberDetails.membershipApplication?.investment || 0}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    />
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Target Savings */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1580,7 +1658,7 @@ const [loadingDetails, setLoadingDetails] = useState(false);
                       });
 
                       // Handle numeric fields
-                      ['savings', 'investment', 'target_saving', 'target_period'].forEach(field => {
+                      ['contribution', 'savings', 'investment', 'target_saving', 'target_period'].forEach(field => {
                         const value = formData.get(field);
                         if (value !== null && value !== undefined && value !== '') {
                           const num = field === 'target_period' ? parseInt(value as string) : parseFloat(value as string);
@@ -1589,6 +1667,18 @@ const [loadingDetails, setLoadingDetails] = useState(false);
                           }
                         }
                       });
+
+                      if (isFmck && memberData.contribution !== undefined) {
+                        const fee = 1500;
+                        memberData.savings = Math.max(0, memberData.contribution - fee);
+                        memberData.investment = 0;
+                        memberData.metadata = {
+                          ...(memberDetails.membershipApplication?.metadata || {}),
+                          contribution: memberData.contribution,
+                          entrance_fee: fee,
+                          remaining_contribution: memberData.savings
+                        };
+                      }
 
                       // Only proceed if there are fields to update
                       if (Object.keys(memberData).length > 0) {

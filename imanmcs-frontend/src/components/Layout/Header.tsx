@@ -33,7 +33,7 @@ export const Header = () => {
 
   const handleLogout = () => {
     setIsDropdownOpen(false);
-    logout();
+    logout({ tenantId: tenant?.id || user?.tenant_id || user?.tenantId });
   };
 
   return (

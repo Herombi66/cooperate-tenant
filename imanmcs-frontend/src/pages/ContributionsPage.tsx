@@ -923,58 +923,58 @@ ${sample2},target_savings,1500,12,2025,salary deduction`;
         <>
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-card text-card-foreground border border-border p-6 rounded-xl shadow-sm">
           <div className="flex items-center">
-            <div className="p-2 bg-primary-100 rounded-lg">
-              <DollarSign className="w-6 h-6 text-primary-600" />
+            <div className="p-3 rounded-lg bg-primary-50 dark:bg-primary-950/40 text-primary-600 dark:text-primary-400">
+              <DollarSign className="w-6 h-6" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Contributions</p>
-              <p className="text-2xl font-bold text-gray-900">₦{totalContributions.toLocaleString()}</p>
+              <p className="text-sm font-medium text-muted-foreground">Total Contributions</p>
+              <p className="text-2xl font-bold text-foreground">₦{totalContributions.toLocaleString()}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-card text-card-foreground border border-border p-6 rounded-xl shadow-sm">
           <div className="flex items-center">
-            <div className="p-2 bg-primary-100 rounded-lg">
-              <Wallet className="w-6 h-6 text-primary-600" />
+            <div className="p-3 rounded-lg bg-primary-50 dark:bg-primary-950/40 text-primary-600 dark:text-primary-400">
+              <Wallet className="w-6 h-6" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Savings</p>
-              <p className="text-2xl font-bold text-gray-900">₦{savingsTotal.toLocaleString()}</p>
+              <p className="text-sm font-medium text-muted-foreground">Savings</p>
+              <p className="text-2xl font-bold text-foreground">₦{savingsTotal.toLocaleString()}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-card text-card-foreground border border-border p-6 rounded-xl shadow-sm">
           <div className="flex items-center">
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <TrendingUp className="w-6 h-6 text-purple-600" />
+            <div className="p-3 rounded-lg bg-primary-50 dark:bg-primary-950/40 text-primary-600 dark:text-primary-400">
+              <TrendingUp className="w-6 h-6" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Investment</p>
-              <p className="text-2xl font-bold text-gray-900">₦{investmentTotal.toLocaleString()}</p>
+              <p className="text-sm font-medium text-muted-foreground">Investment</p>
+              <p className="text-2xl font-bold text-foreground">₦{investmentTotal.toLocaleString()}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-card text-card-foreground border border-border p-6 rounded-xl shadow-sm">
           <div className="flex items-center">
-            <div className="p-2 bg-green-100 rounded-lg">
-              <Target className="w-6 h-6 text-green-600" />
+            <div className="p-3 rounded-lg bg-primary-50 dark:bg-primary-950/40 text-primary-600 dark:text-primary-400">
+              <Target className="w-6 h-6" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Target Savings</p>
-              <p className="text-2xl font-bold text-gray-900">₦{targetSavingsTotal.toLocaleString()}</p>
+              <p className="text-sm font-medium text-muted-foreground">Target Savings</p>
+              <p className="text-2xl font-bold text-foreground">₦{targetSavingsTotal.toLocaleString()}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-card text-card-foreground border border-border p-6 rounded-xl shadow-sm">
           <div className="flex items-center">
-            <div className="p-2 bg-yellow-100 rounded-lg">
-              <Calendar className="w-6 h-6 text-yellow-600" />
+            <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400">
+              <Calendar className="w-6 h-6" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Pending</p>
-              <p className="text-2xl font-bold text-gray-900">{pendingCount}</p>
+              <p className="text-sm font-medium text-muted-foreground">Pending</p>
+              <p className="text-2xl font-bold text-foreground">{pendingCount}</p>
             </div>
           </div>
         </div>

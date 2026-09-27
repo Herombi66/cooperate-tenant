@@ -30,8 +30,7 @@ export interface FmcksFormData {
   department: string;
   unit: string;
   cadre: string;
-  initialSaving: string;
-  initialInvestment: string;
+  contribution: string;
   targetMonthlySaving: string;
   reasonForJoining: string;
 }
@@ -46,8 +45,7 @@ const initialFormValues: FmcksFormData = {
   department: '',
   unit: '',
   cadre: '',
-  initialSaving: '',
-  initialInvestment: '',
+  contribution: '',
   targetMonthlySaving: '',
   reasonForJoining: '',
 };
@@ -112,9 +110,9 @@ export const FmcksApplicationForm: React.FC<{
   } | null>(null);
 
   // Compute calculated values
-  const savingAmount = parseFloat(formData.initialSaving) || 0;
-  const investmentAmount = parseFloat(formData.initialInvestment) || 0;
-  const totalInitialContribution = savingAmount + investmentAmount;
+  const contributionAmount = parseFloat(formData.contribution) || 0;
+  const entranceFee = 1500;
+  const remainingContribution = Math.max(0, contributionAmount - entranceFee);
   const targetMonthlyNum = parseFloat(formData.targetMonthlySaving) || 0;
 
   // Real-time validation
@@ -151,14 +149,10 @@ export const FmcksApplicationForm: React.FC<{
       case 'cadre':
         if (!value.trim()) return 'Cadre / Professional Designation is required';
         return '';
-      case 'initialSaving': {
+      case 'contribution': {
         const val = parseFloat(value);
-        if (!value.trim() || isNaN(val) || val <= 0) return 'Initial Saving amount is required';
-        return '';
-      }
-      case 'initialInvestment': {
-        const val = parseFloat(value);
-        if (!value.trim() || isNaN(val) || val < 0) return 'Initial Investment amount is required';
+        if (!value.trim() || isNaN(val) || val <= 0) return 'Contribution amount is required';
+        if (val < 5000) return 'Minimum initial contribution is ₦5,000. ₦1,500 entrance fee will be deducted from this amount.';
         return '';
       }
       case 'reasonForJoining':
@@ -172,7 +166,7 @@ export const FmcksApplicationForm: React.FC<{
 
   const handleInputChange = (field: keyof FmcksFormData, value: string) => {
     // Only accept numeric and period for money fields
-    if (['initialSaving', 'initialInvestment', 'targetMonthlySaving'].includes(field)) {
+    if (['contribution', 'targetMonthlySaving'].includes(field)) {
       if (value !== '' && !/^\d*\.?\d*$/.test(value)) {
         return;
       }
@@ -201,11 +195,6 @@ export const FmcksApplicationForm: React.FC<{
       const errorMsg = validateField(key, formData[key]);
       if (errorMsg) newErrors[key] = errorMsg;
     });
-
-    // Check minimum combined initial contribution
-    if (totalInitialContribution < 5000) {
-      newErrors.totalContribution = 'Minimum required: ₦5,000 combined savings and investment';
-    }
 
     setErrors(newErrors);
     setTouched(keys.reduce((acc, k) => ({ ...acc, [k]: true }), {}));
@@ -239,8 +228,8 @@ export const FmcksApplicationForm: React.FC<{
         return;
       }
 
-      if (totalInitialContribution < 5000) {
-        toast.error('Total Initial Contribution must be at least ₦5,000 (combined savings and investment)');
+      if (contributionAmount < 5000) {
+        toast.error('Minimum initial contribution is ₦5,000. ₦1,500 entrance fee will be deducted from this amount.');
         return;
       }
       const sanitizedPsnVal = sanitizePsn(formData.ippisNumber);
@@ -263,9 +252,10 @@ export const FmcksApplicationForm: React.FC<{
         cadre: formData.cadre.trim(),
         date_of_birth: formData.dateOfBirth,
         gender: formData.gender,
-        savings: savingAmount,
-        investment: investmentAmount,
-        total_initial_contribution: totalInitialContribution,
+        contribution: contributionAmount,
+        savings: remainingContribution,
+        investment: 0,
+        total_initial_contribution: contributionAmount,
         target_saving: targetMonthlyNum,
         target_period: 12,
         reference_number: refNumber,
@@ -280,10 +270,13 @@ export const FmcksApplicationForm: React.FC<{
           department: formData.department,
           unit: formData.unit.trim(),
           cadre: formData.cadre.trim(),
-          initial_saving: savingAmount,
-          initial_investment: investmentAmount,
-          total_initial_contribution: totalInitialContribution,
-          entrance_fee: 1500,
+          contribution: contributionAmount,
+          entrance_fee: entranceFee,
+          remaining_contribution: remainingContribution,
+          initial_contribution: contributionAmount,
+          total_initial_contribution: contributionAmount,
+          initial_saving: remainingContribution,
+          initial_investment: 0,
           entrance_fee_note: '₦1,500 entrance fee will be deducted from first contribution',
           target_monthly_saving: targetMonthlyNum,
           reason_for_joining: formData.reasonForJoining.trim(),
@@ -306,7 +299,7 @@ export const FmcksApplicationForm: React.FC<{
       setSubmittedData({
         data: { ...formData },
         applicationId: appId,
-        totalContribution: totalInitialContribution,
+        totalContribution: contributionAmount,
         submissionDate
       });
 
@@ -430,20 +423,22 @@ export const FmcksApplicationForm: React.FC<{
                 Contribution Breakdown
               </span>
               <div className="flex justify-between text-sm">
-                <span className="text-slate-600">Initial Saving Amount:</span>
-                <span className="font-mono font-medium">{formatNaira(data.initialSaving)}</span>
+                <span className="text-slate-600">Contribution:</span>
+                <span className="font-mono font-semibold text-slate-900">{formatNaira(data.contribution)}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-slate-600">Initial Investment Amount:</span>
-                <span className="font-mono font-medium">{formatNaira(data.initialInvestment)}</span>
+                <span className="text-slate-600">Entrance Fee (deducted):</span>
+                <span className="font-mono font-medium text-amber-700">-₦1,500.00</span>
               </div>
               <div className="flex justify-between text-base font-bold text-[#0F3D3D] pt-2 border-t border-slate-300">
-                <span>Total Initial Contribution:</span>
-                <span className="font-mono text-lg text-[#0F3D3D]">{formatNaira(totalContribution)}</span>
+                <span>Remaining Contribution:</span>
+                <span className="font-mono text-lg text-[#0F3D3D]">
+                  {formatNaira(Math.max(0, (parseFloat(data.contribution) || 0) - 1500))}
+                </span>
               </div>
               <div className="bg-amber-50/80 border border-amber-200/80 rounded-lg p-2.5 mt-2 text-xs text-amber-900 flex items-start gap-2">
                 <span className="font-bold text-amber-700">★ Note:</span>
-                <span>The <strong>₦1,500 entrance fee</strong> will be deducted from your first contribution.</span>
+                <span>The <strong>₦1,500 entrance fee</strong> is deducted from your first contribution.</span>
               </div>
               {parseFloat(data.targetMonthlySaving) > 0 && (
                 <div className="flex justify-between text-sm pt-2 text-slate-600">
@@ -818,16 +813,16 @@ export const FmcksApplicationForm: React.FC<{
                 2. Initial Contribution
               </h2>
               <p className="text-xs text-slate-500">
-                Setup your opening cooperative balance and investment allocation
+                Setup your opening cooperative contribution
               </p>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
-            {/* Initial Saving Amount */}
-            <div>
-              <label htmlFor="initialSaving" className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
-                Initial Saving Amount (₦) <span className="text-red-500">*</span>
+          <div className="space-y-4">
+            {/* Single Unified Contribution Field */}
+            <div className="max-w-md">
+              <label htmlFor="contribution" className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                Contribution (₦) <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-mono font-semibold">
@@ -836,114 +831,68 @@ export const FmcksApplicationForm: React.FC<{
                 <input
                   type="text"
                   inputMode="decimal"
-                  id="initialSaving"
-                  value={formData.initialSaving}
-                  onChange={e => handleInputChange('initialSaving', e.target.value)}
-                  onBlur={() => handleBlur('initialSaving')}
-                  placeholder="3000"
+                  id="contribution"
+                  value={formData.contribution}
+                  onChange={e => handleInputChange('contribution', e.target.value)}
+                  onBlur={() => handleBlur('contribution')}
+                  placeholder="5000"
                   className={`w-full pl-8 pr-3.5 py-2.5 text-sm rounded-xl border bg-slate-50/50 font-mono text-slate-900 outline-none transition ${
-                    touched.initialSaving && errors.initialSaving 
+                    touched.contribution && errors.contribution 
                       ? 'border-red-400 bg-red-50/30 focus:border-red-500 focus:ring-2 focus:ring-red-200' 
                       : 'border-slate-300 focus:border-[#0F3D3D] focus:ring-2 focus:ring-[#0F3D3D]/15'
                   }`}
                 />
               </div>
-              <div className="flex justify-between items-center mt-1">
-                {touched.initialSaving && errors.initialSaving ? (
-                  <p className="text-xs text-red-600 flex items-center gap-1">
-                    <AlertCircle className="w-3.5 h-3.5" />
-                    <span>{errors.initialSaving}</span>
-                  </p>
-                ) : (
-                  <span className="text-[11px] text-slate-400 font-mono">
-                    Formatted: {formatNaira(formData.initialSaving || 0)}
-                  </span>
-                )}
-              </div>
-            </div>
 
-            {/* Initial Investment Amount */}
-            <div>
-              <label htmlFor="initialInvestment" className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
-                Initial Investment Amount (₦) <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-mono font-semibold">
-                  ₦
-                </span>
-                <input
-                  type="text"
-                  inputMode="decimal"
-                  id="initialInvestment"
-                  value={formData.initialInvestment}
-                  onChange={e => handleInputChange('initialInvestment', e.target.value)}
-                  onBlur={() => handleBlur('initialInvestment')}
-                  placeholder="2000"
-                  className={`w-full pl-8 pr-3.5 py-2.5 text-sm rounded-xl border bg-slate-50/50 font-mono text-slate-900 outline-none transition ${
-                    touched.initialInvestment && errors.initialInvestment 
-                      ? 'border-red-400 bg-red-50/30 focus:border-red-500 focus:ring-2 focus:ring-red-200' 
-                      : 'border-slate-300 focus:border-[#0F3D3D] focus:ring-2 focus:ring-[#0F3D3D]/15'
-                  }`}
-                />
-              </div>
-              <div className="flex justify-between items-center mt-1">
-                {touched.initialInvestment && errors.initialInvestment ? (
-                  <p className="text-xs text-red-600 flex items-center gap-1">
-                    <AlertCircle className="w-3.5 h-3.5" />
-                    <span>{errors.initialInvestment}</span>
-                  </p>
-                ) : (
-                  <span className="text-[11px] text-slate-400 font-mono">
-                    Formatted: {formatNaira(formData.initialInvestment || 0)}
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Read-Only Calculated Field: Total Initial Contribution */}
-          <div className="bg-[#FBF9F5] border border-slate-300/80 rounded-xl p-4 sm:p-5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/80 pb-3">
-              <div>
-                <span className="text-xs font-mono uppercase tracking-wider text-slate-500 font-semibold block">
-                  Read-Only Calculated Field
-                </span>
-                <span className="text-sm sm:text-base font-bold text-slate-900">
-                  Total Initial Contribution
-                </span>
-                <span className="text-xs text-slate-500 block font-mono">
-                  (Initial Saving + Initial Investment)
-                </span>
-              </div>
-              <div className="text-left sm:text-right">
-                <span className={`text-2xl sm:text-3xl font-extrabold font-mono tracking-tight ${
-                  totalInitialContribution >= 5000 ? 'text-[#0F3D3D]' : 'text-amber-700'
-                }`}>
-                  {formatNaira(totalInitialContribution)}
-                </span>
-              </div>
-            </div>
-
-            {/* Required Notice Directly Below Total */}
-            <div className="mt-3.5 bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs sm:text-sm text-amber-950 flex items-start gap-2.5">
-              <span className="text-amber-700 font-bold text-base leading-none">ℹ</span>
-              <div>
-                <p className="font-semibold text-amber-900">
-                  Minimum required: ₦5,000 combined. ₦1,500 entrance fee will be deducted from your first contribution.
-                </p>
-                <p className="text-[11px] text-amber-800/90 mt-0.5">
-                  Example: Initial Saving: ₦3,000 + Initial Investment: ₦2,000 = Total Initial Contribution: ₦5,000.
-                </p>
-              </div>
-            </div>
-
-            {/* Validation warning if below 5000 */}
-            {totalInitialContribution > 0 && totalInitialContribution < 5000 && (
-              <p className="mt-2 text-xs font-semibold text-red-600 flex items-center gap-1.5">
-                <AlertCircle className="w-4 h-4 shrink-0" />
-                <span>The combined contribution is currently below the required ₦5,000 minimum threshold.</span>
+              {/* Informative notice directly below the field */}
+              <p className="text-xs text-slate-600 mt-1.5 leading-relaxed font-medium">
+                Minimum required: ₦5,000. ₦1,500 entrance fee will be deducted from your first contribution.
               </p>
-            )}
+
+              {/* Error message if invalid or < 5000 */}
+              {touched.contribution && errors.contribution ? (
+                <p className="text-xs text-red-600 flex items-center gap-1 mt-1 font-medium">
+                  <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                  <span>{errors.contribution}</span>
+                </p>
+              ) : null}
+            </div>
+
+            {/* Financial Breakdown Card */}
+            <div className="bg-[#FBF9F5] border border-slate-300/80 rounded-xl p-4 sm:p-5 max-w-xl">
+              <div className="flex items-center justify-between border-b border-slate-200/80 pb-2.5 mb-3">
+                <span className="text-xs font-mono uppercase tracking-wider text-slate-500 font-semibold">
+                  Contribution Breakdown
+                </span>
+                <span className="text-[11px] font-mono text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded">
+                  FMCK Opening Ledger
+                </span>
+              </div>
+
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-600">Contribution:</span>
+                  <span className="font-mono font-bold text-slate-900">
+                    {formatNaira(contributionAmount)}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center text-xs text-amber-800">
+                  <span className="flex items-center gap-1">
+                    <span>Entrance Fee:</span>
+                    <span className="text-[10px] text-amber-700/80">(deducted from first contribution)</span>
+                  </span>
+                  <span className="font-mono font-semibold">
+                    -₦1,500.00
+                  </span>
+                </div>
+                <div className="flex justify-between items-center text-sm sm:text-base font-bold text-[#0F3D3D] pt-2 border-t border-slate-200">
+                  <span>Remaining Contribution:</span>
+                  <span className="font-mono text-lg text-[#0F3D3D]">
+                    {formatNaira(remainingContribution)}
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
