@@ -280,7 +280,7 @@ const createMember = async (req, res) => {
   try {
     const {
       psn, name, email, phone, facility_name, password,
-      next_of_kin_name, next_of_kin_phone, savings, investment, target_saving, target_period
+      next_of_kin_name, next_of_kin_phone, contribution, savings, investment, target_saving, target_period
     } = req.body;
 
     // Validate required fields
@@ -309,6 +309,14 @@ const createMember = async (req, res) => {
       });
     }
 
+    const tenantId = req.headers['x-tenant-id'] || req.body.tenant_id || 'default';
+    const isFmck = tenantId === 'fmcksmcs' || tenantId === 'fmck' || (facility_name?.toLowerCase().includes('kumo') ?? false);
+    const finalContribution = contribution !== undefined
+      ? parseFloat(contribution)
+      : ((parseFloat(savings) || 0) + (parseFloat(investment) || 0));
+    const entranceFee = isFmck ? 1500 : 0;
+    const remainingContribution = Math.max(0, finalContribution - entranceFee);
+
     // Create membership application first
     const application = await MembershipApplication.create({
       psn: psn.trim(),
@@ -318,10 +326,17 @@ const createMember = async (req, res) => {
       facility_name: facility_name ? facility_name.trim() : null,
       next_of_kin_name: next_of_kin_name ? next_of_kin_name.trim() : null,
       next_of_kin_phone: next_of_kin_phone ? next_of_kin_phone.trim() : null,
-      savings: parseFloat(savings) || 0,
-      investment: parseFloat(investment) || 0,
+      contribution: finalContribution,
+      savings: isFmck ? remainingContribution : (parseFloat(savings) || 0),
+      investment: isFmck ? 0 : (parseFloat(investment) || 0),
       target_saving: parseFloat(target_saving) || 0,
       target_period: parseInt(target_period) || 12,
+      tenant_id: tenantId,
+      metadata: isFmck ? {
+        contribution: finalContribution,
+        entrance_fee: entranceFee,
+        remaining_contribution: remainingContribution
+      } : undefined,
       status: 'approved', // Auto-approved for admin creation
       application_date: new Date(),
       approved_by: req.user?.name || 'System Admin',
@@ -332,6 +347,33 @@ const createMember = async (req, res) => {
 
     // Create user account linked to the application
     const { user, generatedPassword } = await createMemberAccount(application.id, password);
+
+    // Record initial approved contribution in member financials
+    if (user && finalContribution > 0) {
+      try {
+        const Contribution = require('../models/Contribution');
+        const now = new Date();
+        await Contribution.create({
+          tenant_id: tenantId,
+          user_id: user.id,
+          savings: isFmck ? remainingContribution : (parseFloat(savings) || 0),
+          investment: isFmck ? 0 : (parseFloat(investment) || 0),
+          total_amount: finalContribution,
+          payment_method: 'initial_application',
+          contribution_date: now,
+          month: now.getMonth() + 1,
+          year: now.getFullYear(),
+          status: 'approved',
+          approved_by: req.user?.id || null,
+          approval_date: now,
+          notes: isFmck
+            ? `Initial contribution of ₦${finalContribution} (₦${entranceFee} entrance fee deducted, ₦${remainingContribution} credited to savings) from approved application #${application.id}`
+            : `Initial contribution from approved application #${application.id}`
+        });
+      } catch (contribErr) {
+        console.warn('Failed to record initial contribution for created member:', contribErr.message);
+      }
+    }
 
     // Log activity
     await ActivityLog.create({
@@ -381,7 +423,7 @@ const updateMember = async (req, res) => {
     const { id } = req.params;
     const {
       name, email, phone, facility_name, role, status,
-      next_of_kin_name, next_of_kin_phone, savings, investment, target_saving, target_period
+      next_of_kin_name, next_of_kin_phone, contribution, savings, investment, target_saving, target_period
     } = req.body;
 
     const member = await User.findByPk(id, {
@@ -426,19 +468,39 @@ const updateMember = async (req, res) => {
       }
     }
 
-    // Update membership application data
-    await application.update({
+    const isFmck = application.tenant_id === 'fmcksmcs' || application.tenant_id === 'fmck' || (application.facility_name?.toLowerCase().includes('kumo') ?? false);
+    const appUpdates = {
       name: name ? name.trim() : application.name,
       email: email ? email.trim().toLowerCase() : application.email,
       phone: phone !== undefined ? (phone ? phone.trim() : null) : application.phone,
       facility_name: facility_name !== undefined ? (facility_name ? facility_name.trim() : null) : application.facility_name,
       next_of_kin_name: next_of_kin_name !== undefined ? (next_of_kin_name ? next_of_kin_name.trim() : null) : application.next_of_kin_name,
       next_of_kin_phone: next_of_kin_phone !== undefined ? (next_of_kin_phone ? next_of_kin_phone.trim() : null) : application.next_of_kin_phone,
-      savings: savings !== undefined ? parseFloat(savings) : application.savings,
-      investment: investment !== undefined ? parseFloat(investment) : application.investment,
       target_saving: target_saving !== undefined ? parseFloat(target_saving) : application.target_saving,
       target_period: target_period !== undefined ? parseInt(target_period) : application.target_period
-    });
+    };
+
+    if (contribution !== undefined) {
+      const parsedContrib = parseFloat(contribution);
+      appUpdates.contribution = parsedContrib;
+      if (isFmck) {
+        const fee = 1500;
+        appUpdates.savings = Math.max(0, parsedContrib - fee);
+        appUpdates.investment = 0;
+        appUpdates.metadata = {
+          ...(application.metadata || {}),
+          contribution: parsedContrib,
+          entrance_fee: fee,
+          remaining_contribution: appUpdates.savings
+        };
+      }
+    } else {
+      if (savings !== undefined) appUpdates.savings = parseFloat(savings);
+      if (investment !== undefined) appUpdates.investment = parseFloat(investment);
+    }
+
+    // Update membership application data
+    await application.update(appUpdates);
 
     // Update user role and status if provided
     const userUpdates = {};

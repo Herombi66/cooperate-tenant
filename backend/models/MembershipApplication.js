@@ -79,6 +79,20 @@ const MembershipApplication = sequelize.define('MembershipApplication', {
     type: DataTypes.DECIMAL(15, 2),
     allowNull: true
   },
+  contribution: {
+    type: DataTypes.DECIMAL(15, 2),
+    allowNull: true,
+    defaultValue: 0,
+    get() {
+      const rawVal = this.getDataValue('contribution');
+      if (rawVal !== null && rawVal !== undefined && Number(rawVal) > 0) {
+        return rawVal;
+      }
+      const savingsVal = Number(this.getDataValue('savings')) || 0;
+      const investVal = Number(this.getDataValue('investment')) || 0;
+      return savingsVal + investVal > 0 ? (savingsVal + investVal) : (rawVal ?? 0);
+    }
+  },
   savings: {
     type: DataTypes.DECIMAL(15, 2),
     allowNull: false,

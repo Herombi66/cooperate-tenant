@@ -145,11 +145,19 @@ const submitApplication = async (req, res) => {
 
     // Validate minimum contribution for non-admin submissions
     if (!auto_approve) {
-      const totalContribution = (parseFloat(savings) || 0) + (parseFloat(investment) || 0);
+      const rawContrib = req.body.contribution !== undefined ? parseFloat(req.body.contribution) : null;
+      const rawInitContrib = req.body.initial_contribution !== undefined ? parseFloat(req.body.initial_contribution) : null;
+      const rawTotContrib = req.body.total_initial_contribution !== undefined ? parseFloat(req.body.total_initial_contribution) : null;
+      const savingVal = parseFloat(savings) || 0;
+      const investVal = parseFloat(investment) || 0;
+      const totalContribution = rawContrib ?? rawInitContrib ?? rawTotContrib ?? (savingVal + investVal);
+
       if (totalContribution < 5000) {
         return res.status(400).json({
           success: false,
-          message: 'Combined savings and investment must be at least ₦5,000'
+          message: isFmck
+            ? 'Minimum initial contribution is ₦5,000. ₦1,500 entrance fee will be deducted from this amount.'
+            : 'Combined savings and investment must be at least ₦5,000'
         });
       }
     }
@@ -190,8 +198,12 @@ const submitApplication = async (req, res) => {
 
       const savingVal = parseFloat(savings) || 0;
       const investVal = parseFloat(investment) || 0;
-      const totalInitialContribution = parseFloat(req.body.total_initial_contribution) || (savingVal + investVal);
+      const rawContrib = req.body.contribution !== undefined ? parseFloat(req.body.contribution) : null;
+      const rawInitContrib = req.body.initial_contribution !== undefined ? parseFloat(req.body.initial_contribution) : null;
+      const rawTotContrib = req.body.total_initial_contribution !== undefined ? parseFloat(req.body.total_initial_contribution) : null;
+      const contributionVal = rawContrib ?? rawInitContrib ?? rawTotContrib ?? (savingVal + investVal);
       const entranceFee = parseFloat(req.body.entrance_fee || metadata.entrance_fee || (isFmck ? 1500 : 0));
+      const remainingContribution = Math.max(0, contributionVal - entranceFee);
 
       const department = req.body.department || metadata.department || null;
       const unit = req.body.unit || metadata.unit || null;
@@ -210,10 +222,13 @@ const submitApplication = async (req, res) => {
         cadre,
         date_of_birth: dateOfBirth,
         gender,
-        initial_saving: savingVal,
-        initial_investment: investVal,
-        total_initial_contribution: totalInitialContribution,
+        contribution: contributionVal,
         entrance_fee: entranceFee,
+        remaining_contribution: remainingContribution,
+        initial_contribution: contributionVal,
+        total_initial_contribution: contributionVal,
+        initial_saving: isFmck ? remainingContribution : savingVal,
+        initial_investment: isFmck ? 0 : investVal,
         target_monthly_saving: parseFloat(target_saving) || 0,
         reason_for_joining: reasonForJoining,
         submitted_at: metadata.submitted_at || new Date().toISOString()
@@ -227,8 +242,9 @@ const submitApplication = async (req, res) => {
         facility_name: facility_name ? facility_name.trim() : (isFmck ? `FMC Kumo - ${department || 'General'}` : null),
         next_of_kin_name: next_of_kin_name ? next_of_kin_name.trim() : (name.trim() + ' Next of Kin'),
         next_of_kin_phone: next_of_kin_phone ? next_of_kin_phone.trim() : (phone ? phone.trim() : '08000000000'),
-        savings: savingVal,
-        investment: investVal,
+        contribution: contributionVal,
+        savings: isFmck ? remainingContribution : savingVal,
+        investment: isFmck ? 0 : investVal,
         target_saving: parseFloat(target_saving) || 0,
         target_period: parseInt(target_period) || 12,
         department: department,
@@ -314,6 +330,40 @@ const submitApplication = async (req, res) => {
         generatedPassword = result.generatedPassword;
         console.log('🔧 [ADMIN CREATE MEMBER] User account created:', userAccount ? userAccount.id : 'null');
 
+        if (userAccount) {
+          try {
+            const isFmck = application.tenant_id === 'fmcksmcs' || application.tenant_id === 'fmck' || (application.facility_name?.toLowerCase().includes('kumo') ?? false);
+            const appContribution = parseFloat(application.contribution) || ((parseFloat(application.savings) || 0) + (parseFloat(application.investment) || 0));
+            const entranceFee = isFmck ? 1500 : 0;
+            const remainingContribution = Math.max(0, appContribution - entranceFee);
+
+            if (appContribution > 0) {
+              const Contribution = require('../models/Contribution');
+              const now = new Date();
+              await Contribution.create({
+                tenant_id: application.tenant_id || 'default',
+                user_id: userAccount.id,
+                savings: isFmck ? remainingContribution : (parseFloat(application.savings) || 0),
+                investment: isFmck ? 0 : (parseFloat(application.investment) || 0),
+                total_amount: appContribution,
+                payment_method: 'initial_application',
+                contribution_date: now,
+                month: now.getMonth() + 1,
+                year: now.getFullYear(),
+                status: 'approved',
+                approved_by: req.user?.id || null,
+                approval_date: now,
+                notes: isFmck
+                  ? `Initial contribution of ₦${appContribution} (₦${entranceFee} entrance fee deducted, ₦${remainingContribution} credited to savings) from approved application #${application.id}`
+                  : `Initial contribution from approved application #${application.id}`
+              });
+              console.log(`✅ Recorded initial contribution of ₦${appContribution} for auto-approved member ${userAccount.id}`);
+            }
+          } catch (contribErr) {
+            console.warn('Failed to record initial contribution for auto-approved member:', contribErr.message);
+          }
+        }
+
       } catch (userCreationError) {
         console.error('Failed to create user account for auto-approved application:', userCreationError);
         // Update application status to indicate failure
@@ -336,7 +386,11 @@ const submitApplication = async (req, res) => {
         psn: application.psn,
         email: application.email,
         status: application.status,
-        application_date: application.application_date
+        application_date: application.application_date,
+        contribution: application.contribution,
+        savings: application.savings,
+        investment: application.investment,
+        metadata: application.metadata
       }
     };
 
@@ -506,9 +560,9 @@ const getApplications = async (req, res) => {
     } else if (sort === 'status') {
       order = [['status', 'ASC'], ['application_date', 'DESC']];
     } else if (sort === 'contribution_desc' || sort === 'initial_contribution') {
-      order = [['savings', 'DESC'], ['investment', 'DESC']];
+      order = [['contribution', 'DESC'], ['savings', 'DESC']];
     } else if (sort === 'contribution_asc') {
-      order = [['savings', 'ASC'], ['investment', 'ASC']];
+      order = [['contribution', 'ASC'], ['savings', 'ASC']];
     }
 
     const { count, rows } = await MembershipApplication.findAndCountAll({
@@ -958,11 +1012,12 @@ const updateApplicationStatus = async (req, res) => {
         }
 
         // Record initial approved contribution in member financials
-        const savingVal = parseFloat(application.savings) || 0;
-        const investVal = parseFloat(application.investment) || 0;
-        const totalContribution = savingVal + investVal;
+        const isFmck = application.tenant_id === 'fmcksmcs' || application.tenant_id === 'fmck' || (application.facility_name?.toLowerCase().includes('kumo') ?? false);
+        const appContribution = parseFloat(application.contribution) || ((parseFloat(application.savings) || 0) + (parseFloat(application.investment) || 0));
+        const entranceFee = isFmck ? 1500 : 0;
+        const remainingContribution = Math.max(0, appContribution - entranceFee);
 
-        if (memberUser && totalContribution > 0) {
+        if (memberUser && appContribution > 0) {
           const Contribution = require('../models/Contribution');
           const existingContribution = await Contribution.findOne({
             where: {
@@ -976,9 +1031,9 @@ const updateApplicationStatus = async (req, res) => {
             await Contribution.create({
               tenant_id: application.tenant_id || 'default',
               user_id: memberUser.id,
-              savings: savingVal,
-              investment: investVal,
-              total_amount: totalContribution,
+              savings: isFmck ? remainingContribution : (parseFloat(application.savings) || 0),
+              investment: isFmck ? 0 : (parseFloat(application.investment) || 0),
+              total_amount: appContribution,
               payment_method: 'initial_application',
               contribution_date: now,
               month: now.getMonth() + 1,
@@ -986,9 +1041,11 @@ const updateApplicationStatus = async (req, res) => {
               status: 'approved',
               approved_by: req.user?.id || null,
               approval_date: now,
-              notes: `Initial contribution from approved application #${application.id}`
+              notes: isFmck
+                ? `Initial contribution of ₦${appContribution} (₦${entranceFee} entrance fee deducted, ₦${remainingContribution} credited to savings) from approved application #${application.id}`
+                : `Initial contribution from approved application #${application.id}`
             });
-            console.log(`✅ Initial contribution recorded for user ${memberUser.id}: ₦${totalContribution}`);
+            console.log(`✅ Initial contribution recorded for user ${memberUser.id}: ₦${appContribution}`);
           }
         }
       } catch (userCreationError) {
