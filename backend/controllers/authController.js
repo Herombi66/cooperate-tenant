@@ -109,7 +109,7 @@ const login = async (req, res) => {
     // Find ALL users by PSN through membership application
     // We use findAll because there might be multiple user accounts (roles) for one PSN
     // and potentially duplicate MembershipApplication records (legacy data issues)
-    const users = await User.findAll({
+    let users = await User.findAll({
       include: [{
         model: MembershipApplication,
         as: 'membershipApplication',
@@ -123,6 +123,26 @@ const login = async (req, res) => {
       }],
       order: [['created_at', 'DESC']] // Check newest accounts first
     });
+
+    // If no user found under current tenant context, fallback to cross-tenant search
+    if (!users || users.length === 0) {
+      users = await User.findAll({
+        skipTenant: true,
+        include: [{
+          model: MembershipApplication,
+          as: 'membershipApplication',
+          skipTenant: true,
+          where: {
+            [Op.or]: [
+              { psn: basePsn },
+              { email: basePsn }
+            ]
+          },
+          required: true
+        }],
+        order: [['created_at', 'DESC']]
+      });
+    }
 
     if (!users || users.length === 0) {
       return res.status(401).json({

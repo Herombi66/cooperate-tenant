@@ -19,6 +19,68 @@ async function repairDatabase() {
       return logs;
     }
 
+    // 0. Ensure tenants and platform_admins tables exist
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS tenants (
+        id VARCHAR(100) PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        domain VARCHAR(255) UNIQUE,
+        subdomain VARCHAR(255) UNIQUE,
+        cooperative_type VARCHAR(50) DEFAULT 'islamic',
+        theme JSONB,
+        features JSONB DEFAULT '{"landing_page": true, "loans": true, "layyah": true, "expenses": true, "profit_sharing": true, "withdrawals": true}',
+        status VARCHAR(20) DEFAULT 'active',
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    await sequelize.query(`
+      INSERT INTO tenants (id, name, cooperative_type, status)
+      VALUES ('default', 'Default Cooperative', 'islamic', 'active')
+      ON CONFLICT (id) DO NOTHING;
+    `);
+
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS platform_admins (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        password_hash VARCHAR(255) NOT NULL,
+        role VARCHAR(50) DEFAULT 'super_admin',
+        status VARCHAR(20) DEFAULT 'active',
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    // Ensure critical columns on users table
+    await sequelize.query(`
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS membership_application_id INTEGER;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS tenant_id VARCHAR(100) DEFAULT 'default';
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS metadata JSONB;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS can_liquidate_loans BOOLEAN DEFAULT false;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS can_create_animal_requests BOOLEAN DEFAULT false;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS additional_role VARCHAR(50);
+    `);
+
+    // Ensure critical columns on membership_applications table
+    await sequelize.query(`
+      ALTER TABLE membership_applications ADD COLUMN IF NOT EXISTS tenant_id VARCHAR(100) DEFAULT 'default';
+      ALTER TABLE membership_applications ADD COLUMN IF NOT EXISTS metadata JSONB;
+    `);
+
+    // Ensure tenant_id on all transactional tables
+    const tenantTables = ['contributions', 'loans', 'expenses', 'profit_sharing', 'loan_repayments', 'activity_logs', 'notifications', 'settings', 'layyah_applications', 'animal_acquisition_requests', 'contribution_withdrawals', 'complaints', 'direct_messages', 'receipt_records', 'system_backups', 'upload_batches'];
+    for (const tbl of tenantTables) {
+      try {
+        await sequelize.query(`ALTER TABLE "${tbl}" ADD COLUMN IF NOT EXISTS tenant_id VARCHAR(100) DEFAULT 'default';`);
+      } catch (e) {
+        // Table may not exist yet, safe to ignore
+      }
+    }
+    log('✅ Ensured tenants, platform_admins, and core tenant_id / membership_application_id columns exist.');
+
     // 1. Ensure payslip_url exists in loans table
     const [results] = await sequelize.query(`
       SELECT column_name 

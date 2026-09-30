@@ -8,11 +8,13 @@ const {
   Settings 
 } = require('../models');
 const bcrypt = require('bcryptjs');
+const repairDatabase = require('../db/repair');
 
 async function setup() {
-  console.log('🔄 Initializing SQLite database and syncing models...');
+  console.log('🔄 Running repairDatabase and syncing models...');
+  await repairDatabase();
   await sequelize.sync();
-  console.log('✅ Models synchronized.');
+  console.log('✅ Database schema verified and models synchronized.');
 
   // 1. Ensure Default Tenant
   let defaultTenant = await Tenant.findOne({ where: { id: 'default' } });
@@ -99,6 +101,45 @@ async function setup() {
     console.log('✅ Created platform superadmin (superadmin@platform.com / admin123).');
   }
 
+  // 3b. Ensure Default Tenant Super Admin (ADM001)
+  const defaultAdminPsn = 'ADM001';
+  let defaultAdminApp = await MembershipApplication.findOne({ where: { psn: defaultAdminPsn }, skipTenant: true });
+  if (!defaultAdminApp) {
+    defaultAdminApp = await MembershipApplication.create({
+      psn: defaultAdminPsn,
+      name: 'Default Super Admin',
+      email: 'admin@default.com',
+      phone: '08000000000',
+      facility_name: 'Main Secretariat',
+      next_of_kin_name: 'Next of Kin',
+      next_of_kin_phone: '08000000001',
+      status: 'approved',
+      tenant_id: 'default',
+      savings: 100000,
+      investment: 100000
+    }, { skipTenant: true });
+  }
+
+  let defaultAdminUser = await User.findOne({ where: { membership_application_id: defaultAdminApp.id }, skipTenant: true });
+  const defaultAdminHash = await bcrypt.hash('admin123', 10);
+  if (!defaultAdminUser) {
+    defaultAdminUser = await User.create({
+      membership_application_id: defaultAdminApp.id,
+      tenant_id: 'default',
+      password_hash: defaultAdminHash,
+      role: 'super_admin',
+      status: 'active',
+      is_default_password: false
+    }, { skipTenant: true });
+    console.log('✅ Created Default Admin user (ADM001 / admin123).');
+  } else {
+    await defaultAdminUser.update({
+      password_hash: defaultAdminHash,
+      is_default_password: false,
+      status: 'active'
+    }, { skipTenant: true });
+  }
+
   // 4. Ensure FMCK Admin User
   const adminPsn = 'FMCK-ADM-001';
   let adminApp = await MembershipApplication.findOne({ where: { psn: adminPsn }, skipTenant: true });
@@ -112,9 +153,12 @@ async function setup() {
       next_of_kin_name: 'Next of Kin',
       next_of_kin_phone: '08012345679',
       status: 'approved',
+      tenant_id: 'fmcksmcs',
       savings: 50000,
       investment: 50000
     }, { skipTenant: true });
+  } else {
+    await adminApp.update({ tenant_id: 'fmcksmcs' }, { skipTenant: true });
   }
 
   let adminUser = await User.findOne({ where: { membership_application_id: adminApp.id }, skipTenant: true });
@@ -131,6 +175,7 @@ async function setup() {
     console.log('✅ Created FMCK Admin user (FMCK-ADM-001 / admin123).');
   } else {
     await adminUser.update({
+      tenant_id: 'fmcksmcs',
       password_hash: adminPasswordHash,
       is_default_password: false,
       status: 'active'
@@ -150,10 +195,13 @@ async function setup() {
       next_of_kin_name: 'Amina Kumo',
       next_of_kin_phone: '08098765433',
       status: 'approved',
+      tenant_id: 'fmcksmcs',
       savings: 250000,
       investment: 100000,
       monthly_income: 450000
     }, { skipTenant: true });
+  } else {
+    await memberApp.update({ tenant_id: 'fmcksmcs' }, { skipTenant: true });
   }
 
   let memberUser = await User.findOne({ where: { membership_application_id: memberApp.id }, skipTenant: true });

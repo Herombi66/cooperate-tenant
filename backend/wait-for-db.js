@@ -23,13 +23,30 @@ async function waitForDatabase(maxRetries = 60, retryDelay = 5000) {
           if (code === 0) {
             console.log('✅ Database migrations completed successfully!');
             try {
+              console.log('🔄 Running database repair to ensure tenant schema & columns exist...');
+              const repairDatabase = require('./db/repair');
+              await repairDatabase();
+              console.log('✅ Database repair completed.');
+
               console.log('🔄 Synchronizing Sequelize models (tenants, platform_admins, etc.)...');
               require('./models');
               await sequelize.sync();
               console.log('✅ All tables synchronized successfully!');
+
+              console.log('🔄 Seeding initial platform & tenant admin accounts...');
+              const seedProcess = spawn('node', ['./scripts/setup_fmck_local.js'], {
+                stdio: 'inherit',
+                cwd: process.cwd()
+              });
+              await new Promise((resolveSeed) => {
+                seedProcess.on('close', resolveSeed);
+                seedProcess.on('error', resolveSeed);
+              });
+              console.log('✅ Initial seed verification completed.');
+
               resolve();
             } catch (syncErr) {
-              console.error('⚠️ Model sync warning:', syncErr.message);
+              console.error('⚠️ Model sync/repair warning:', syncErr.message);
               resolve(); // Proceed to start app
             }
           } else {
