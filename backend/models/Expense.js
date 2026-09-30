@@ -80,6 +80,7 @@ const Expense = sequelize.define('Expense', {
   month: {
     type: DataTypes.INTEGER,
     allowNull: false,
+    defaultValue: () => new Date().getMonth() + 1,
     validate: {
       min: 1,
       max: 12
@@ -88,6 +89,7 @@ const Expense = sequelize.define('Expense', {
   year: {
     type: DataTypes.INTEGER,
     allowNull: false,
+    defaultValue: () => new Date().getFullYear(),
     validate: {
       min: 2020,
       max: 2050

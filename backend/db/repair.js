@@ -144,6 +144,7 @@ async function repairDatabase() {
         ALTER TABLE contributions ADD COLUMN IF NOT EXISTS fixed_deposit DECIMAL(15, 2) DEFAULT 0;
         ALTER TABLE contributions ADD COLUMN IF NOT EXISTS share_capital DECIMAL(15, 2) DEFAULT 0;
         ALTER TABLE contributions ADD COLUMN IF NOT EXISTS target_saving DECIMAL(15, 2) DEFAULT 0;
+        ALTER TABLE contributions ADD COLUMN IF NOT EXISTS payment_method VARCHAR(50) DEFAULT 'cash';
         ALTER TABLE contributions ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT '{}';
         ALTER TABLE contributions ADD COLUMN IF NOT EXISTS tenant_id VARCHAR(100) DEFAULT 'default';
       `);
@@ -152,8 +153,118 @@ async function repairDatabase() {
     // Ensure columns on loans table
     try {
       await sequelize.query(`
+        ALTER TABLE loans ADD COLUMN IF NOT EXISTS guarantor_psn VARCHAR(50);
         ALTER TABLE loans ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT '{}';
         ALTER TABLE loans ADD COLUMN IF NOT EXISTS tenant_id VARCHAR(100) DEFAULT 'default';
+      `);
+    } catch (e) {}
+
+    // Ensure columns on expenses table
+    try {
+      await sequelize.query(`
+        ALTER TABLE expenses ADD COLUMN IF NOT EXISTS tenant_id VARCHAR(100) DEFAULT 'default';
+        ALTER TABLE expenses ADD COLUMN IF NOT EXISTS description TEXT;
+        ALTER TABLE expenses ADD COLUMN IF NOT EXISTS category VARCHAR(100) DEFAULT 'general';
+        ALTER TABLE expenses ADD COLUMN IF NOT EXISTS amount DECIMAL(15, 2) DEFAULT 0;
+        ALTER TABLE expenses ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'pending';
+        ALTER TABLE expenses ADD COLUMN IF NOT EXISTS expense_date TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP;
+        ALTER TABLE expenses ADD COLUMN IF NOT EXISTS payment_date TIMESTAMP WITH TIME ZONE;
+        ALTER TABLE expenses ADD COLUMN IF NOT EXISTS recipient VARCHAR(255);
+        ALTER TABLE expenses ADD COLUMN IF NOT EXISTS payment_method VARCHAR(50);
+        ALTER TABLE expenses ADD COLUMN IF NOT EXISTS receipt_number VARCHAR(100);
+        ALTER TABLE expenses ADD COLUMN IF NOT EXISTS approved_by INTEGER REFERENCES users(id);
+        ALTER TABLE expenses ADD COLUMN IF NOT EXISTS approval_date TIMESTAMP WITH TIME ZONE;
+        ALTER TABLE expenses ADD COLUMN IF NOT EXISTS paid_by INTEGER REFERENCES users(id);
+        ALTER TABLE expenses ADD COLUMN IF NOT EXISTS notes TEXT;
+        ALTER TABLE expenses ADD COLUMN IF NOT EXISTS attachments JSONB DEFAULT '[]';
+        ALTER TABLE expenses ADD COLUMN IF NOT EXISTS month INTEGER;
+        ALTER TABLE expenses ADD COLUMN IF NOT EXISTS year INTEGER;
+      `);
+
+      // Relax title constraint if legacy table has NOT NULL title
+      await sequelize.query(`
+        DO $$
+        BEGIN
+          BEGIN
+            ALTER TABLE expenses ALTER COLUMN title DROP NOT NULL;
+          EXCEPTION WHEN OTHERS THEN NULL;
+          END;
+        END $$;
+      `);
+
+      // Backfill month, year, description
+      await sequelize.query(`
+        UPDATE expenses
+        SET
+          month = COALESCE(month, EXTRACT(MONTH FROM COALESCE(expense_date, created_at, CURRENT_DATE))::INTEGER, 1),
+          year = COALESCE(year, EXTRACT(YEAR FROM COALESCE(expense_date, created_at, CURRENT_DATE))::INTEGER, 2026),
+          description = COALESCE(description, title, 'Expense')
+        WHERE month IS NULL OR year IS NULL OR description IS NULL;
+      `);
+
+      // Set defaults for month and year
+      await sequelize.query(`
+        ALTER TABLE expenses ALTER COLUMN month SET DEFAULT EXTRACT(MONTH FROM CURRENT_DATE)::INTEGER;
+        ALTER TABLE expenses ALTER COLUMN year SET DEFAULT EXTRACT(YEAR FROM CURRENT_DATE)::INTEGER;
+      `);
+
+      // Add indexes for expenses
+      await sequelize.query(`
+        CREATE INDEX IF NOT EXISTS idx_expenses_year_month ON expenses(year, month);
+        CREATE INDEX IF NOT EXISTS idx_expenses_status ON expenses(status);
+        CREATE INDEX IF NOT EXISTS idx_expenses_category ON expenses(category);
+        CREATE INDEX IF NOT EXISTS idx_expenses_tenant_id ON expenses(tenant_id);
+      `);
+      log('✅ Ensured expenses columns, backfills, and indexes exist.');
+    } catch (e) {
+      log('⚠️ Could not repair expenses table: ' + e.message);
+    }
+
+    // Ensure columns on contribution_withdrawals table
+    try {
+      await sequelize.query(`
+        ALTER TABLE contribution_withdrawals ADD COLUMN IF NOT EXISTS tenant_id VARCHAR(100) DEFAULT 'default';
+        ALTER TABLE contribution_withdrawals ADD COLUMN IF NOT EXISTS withdrawal_type VARCHAR(50) DEFAULT 'regular';
+        ALTER TABLE contribution_withdrawals ADD COLUMN IF NOT EXISTS payment_method VARCHAR(50);
+        ALTER TABLE contribution_withdrawals ADD COLUMN IF NOT EXISTS reference VARCHAR(255);
+        ALTER TABLE contribution_withdrawals ADD COLUMN IF NOT EXISTS notes TEXT;
+        ALTER TABLE contribution_withdrawals ADD COLUMN IF NOT EXISTS disbursed_by INTEGER REFERENCES users(id);
+        ALTER TABLE contribution_withdrawals ADD COLUMN IF NOT EXISTS disbursed_at TIMESTAMP WITH TIME ZONE;
+      `);
+    } catch (e) {}
+
+    // Ensure settings table has tenant_id and relaxed unique constraint
+    try {
+      await sequelize.query(`
+        ALTER TABLE settings ADD COLUMN IF NOT EXISTS tenant_id VARCHAR(100) DEFAULT 'default';
+        DO $$
+        BEGIN
+          BEGIN
+            ALTER TABLE settings DROP CONSTRAINT IF EXISTS settings_key_key;
+          EXCEPTION WHEN OTHERS THEN NULL;
+          END;
+        END $$;
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_settings_tenant_key ON settings(tenant_id, key);
+      `);
+    } catch (e) {}
+
+    // Ensure notifications table has tenant_id and broadcast_id
+    try {
+      await sequelize.query(`
+        CREATE TABLE IF NOT EXISTS notifications (
+          id SERIAL PRIMARY KEY,
+          tenant_id VARCHAR(100) DEFAULT 'default',
+          user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+          type VARCHAR(50) NOT NULL,
+          title VARCHAR(255) NOT NULL,
+          message TEXT NOT NULL,
+          data JSONB,
+          is_read BOOLEAN DEFAULT FALSE,
+          broadcast_id INTEGER,
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        );
+        ALTER TABLE notifications ADD COLUMN IF NOT EXISTS tenant_id VARCHAR(100) DEFAULT 'default';
+        ALTER TABLE notifications ADD COLUMN IF NOT EXISTS broadcast_id INTEGER;
       `);
     } catch (e) {}
 
@@ -968,14 +1079,35 @@ async function repairDatabase() {
     `);
     await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_doc_template_versions_template_id ON document_template_versions(template_id);`);
 
-    // Ensure loan_agreements has snapshot_data and signature_reference
+    // Ensure loan_agreements table exists
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS loan_agreements (
+        id SERIAL PRIMARY KEY,
+        tenant_id VARCHAR(100) DEFAULT 'default',
+        loan_id INTEGER NOT NULL REFERENCES loans(id) ON DELETE CASCADE,
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        type VARCHAR(50) NOT NULL,
+        status VARCHAR(50) NOT NULL DEFAULT 'pending',
+        version VARCHAR(20) DEFAULT '1.0',
+        ip_address VARCHAR(45),
+        action_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        snapshot_data JSONB,
+        signature_reference VARCHAR(100),
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_loan_agreements_loan_id ON loan_agreements(loan_id);`);
+    await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_loan_agreements_user_id ON loan_agreements(user_id);`);
+    await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_loan_agreements_tenant_id ON loan_agreements(tenant_id);`);
+
     await sequelize.query(`
       ALTER TABLE loan_agreements ADD COLUMN IF NOT EXISTS snapshot_data JSONB;
     `);
     await sequelize.query(`
       ALTER TABLE loan_agreements ADD COLUMN IF NOT EXISTS signature_reference VARCHAR(100);
     `);
-    log('✅ Ensured document_templates, document_template_versions, and loan_agreements snapshot columns exist.');
+    log('✅ Ensured document_templates, document_template_versions, and loan_agreements exist.');
 
     log('✅ Database repair check completed.');
     return { success: true, logs };
