@@ -16,13 +16,15 @@ interface SuperAdminCoopSettingsModalProps {
   onClose: () => void;
   tenant: { id: string; name: string } | null; // null means Global Defaults mode
   onSuccess?: () => void;
+  initialTab?: string;
 }
 
 export const SuperAdminCooperativeSettingsModal: React.FC<SuperAdminCoopSettingsModalProps> = ({
   isOpen,
   onClose,
   tenant,
-  onSuccess
+  onSuccess,
+  initialTab
 }) => {
   const [activeTab, setActiveTab] = useState('general');
   const [loading, setLoading] = useState(false);
@@ -271,9 +273,14 @@ export const SuperAdminCooperativeSettingsModal: React.FC<SuperAdminCoopSettings
 
   useEffect(() => {
     if (isOpen) {
+      if (initialTab) {
+        setActiveTab(initialTab);
+      } else {
+        setActiveTab('general');
+      }
       loadSettings();
     }
-  }, [isOpen, tenant]);
+  }, [isOpen, tenant, initialTab]);
 
   const loadSettings = async () => {
     try {

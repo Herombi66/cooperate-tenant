@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Settings, Globe, Shield, LogOut, CheckCircle, XCircle, Layout, Activity, Users, Box, CreditCard, Heart, Receipt, TrendingUp, Percent, Paintbrush, Trash2, ExternalLink, Sliders, Copy, Check } from 'lucide-react';
+import {
+  Plus, Settings, Globe, Shield, LogOut, CheckCircle, XCircle, Layout,
+  Activity, Users, Box, CreditCard, Heart, Receipt, TrendingUp, Percent,
+  Paintbrush, Trash2, ExternalLink, Sliders, Copy, Check, Key, Lock,
+  Eye, EyeOff, RefreshCw, Loader, AlertCircle, CheckCircle2
+} from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { SuperAdminCooperativeSettingsModal } from '../components/SuperAdminCooperativeSettingsModal';
@@ -44,6 +49,20 @@ export const PlatformAdminDashboard: React.FC = () => {
   const [selectedTenantId, setSelectedTenantId] = useState<string | null>(null);
   const [showCoopSettingsModal, setShowCoopSettingsModal] = useState(false);
   const [selectedCoopSettingsTenant, setSelectedCoopSettingsTenant] = useState<{ id: string; name: string } | null>(null);
+  const [coopSettingsInitialTab, setCoopSettingsInitialTab] = useState<string>('general');
+
+  // Edit Modal Reset Password State
+  const [editModalCustomPassword, setEditModalCustomPassword] = useState('');
+  const [showEditModalCustomPassword, setShowEditModalCustomPassword] = useState(false);
+  const [editModalResetting, setEditModalResetting] = useState(false);
+  const [editModalResetResult, setEditModalResetResult] = useState<{
+    newPassword: string;
+    isCustom: boolean;
+    name: string;
+    psn: string;
+    timestamp: string;
+  } | null>(null);
+  const [editModalCopied, setEditModalCopied] = useState(false);
 
   const initialFormState = {
     id: '',
@@ -157,6 +176,9 @@ export const PlatformAdminDashboard: React.FC = () => {
 
   const handleOpenEditModal = (tenant: Tenant) => {
     setSelectedTenantId(tenant.id);
+    setEditModalCustomPassword('');
+    setEditModalResetResult(null);
+    setEditModalCopied(false);
     setFormData({
       id: tenant.id,
       name: tenant.name,
@@ -168,6 +190,53 @@ export const PlatformAdminDashboard: React.FC = () => {
       admin: { name: '', email: '', phone: '', password: '' }
     });
     setShowEditModal(true);
+  };
+
+  const handleEditModalResetPassword = async () => {
+    if (!selectedTenantId) return;
+    if (editModalCustomPassword && editModalCustomPassword.trim().length > 0 && editModalCustomPassword.trim().length < 6) {
+      toast.error('Custom password must be at least 6 characters long');
+      return;
+    }
+
+    const actionText = editModalCustomPassword.trim()
+      ? `set the specified custom password for ${formData.name} administrator`
+      : `generate a new secure random password for ${formData.name} administrator`;
+
+    if (!window.confirm(`Are you sure you want to ${actionText}?`)) {
+      return;
+    }
+
+    try {
+      setEditModalResetting(true);
+      const token = localStorage.getItem('platformToken');
+      const res = await axios.post(
+        `${API_URL}/platform/tenants/${selectedTenantId}/reset-admin-password`,
+        {
+          password: editModalCustomPassword.trim() || undefined
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      if (res.data.success) {
+        toast.success(res.data.message || 'Administrator password updated successfully!');
+        setEditModalResetResult({
+          newPassword: res.data.data.newPassword,
+          isCustom: res.data.data.isCustom,
+          name: res.data.data.name,
+          psn: res.data.data.psn,
+          timestamp: new Date().toLocaleTimeString()
+        });
+        setEditModalCustomPassword('');
+      }
+    } catch (err: any) {
+      console.error('Password reset error in edit modal:', err);
+      toast.error(err.response?.data?.message || 'Failed to reset administrator password');
+    } finally {
+      setEditModalResetting(false);
+    }
   };
 
   const handleUpdateTenant = async (e: React.FormEvent) => {
@@ -370,6 +439,18 @@ export const PlatformAdminDashboard: React.FC = () => {
                     <button 
                       onClick={() => {
                         setSelectedCoopSettingsTenant({ id: tenant.id, name: tenant.name });
+                        setCoopSettingsInitialTab('admin_security');
+                        setShowCoopSettingsModal(true);
+                      }}
+                      className="p-1.5 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                      title="Reset Administrator Password"
+                    >
+                      <Key className="w-5 h-5 text-amber-600" />
+                    </button>
+                    <button 
+                      onClick={() => {
+                        setSelectedCoopSettingsTenant({ id: tenant.id, name: tenant.name });
+                        setCoopSettingsInitialTab('general');
                         setShowCoopSettingsModal(true);
                       }}
                       className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
@@ -460,16 +541,32 @@ export const PlatformAdminDashboard: React.FC = () => {
                         </span>
                       )}
                     </div>
-                    <button
-                      onClick={() => {
-                        setSelectedCoopSettingsTenant({ id: tenant.id, name: tenant.name });
-                        setShowCoopSettingsModal(true);
-                      }}
-                      className="w-full mt-4 py-2 px-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition"
-                    >
-                      <Sliders className="w-3.5 h-3.5" />
-                      Cooperative Settings (15 Policies)
-                    </button>
+                    <div className="grid grid-cols-2 gap-2 mt-4">
+                      <button
+                        onClick={() => {
+                          setSelectedCoopSettingsTenant({ id: tenant.id, name: tenant.name });
+                          setCoopSettingsInitialTab('general');
+                          setShowCoopSettingsModal(true);
+                        }}
+                        className="py-2 px-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition text-center"
+                        title="Configure 15 Cooperative Settings & Policies"
+                      >
+                        <Sliders className="w-3.5 h-3.5" />
+                        <span>Settings (15)</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSelectedCoopSettingsTenant({ id: tenant.id, name: tenant.name });
+                          setCoopSettingsInitialTab('admin_security');
+                          setShowCoopSettingsModal(true);
+                        }}
+                        className="py-2 px-2 bg-amber-50 hover:bg-amber-100 text-amber-800 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition text-center border border-amber-200 shadow-2xs"
+                        title="Reset Tenant Admin Password"
+                      >
+                        <Key className="w-3.5 h-3.5 text-amber-600" />
+                        <span>Reset Password</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               );
@@ -1008,6 +1105,129 @@ export const PlatformAdminDashboard: React.FC = () => {
                   </div>
                 </div>
                 )}
+
+                {/* Section 4: Administrator Security & Password Reset */}
+                <div className="p-5 bg-amber-50/70 border border-amber-200/80 rounded-2xl space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
+                      <Key className="w-5 h-5 text-amber-600" />
+                      Administrator Security & Password Reset
+                    </h3>
+                    <span className="text-xs px-2.5 py-0.5 rounded-full font-bold bg-amber-100 text-amber-800">
+                      Super Admin Access
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-600">
+                    Reset this cooperative administrator's password. You can enter an optional custom password below or leave it completely blank to automatically generate a secure password.
+                  </p>
+
+                  <div className="space-y-2 max-w-lg">
+                    <label className="block text-xs font-bold text-gray-700 flex items-center justify-between">
+                      <span>Custom Password (Optional)</span>
+                      <button
+                        type="button"
+                        onClick={() => setShowEditModalCustomPassword(!showEditModalCustomPassword)}
+                        className="text-xs text-amber-800 hover:underline flex items-center gap-1 font-normal"
+                      >
+                        {showEditModalCustomPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                        {showEditModalCustomPassword ? 'Hide' : 'Show'}
+                      </button>
+                    </label>
+                    <input
+                      type={showEditModalCustomPassword ? 'text' : 'password'}
+                      value={editModalCustomPassword}
+                      onChange={(e) => setEditModalCustomPassword(e.target.value)}
+                      placeholder="Leave blank to auto-generate secure password"
+                      className="w-full bg-white border border-gray-300 rounded-xl px-3.5 py-2 text-sm font-mono focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 outline-none"
+                    />
+                    <p className="text-[11px] text-gray-500">
+                      {editModalCustomPassword.trim().length > 0 ? (
+                        <span className={editModalCustomPassword.trim().length >= 6 ? 'text-emerald-600 font-medium' : 'text-amber-700 font-medium'}>
+                          {editModalCustomPassword.trim().length >= 6
+                            ? '✓ Valid custom password (minimum 6 characters)'
+                            : `Must be at least 6 characters (currently ${editModalCustomPassword.trim().length})`}
+                        </span>
+                      ) : (
+                        'If left blank, a random secure password like Admin@938201 will be automatically generated.'
+                      )}
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-3 pt-1">
+                    <button
+                      type="button"
+                      onClick={handleEditModalResetPassword}
+                      disabled={editModalResetting || (editModalCustomPassword.trim().length > 0 && editModalCustomPassword.trim().length < 6)}
+                      className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition disabled:opacity-50 shadow-sm"
+                    >
+                      {editModalResetting ? (
+                        <>
+                          <Loader className="w-3.5 h-3.5 animate-spin" />
+                          <span>Updating Password...</span>
+                        </>
+                      ) : (
+                        <>
+                          <RefreshCw className="w-3.5 h-3.5" />
+                          <span>{editModalCustomPassword.trim() ? 'Set Custom Password' : 'Reset & Generate Password'}</span>
+                        </>
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowEditModal(false);
+                        setSelectedCoopSettingsTenant({ id: formData.id, name: formData.name });
+                        setCoopSettingsInitialTab('admin_security');
+                        setShowCoopSettingsModal(true);
+                      }}
+                      className="text-xs text-indigo-700 hover:text-indigo-900 font-semibold underline"
+                    >
+                      Open Full Admin Security Tab &rarr;
+                    </button>
+                  </div>
+
+                  {editModalResetResult && (
+                    <div className="bg-white border-2 border-emerald-400 rounded-xl p-4 space-y-2 shadow-sm animate-fade-in mt-3">
+                      <div className="flex items-center justify-between text-xs text-emerald-800 font-bold">
+                        <span className="flex items-center gap-1.5">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                          Password Reset Successful! ({editModalResetResult.timestamp})
+                        </span>
+                        <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-semibold">
+                          {editModalResetResult.isCustom ? 'Custom' : 'Auto-Generated'}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between bg-emerald-50/50 p-2.5 rounded-lg border border-emerald-200">
+                        <div>
+                          <span className="text-[11px] text-gray-500 block">
+                            Login ID: <strong className="text-gray-900 font-mono">{editModalResetResult.psn}</strong>
+                          </span>
+                          <span className="font-mono text-base font-bold text-gray-900 select-all">
+                            {editModalResetResult.newPassword}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText(editModalResetResult.newPassword);
+                            setEditModalCopied(true);
+                            toast.success('Password copied to clipboard!');
+                            setTimeout(() => setEditModalCopied(false), 3000);
+                          }}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition ${
+                            editModalCopied ? 'bg-emerald-600 text-white' : 'bg-emerald-200 hover:bg-emerald-300 text-emerald-900'
+                          }`}
+                        >
+                          {editModalCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                          {editModalCopied ? 'Copied!' : 'Copy Password'}
+                        </button>
+                      </div>
+                      <p className="text-[11px] text-gray-500">
+                        Share this password with the cooperative administrator. They can now log in using their Login ID / PSN.
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="mt-8 pt-6 border-t border-gray-100 flex justify-end gap-3">
@@ -1034,6 +1254,7 @@ export const PlatformAdminDashboard: React.FC = () => {
         isOpen={showCoopSettingsModal}
         onClose={() => setShowCoopSettingsModal(false)}
         tenant={selectedCoopSettingsTenant}
+        initialTab={coopSettingsInitialTab}
         onSuccess={() => fetchTenants()}
       />
     </div>
