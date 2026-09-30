@@ -16,39 +16,44 @@ class EmailService {
     }
   }
 
+  createTransporter() {
+    if (!config.smtp || !config.smtp.enabled) return null;
+    if (this.transporter) return this.transporter;
+
+    this.transporter = nodemailer.createTransport({
+      host: config.smtp.host,
+      port: config.smtp.port,
+      secure: config.smtp.secure,
+      auth: config.smtp.auth,
+      tls: {
+        rejectUnauthorized: false
+      },
+      connectionTimeout: config.smtp.connectionTimeout || 15000,
+      greetingTimeout: 15000,
+      socketTimeout: 15000
+    });
+    return this.transporter;
+  }
+
   async initialize() {
     if (!config.enabled) {
       console.log('ℹ️ [EmailService] Disabled via configuration (EMAIL_ENABLED=false).');
       return;
     }
 
-    // Initialize SMTP (Secondary/Fallback)
+    // Initialize SMTP
     if (config.smtp && config.smtp.enabled) {
       try {
-        console.log(`📧 [EmailService] Connecting to SMTP: ${config.smtp.host}:${config.smtp.port}...`);
-        this.transporter = nodemailer.createTransport({
-          host: config.smtp.host,
-          port: config.smtp.port,
-          secure: config.smtp.secure,
-          auth: config.smtp.auth,
-          tls: {
-            rejectUnauthorized: false
-          },
-          pool: true,
-          maxConnections: 5,
-          maxMessages: 100,
-          connectionTimeout: config.smtp.connectionTimeout || 10000,
-          greetingTimeout: config.smtp.greetingTimeout || 10000,
-          socketTimeout: config.smtp.socketTimeout || 10000
-        });
+        console.log(`📧 [EmailService] Connecting to SMTP: ${config.smtp.host}:${config.smtp.port} (secure: ${config.smtp.secure})...`);
+        this.createTransporter();
 
-        // Verify connection with timeout
+        // Test connection with timeout
         await this.transporter.verify();
         this.isSmtpConnected = true;
         console.log(`✅ [EmailService] Connected to SMTP: ${config.smtp.host}`);
       } catch (error) {
-        console.warn(`⚠️ [EmailService] SMTP Connection warning: ${error.message}`);
-        this.isSmtpConnected = false;
+        console.warn(`⚠️ [EmailService] SMTP Connection warning: ${error.message} (will retry dynamically on send)`);
+        // Keep this.transporter intact so sendMail() can attempt to deliver
       }
     } else {
       console.log('ℹ️ [EmailService] SMTP credentials not configured, skipping SMTP connection.');
@@ -82,8 +87,12 @@ class EmailService {
     if (!config.enabled) {
       return { success: true, skipped: true, message: 'Email disabled via configuration' };
     }
-    if (!config.brevo.enabled && !this.isSmtpConnected) {
-      console.warn(`ℹ️ [EmailService] No email transport configured/connected. Skipping email "${subject}" to ${to}`);
+
+    const hasBrevo = config.brevo && config.brevo.enabled;
+    const hasSmtp = (config.smtp && config.smtp.enabled) || !!this.transporter;
+
+    if (!hasBrevo && !hasSmtp) {
+      console.warn(`ℹ️ [EmailService] No email transport configured. Skipping email "${subject}" to ${to}`);
       return { success: true, skipped: true, message: 'No email transport configured' };
     }
 
@@ -104,7 +113,7 @@ class EmailService {
     const fullEmailData = { ...emailData, html };
 
     // 1. Try Primary Provider: Brevo (HTTPS REST API - never blocked by VPS firewalls)
-    if (config.brevo.enabled) {
+    if (hasBrevo) {
       try {
         console.log(`📧 [EmailService] Attempting Brevo for ${template || subject}...`);
         result = await brevoService.sendEmail(fullEmailData);
@@ -117,9 +126,12 @@ class EmailService {
     }
 
     // 2. Try Fallback: SMTP
-    if (!result && (this.isSmtpConnected || this.transporter)) {
+    if (!result && hasSmtp) {
       try {
-        console.log(`📧 [EmailService] Attempting SMTP fallback for ${template || subject}...`);
+        console.log(`📧 [EmailService] Sending via SMTP to ${to} (${config.smtp.host}:${config.smtp.port})...`);
+        if (!this.transporter) {
+          this.createTransporter();
+        }
 
         const senderName = config.from?.name || process.env.SMTP_FROM_NAME || 'FMCK SMCS';
         const senderAddress = config.from?.address || config.from?.email || process.env.SMTP_FROM || 'fmcksmcs@gmail.com';
@@ -140,9 +152,9 @@ class EmailService {
         result = { success: true, messageId: info.messageId, provider: 'smtp' };
         providerUsed = 'smtp';
         this.isSmtpConnected = true;
-        console.log(`✅ [EmailService] Sent via SMTP to ${to}`);
+        console.log(`✅ [EmailService] Sent successfully via SMTP to ${to} (MessageId: ${info.messageId})`);
       } catch (smtpError) {
-        console.error('❌ [EmailService] SMTP failed:', smtpError.message);
+        console.error('❌ [EmailService] SMTP send error:', smtpError.message);
         errorLog.push({ provider: 'smtp', error: smtpError.message });
       }
     }

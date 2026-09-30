@@ -1,53 +1,67 @@
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '../.env') });
 require('dotenv').config();
+
 const emailService = require('./services/emailService');
+const config = require('./config/email');
 
-const recipientEmail = process.argv[2];
-
-if (!recipientEmail) {
-    console.error('Please provide a recipient email address.');
-    console.log('Usage: node test-email.js <recipient-email>');
-    process.exit(1);
-}
+const recipientEmail = process.argv[2] || 'zigs360@gmail.com';
 
 console.log('---------------------------------------------------');
-console.log('🧪 Zoho SMTP Email Test Script');
+console.log('🧪 FMCK SMCS Email Diagnostic Test Script');
 console.log('---------------------------------------------------');
-console.log(`Target Recipient: ${recipientEmail}`);
-console.log(`Sender: ${process.env.EMAIL_FROM || 'Not Set'}`);
-console.log(`SMTP Host: ${process.env.SMTP_HOST || 'smtp.zoho.com'}`);
+console.log(`Target Recipient : ${recipientEmail}`);
+console.log(`Sender Name      : ${config.from?.name || 'FMCK SMCS'}`);
+console.log(`Sender Address   : ${config.from?.address || config.from?.email}`);
+console.log(`SMTP Host        : ${config.smtp?.host}`);
+console.log(`SMTP Port        : ${config.smtp?.port} (secure: ${config.smtp?.secure})`);
+console.log(`SMTP User        : ${config.smtp?.auth?.user}`);
+console.log(`SMTP Pass set?   : ${!!config.smtp?.auth?.pass}`);
+console.log(`Email Enabled    : ${config.enabled}`);
 console.log('---------------------------------------------------');
 
 async function runTest() {
     try {
-        console.log('Attempting to send test email via Zoho SMTP...');
+        console.log(`Attempting to send live test email to ${recipientEmail}...`);
         const result = await emailService.sendEmail({
             to: recipientEmail,
-            subject: 'IMAN MCS - Zoho SMTP Test Email',
+            subject: 'FMCK SMCS - Live Email System Diagnostic',
             template: 'welcome',
             context: {
-                name: 'Zoho Test User',
-                psn: 'ZOHO_TEST',
-                status: 'Test',
-                actionUrl: 'https://imancooperative.vercel.app/login',
-                year: new Date().getFullYear()
+                recipient_name: 'Test Member',
+                member_name: 'Test Member',
+                member_id: 'FMCK/TEST/001',
+                psn: 'FMCK/TEST/001',
+                member_email: recipientEmail,
+                email: recipientEmail,
+                temporary_password: 'TestPassword2026!',
+                login_url: 'https://www.fmcksmcs.com',
+                cooperative_name: 'FMCK SMCS',
+                support_email: 'fmcksmcs@gmail.com',
+                support_phone: '+234 810 588 0201',
+                current_year: new Date().getFullYear().toString()
             }
         });
 
         if (result && result.success) {
             console.log('---------------------------------------------------');
-            console.log('✅ SUCCESS: Email sent successfully via Zoho SMTP!');
-            console.log('Message ID:', result.messageId);
+            console.log('✅ SUCCESS: Live email sent successfully!');
+            console.log('Provider   :', result.provider);
+            console.log('Message ID :', result.messageId);
             console.log('---------------------------------------------------');
-            console.log('Check the recipient inbox (and spam folder).');
+            console.log(`Check inbox and spam folder for ${recipientEmail}.`);
+            process.exit(0);
         } else {
             console.log('---------------------------------------------------');
             console.log('❌ FAILURE: Email could not be sent.');
             console.log('Result:', result);
             console.log('---------------------------------------------------');
+            process.exit(1);
         }
 
     } catch (error) {
-        console.error('❌ Unexpected Error:', error);
+        console.error('❌ Unexpected Error:', error.message);
+        process.exit(1);
     }
 }
 
