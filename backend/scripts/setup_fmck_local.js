@@ -147,7 +147,7 @@ async function setup() {
     adminApp = await MembershipApplication.create({
       psn: adminPsn,
       name: 'FMCK Administrator',
-      email: 'admin@fmck.org',
+      email: 'fmcksmcs@gmail.com',
       phone: '08012345678',
       facility_name: 'Federal Medical Centre Kumo',
       next_of_kin_name: 'Next of Kin',
@@ -158,7 +158,7 @@ async function setup() {
       investment: 50000
     }, { skipTenant: true });
   } else {
-    await adminApp.update({ tenant_id: 'fmcksmcs' }, { skipTenant: true });
+    await adminApp.update({ tenant_id: 'fmcksmcs', email: 'fmcksmcs@gmail.com' }, { skipTenant: true });
   }
 
   let adminUser = await User.findOne({ where: { membership_application_id: adminApp.id }, skipTenant: true });

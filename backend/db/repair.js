@@ -57,18 +57,66 @@ async function repairDatabase() {
     await sequelize.query(`
       ALTER TABLE users ADD COLUMN IF NOT EXISTS membership_application_id INTEGER;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS tenant_id VARCHAR(100) DEFAULT 'default';
-      ALTER TABLE users ADD COLUMN IF NOT EXISTS metadata JSONB;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT '{}';
       ALTER TABLE users ADD COLUMN IF NOT EXISTS can_liquidate_loans BOOLEAN DEFAULT false;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS can_create_animal_requests BOOLEAN DEFAULT false;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS additional_role VARCHAR(50);
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS is_default_password BOOLEAN DEFAULT false;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS role VARCHAR(50) DEFAULT 'member';
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'active';
     `);
 
-    // Ensure critical columns on membership_applications table
+    // Ensure all model columns on membership_applications table exist
     await sequelize.query(`
+      ALTER TABLE membership_applications ADD COLUMN IF NOT EXISTS share_capital DECIMAL(15, 2) DEFAULT 0;
+      ALTER TABLE membership_applications ADD COLUMN IF NOT EXISTS termination_amount DECIMAL(15, 2) DEFAULT 0;
+      ALTER TABLE membership_applications ADD COLUMN IF NOT EXISTS target_saving DECIMAL(15, 2) DEFAULT 0;
+      ALTER TABLE membership_applications ADD COLUMN IF NOT EXISTS target_period INTEGER DEFAULT 12;
+      ALTER TABLE membership_applications ADD COLUMN IF NOT EXISTS contribution_amount_commitment DECIMAL(15, 2) DEFAULT 0;
+      ALTER TABLE membership_applications ADD COLUMN IF NOT EXISTS contribution DECIMAL(15, 2) DEFAULT 0;
+      ALTER TABLE membership_applications ADD COLUMN IF NOT EXISTS savings DECIMAL(15, 2) DEFAULT 0;
+      ALTER TABLE membership_applications ADD COLUMN IF NOT EXISTS investment DECIMAL(15, 2) DEFAULT 0;
+      ALTER TABLE membership_applications ADD COLUMN IF NOT EXISTS monthly_income DECIMAL(15, 2) DEFAULT 0;
+      ALTER TABLE membership_applications ADD COLUMN IF NOT EXISTS years_of_experience INTEGER;
+      ALTER TABLE membership_applications ADD COLUMN IF NOT EXISTS employee_id VARCHAR(100);
+      ALTER TABLE membership_applications ADD COLUMN IF NOT EXISTS position VARCHAR(255);
+      ALTER TABLE membership_applications ADD COLUMN IF NOT EXISTS department VARCHAR(255);
+      ALTER TABLE membership_applications ADD COLUMN IF NOT EXISTS facility_name VARCHAR(255);
+      ALTER TABLE membership_applications ADD COLUMN IF NOT EXISTS next_of_kin_name VARCHAR(255);
+      ALTER TABLE membership_applications ADD COLUMN IF NOT EXISTS next_of_kin_phone VARCHAR(20);
+      ALTER TABLE membership_applications ADD COLUMN IF NOT EXISTS address TEXT;
+      ALTER TABLE membership_applications ADD COLUMN IF NOT EXISTS date_of_birth DATE;
+      ALTER TABLE membership_applications ADD COLUMN IF NOT EXISTS gender VARCHAR(20);
+      ALTER TABLE membership_applications ADD COLUMN IF NOT EXISTS marital_status VARCHAR(20);
+      ALTER TABLE membership_applications ADD COLUMN IF NOT EXISTS profile_image VARCHAR(500);
+      ALTER TABLE membership_applications ADD COLUMN IF NOT EXISTS application_date TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP;
+      ALTER TABLE membership_applications ADD COLUMN IF NOT EXISTS reviewed_by INTEGER;
+      ALTER TABLE membership_applications ADD COLUMN IF NOT EXISTS review_date TIMESTAMP WITH TIME ZONE;
+      ALTER TABLE membership_applications ADD COLUMN IF NOT EXISTS review_notes TEXT;
+      ALTER TABLE membership_applications ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'pending';
       ALTER TABLE membership_applications ADD COLUMN IF NOT EXISTS tenant_id VARCHAR(100) DEFAULT 'default';
-      ALTER TABLE membership_applications ADD COLUMN IF NOT EXISTS metadata JSONB;
+      ALTER TABLE membership_applications ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT '{}';
     `);
+
+    // Ensure columns on contributions table
+    try {
+      await sequelize.query(`
+        ALTER TABLE contributions ADD COLUMN IF NOT EXISTS fixed_deposit DECIMAL(15, 2) DEFAULT 0;
+        ALTER TABLE contributions ADD COLUMN IF NOT EXISTS share_capital DECIMAL(15, 2) DEFAULT 0;
+        ALTER TABLE contributions ADD COLUMN IF NOT EXISTS target_saving DECIMAL(15, 2) DEFAULT 0;
+        ALTER TABLE contributions ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT '{}';
+        ALTER TABLE contributions ADD COLUMN IF NOT EXISTS tenant_id VARCHAR(100) DEFAULT 'default';
+      `);
+    } catch (e) {}
+
+    // Ensure columns on loans table
+    try {
+      await sequelize.query(`
+        ALTER TABLE loans ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT '{}';
+        ALTER TABLE loans ADD COLUMN IF NOT EXISTS tenant_id VARCHAR(100) DEFAULT 'default';
+      `);
+    } catch (e) {}
 
     // Ensure tenant_id on all transactional tables
     const tenantTables = ['contributions', 'loans', 'expenses', 'profit_sharing', 'loan_repayments', 'activity_logs', 'notifications', 'settings', 'layyah_applications', 'animal_acquisition_requests', 'contribution_withdrawals', 'complaints', 'direct_messages', 'receipt_records', 'system_backups', 'upload_batches'];
@@ -79,7 +127,7 @@ async function repairDatabase() {
         // Table may not exist yet, safe to ignore
       }
     }
-    log('✅ Ensured tenants, platform_admins, and core tenant_id / membership_application_id columns exist.');
+    log('✅ Ensured tenants, platform_admins, and core schema columns exist.');
 
     // 1. Ensure payslip_url exists in loans table
     const [results] = await sequelize.query(`
@@ -178,20 +226,24 @@ async function repairDatabase() {
     ];
 
     for (const update of tablesToUpdate) {
-      const [results] = await sequelize.query(`
-        SELECT column_name 
-        FROM information_schema.columns 
-        WHERE table_name = '${update.table}' AND column_name = '${update.column}';
-      `);
-
-      if (results.length === 0) {
-        log(`⚠️ Column ${update.column} missing in ${update.table} table. Adding it manually...`);
-        await sequelize.query(`
-          ALTER TABLE ${update.table} ADD COLUMN IF NOT EXISTS ${update.column} ${update.type};
+      try {
+        const [results] = await sequelize.query(`
+          SELECT column_name 
+          FROM information_schema.columns 
+          WHERE table_name = '${update.table}' AND column_name = '${update.column}';
         `);
-        log(`✅ Added ${update.column} to ${update.table} table.`);
-      } else {
-        log(`✅ Column ${update.column} already exists in ${update.table} table.`);
+
+        if (results.length === 0) {
+          log(`⚠️ Column ${update.column} missing in ${update.table} table. Adding it manually...`);
+          await sequelize.query(`
+            ALTER TABLE ${update.table} ADD COLUMN IF NOT EXISTS ${update.column} ${update.type};
+          `);
+          log(`✅ Added ${update.column} to ${update.table} table.`);
+        } else {
+          log(`✅ Column ${update.column} already exists in ${update.table} table.`);
+        }
+      } catch (err) {
+        log(`ℹ️ Skipping column check for ${update.table}.${update.column}: table may not exist yet.`);
       }
     }
 
