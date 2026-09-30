@@ -9,18 +9,16 @@ module.exports = {
     enabled: !!(process.env.BREVO_API_KEY && process.env.BREVO_API_KEY.trim() !== ''),
     
     // Sender Information
-    senderName: process.env.BREVO_SENDER_NAME || 'IMAN MCS',
-    senderEmail: process.env.BREVO_SENDER_EMAIL || 'noreply@imanmcs.com',
+    senderName: process.env.BREVO_SENDER_NAME || process.env.SMTP_FROM_NAME || 'FMCK SMCS',
+    senderEmail: process.env.BREVO_SENDER_EMAIL || process.env.SMTP_FROM || 'fmcksmcs@gmail.com',
     
-    // Template IDs - THESE ARE CRITICAL! Update after creating templates in Brevo
+    // Template IDs (0 uses inline dynamic HTML templates automatically)
     templateIds: {
-      welcome: parseInt(process.env.BREVO_TEMPLATE_WELCOME) || 1,
-      role_assignment: parseInt(process.env.BREVO_TEMPLATE_ROLE_ASSIGNMENT) || 2,
-      admin_password_reset: parseInt(process.env.BREVO_TEMPLATE_ADMIN_PASSWORD_RESET) || 3,
-      loan_disbursement: parseInt(process.env.BREVO_TEMPLATE_LOAN_DISBURSEMENT) || 4,
-      complaint_confirmation: parseInt(process.env.BREVO_TEMPLATE_COMPLAINT_CONFIRM) || 5,
-      
-      // Additional templates (set to 0 if not created yet)
+      welcome: parseInt(process.env.BREVO_TEMPLATE_WELCOME) || 0,
+      role_assignment: parseInt(process.env.BREVO_TEMPLATE_ROLE_ASSIGNMENT) || 0,
+      admin_password_reset: parseInt(process.env.BREVO_TEMPLATE_ADMIN_PASSWORD_RESET) || 0,
+      loan_disbursement: parseInt(process.env.BREVO_TEMPLATE_LOAN_DISBURSEMENT) || 0,
+      complaint_confirmation: parseInt(process.env.BREVO_TEMPLATE_COMPLAINT_CONFIRM) || 0,
       password_reset: parseInt(process.env.BREVO_TEMPLATE_PASSWORD_RESET) || 0,
       loan_approval: parseInt(process.env.BREVO_TEMPLATE_LOAN_APPROVAL) || 0,
       loan_status_update: parseInt(process.env.BREVO_TEMPLATE_LOAN_STATUS) || 0,

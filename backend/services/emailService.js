@@ -92,11 +92,22 @@ class EmailService {
     let providerUsed = null;
     let errorLog = [];
 
-    // 1. Try Primary Provider: Brevo
+    // Pre-load HTML template or fallback
+    let html = emailData.html || null;
+    if (!html && template) {
+      try {
+        html = await this.loadTemplate(template, context);
+      } catch (err) {
+        console.warn(`⚠️ [EmailService] Template load failed: ${err.message}`);
+      }
+    }
+    const fullEmailData = { ...emailData, html };
+
+    // 1. Try Primary Provider: Brevo (HTTPS REST API - never blocked by VPS firewalls)
     if (config.brevo.enabled) {
       try {
-        console.log(`📧 [EmailService] Attempting Brevo for ${template}...`);
-        result = await brevoService.sendEmail(emailData);
+        console.log(`📧 [EmailService] Attempting Brevo for ${template || subject}...`);
+        result = await brevoService.sendEmail(fullEmailData);
         providerUsed = 'brevo';
         console.log(`✅ [EmailService] Sent via Brevo to ${to}`);
       } catch (brevoError) {
@@ -109,16 +120,6 @@ class EmailService {
     if (!result && (this.isSmtpConnected || this.transporter)) {
       try {
         console.log(`📧 [EmailService] Attempting SMTP fallback for ${template || subject}...`);
-        
-        // Load template if needed
-        let html = null;
-        if (template) {
-          try {
-            html = await this.loadTemplate(template, context);
-          } catch (err) {
-            console.warn(`⚠️ [EmailService] Template load failed: ${err.message}`);
-          }
-        }
 
         const senderName = config.from?.name || process.env.SMTP_FROM_NAME || 'FMCK SMCS';
         const senderAddress = config.from?.address || config.from?.email || process.env.SMTP_FROM || 'fmcksmcs@gmail.com';
