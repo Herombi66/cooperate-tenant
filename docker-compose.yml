@@ -46,13 +46,13 @@ services:
       EMAIL_DEBUG: ${EMAIL_DEBUG:-false}
       EMAIL_HOST: ${EMAIL_HOST:-${SMTP_HOST:-smtp.gmail.com}}
       EMAIL_PORT: ${EMAIL_PORT:-${SMTP_PORT:-587}}
-      EMAIL_SECURE: ${EMAIL_SECURE:-${SMTP_SECURE:-false}}
+      EMAIL_SECURE: ${EMAIL_SECURE:-${SMTP_SECURE:-}}
       EMAIL_USER: ${EMAIL_USER:-${SMTP_USER:-fmcksmcs@gmail.com}}
       EMAIL_PASS: ${EMAIL_PASS:-${SMTP_PASSWORD:-${SMTP_PASS:-}}}
       EMAIL_FROM: ${EMAIL_FROM:-${SMTP_FROM:-fmcksmcs@gmail.com}}
       SMTP_HOST: ${SMTP_HOST:-${EMAIL_HOST:-smtp.gmail.com}}
       SMTP_PORT: ${SMTP_PORT:-${EMAIL_PORT:-587}}
-      SMTP_SECURE: ${SMTP_SECURE:-${EMAIL_SECURE:-false}}
+      SMTP_SECURE: ${SMTP_SECURE:-${EMAIL_SECURE:-}}
       SMTP_USER: ${SMTP_USER:-${EMAIL_USER:-fmcksmcs@gmail.com}}
       SMTP_PASS: ${SMTP_PASS:-${SMTP_PASSWORD:-${EMAIL_PASS:-}}}
       SMTP_PASSWORD: ${SMTP_PASSWORD:-${SMTP_PASS:-${EMAIL_PASS:-}}}

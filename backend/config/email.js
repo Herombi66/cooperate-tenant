@@ -34,7 +34,7 @@ module.exports = {
   smtp: {
     host: process.env.SMTP_HOST || process.env.EMAIL_HOST || 'smtp.gmail.com',
     port: parseInt(process.env.SMTP_PORT || process.env.EMAIL_PORT) || 587,
-    secure: (process.env.SMTP_SECURE || process.env.EMAIL_SECURE) === 'true', // true for 465, false for other ports
+    secure: (process.env.SMTP_SECURE || process.env.EMAIL_SECURE) === 'true' || (parseInt(process.env.SMTP_PORT || process.env.EMAIL_PORT) === 465),
     auth: {
       user: process.env.SMTP_USER || process.env.EMAIL_USER || null,
       pass: process.env.SMTP_PASSWORD || process.env.SMTP_PASS || process.env.EMAIL_PASS || null,
