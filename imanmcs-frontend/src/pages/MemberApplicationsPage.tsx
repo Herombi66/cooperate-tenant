@@ -191,7 +191,7 @@ export const MemberApplicationsPage: React.FC = () => {
     if (app.metadata?.entrance_fee !== undefined && app.metadata?.entrance_fee !== null) {
       return Number(app.metadata.entrance_fee);
     }
-    return isFmck ? 1500 : 0;
+    return isFmck ? 2000 : 0;
   };
 
   const getAppRemainingContribution = (app: Application) => {
@@ -422,9 +422,8 @@ export const MemberApplicationsPage: React.FC = () => {
         {/* Total */}
         <div
           onClick={() => { setStatusFilter('all'); setPage(1); }}
-          className={`cursor-pointer bg-white p-4 rounded-xl border transition shadow-sm hover:shadow ${
-            statusFilter === 'all' ? 'border-[#0F3D3D] ring-2 ring-[#0F3D3D]/10' : 'border-gray-200'
-          }`}
+          className={`cursor-pointer bg-white p-4 rounded-xl border transition shadow-sm hover:shadow ${statusFilter === 'all' ? 'border-[#0F3D3D] ring-2 ring-[#0F3D3D]/10' : 'border-gray-200'
+            }`}
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">Total</span>
@@ -439,9 +438,8 @@ export const MemberApplicationsPage: React.FC = () => {
         {/* Pending Review */}
         <div
           onClick={() => { setStatusFilter('pending'); setPage(1); }}
-          className={`cursor-pointer bg-white p-4 rounded-xl border transition shadow-sm hover:shadow ${
-            statusFilter === 'pending' ? 'border-blue-500 ring-2 ring-blue-500/10' : 'border-gray-200'
-          }`}
+          className={`cursor-pointer bg-white p-4 rounded-xl border transition shadow-sm hover:shadow ${statusFilter === 'pending' ? 'border-blue-500 ring-2 ring-blue-500/10' : 'border-gray-200'
+            }`}
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wider text-blue-600">Pending</span>
@@ -456,9 +454,8 @@ export const MemberApplicationsPage: React.FC = () => {
         {/* Under Review */}
         <div
           onClick={() => { setStatusFilter('under_review'); setPage(1); }}
-          className={`cursor-pointer bg-white p-4 rounded-xl border transition shadow-sm hover:shadow ${
-            statusFilter === 'under_review' ? 'border-amber-500 ring-2 ring-amber-500/10' : 'border-gray-200'
-          }`}
+          className={`cursor-pointer bg-white p-4 rounded-xl border transition shadow-sm hover:shadow ${statusFilter === 'under_review' ? 'border-amber-500 ring-2 ring-amber-500/10' : 'border-gray-200'
+            }`}
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wider text-amber-600">In Review</span>
@@ -473,9 +470,8 @@ export const MemberApplicationsPage: React.FC = () => {
         {/* Approved */}
         <div
           onClick={() => { setStatusFilter('approved'); setPage(1); }}
-          className={`cursor-pointer bg-white p-4 rounded-xl border transition shadow-sm hover:shadow ${
-            statusFilter === 'approved' ? 'border-emerald-500 ring-2 ring-emerald-500/10' : 'border-gray-200'
-          }`}
+          className={`cursor-pointer bg-white p-4 rounded-xl border transition shadow-sm hover:shadow ${statusFilter === 'approved' ? 'border-emerald-500 ring-2 ring-emerald-500/10' : 'border-gray-200'
+            }`}
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wider text-emerald-600">Approved</span>
@@ -490,9 +486,8 @@ export const MemberApplicationsPage: React.FC = () => {
         {/* Rejected */}
         <div
           onClick={() => { setStatusFilter('rejected'); setPage(1); }}
-          className={`cursor-pointer bg-white p-4 rounded-xl border transition shadow-sm hover:shadow ${
-            statusFilter === 'rejected' ? 'border-rose-500 ring-2 ring-rose-500/10' : 'border-gray-200'
-          }`}
+          className={`cursor-pointer bg-white p-4 rounded-xl border transition shadow-sm hover:shadow ${statusFilter === 'rejected' ? 'border-rose-500 ring-2 ring-rose-500/10' : 'border-gray-200'
+            }`}
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wider text-rose-600">Rejected</span>
@@ -588,11 +583,10 @@ export const MemberApplicationsPage: React.FC = () => {
                 key={g}
                 type="button"
                 onClick={() => { setGenderFilter(g); setPage(1); }}
-                className={`px-2.5 py-1 rounded-md transition font-medium ${
-                  genderFilter === g
+                className={`px-2.5 py-1 rounded-md transition font-medium ${genderFilter === g
                     ? 'bg-[#0F3D3D] text-white shadow-xs'
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
+                  }`}
               >
                 {g === 'all' ? 'All' : g}
               </button>
@@ -848,11 +842,10 @@ export const MemberApplicationsPage: React.FC = () => {
                       {hasGap && <span className="px-1 text-gray-400">...</span>}
                       <button
                         onClick={() => setPage(p)}
-                        className={`px-3 py-1.5 rounded-md font-semibold transition ${
-                          page === p
+                        className={`px-3 py-1.5 rounded-md font-semibold transition ${page === p
                             ? 'bg-[#0F3D3D] text-white shadow-xs'
                             : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
-                        }`}
+                          }`}
                       >
                         {p}
                       </button>
@@ -1031,7 +1024,7 @@ export const MemberApplicationsPage: React.FC = () => {
                     <strong>Target Monthly Savings:</strong> ₦{(Number(selectedApplication.target_saving) || 0).toLocaleString()} / month
                   </span>
                   <span className="text-emerald-800 font-medium">
-                    ✓ ₦1,500 entrance fee deducted from first contribution
+                    ✓ ₦{getAppEntranceFee(selectedApplication).toLocaleString()} entrance fee deducted from first contribution
                   </span>
                 </div>
               </div>

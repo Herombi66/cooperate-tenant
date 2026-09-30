@@ -1839,7 +1839,7 @@
     </div>
 
     <div class="foot-bottom">
-      <span>© 2026 FMC Kumo Staff Multipurpose Cooperative Society Ltd. All rights reserved.</span>
+      <span>© 2026 FMC Kumo Staff Multipurpose Cooperative Society. All rights reserved.</span>
       <span>Preserving Healthcare Staff Prosperity • Gombe State, Nigeria</span>
     </div>
   </div>
@@ -1947,16 +1947,16 @@
             <span>2. Initial Contribution</span>
           </div>
           <div class="form-section-desc">
-            Setup your opening cooperative contribution. ₦1,500 entrance fee will be deducted from this amount.
+            Setup your opening cooperative contribution. ₦2,000 entrance fee will be deducted from this amount.
           </div>
 
           <div style="max-width:480px;">
             <label for="appContribution">Contribution (₦) <span class="req">*</span></label>
             <input type="number" id="appContribution" min="5000" step="500" placeholder="e.g. 5000" required oninput="handleContributionInput()">
             <div style="font-size:0.8rem; color:var(--ink-soft); margin-top:5px; font-weight:500;">
-              Minimum required: ₦5,000. ₦1,500 entrance fee will be deducted from your first contribution.
+              Minimum required: ₦5,000. ₦2,000 entrance fee will be deducted from your first contribution.
             </div>
-            <div class="field-error-msg" id="err-appContribution">Minimum initial contribution is ₦5,000. ₦1,500 entrance fee will be deducted from this amount.</div>
+            <div class="field-error-msg" id="err-appContribution">Minimum initial contribution is ₦5,000. ₦2,000 entrance fee will be deducted from this amount.</div>
           </div>
 
           <div class="calculated-box" style="max-width:540px; margin-top:16px;">
@@ -1976,7 +1976,7 @@
 
             <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.82rem; color:#b7791f; margin-bottom:10px;">
               <span>Entrance Fee (deducted):</span>
-              <span style="font-family:var(--mono); font-weight:600;">-₦1,500.00</span>
+              <span style="font-family:var(--mono); font-weight:600;">-₦2,000.00</span>
             </div>
 
             <div style="display:flex; justify-content:space-between; align-items:baseline; border-top:1px solid #e2e8f0; padding-top:10px;">
@@ -2057,11 +2057,11 @@
         <div>PHONE NUMBER: <span id="slipPhone"></span></div>
         <div style="border-top:1px dashed var(--line); margin:12px 0;"></div>
         <div>CONTRIBUTION: <strong id="slipContribution"></strong></div>
-        <div style="color:#b7791f;">ENTRANCE FEE (deducted): <strong id="slipEntranceFee">-₦1,500.00</strong></div>
+        <div style="color:#b7791f;">ENTRANCE FEE (deducted): <strong id="slipEntranceFee">-₦2,000.00</strong></div>
         <div style="font-size:1rem; font-weight:bold; color:var(--teal); margin:6px 0;">
           REMAINING CONTRIBUTION: <span id="slipRemainingContribution"></span>
         </div>
-        <div style="color:var(--gold); font-size:0.8rem;">★ Note: ₦1,500 entrance fee will be deducted from your first contribution.</div>
+        <div style="color:var(--gold); font-size:0.8rem;">★ Note: ₦2,000 entrance fee will be deducted from your first contribution.</div>
         <div id="slipTargetSavingRow" style="margin-top:6px;">TARGET MONTHLY SAVING: <span id="slipTargetSaving"></span></div>
         <div>DATE GENERATED: <span id="slipDate"></span></div>
       </div>
@@ -2398,7 +2398,7 @@
   function handleContributionInput() {
     const contribInput = document.getElementById('appContribution');
     const contribVal = parseFloat(contribInput.value) || 0;
-    const entranceFee = 1500;
+    const entranceFee = 2000;
     const remaining = Math.max(0, contribVal - entranceFee);
 
     document.getElementById('appContributionDisplay').textContent = fmtNaira(contribVal);
@@ -2480,7 +2480,7 @@
 
       const contribInput = document.getElementById('appContribution');
       const contribVal = parseFloat(contribInput.value) || 0;
-      const entranceFee = 1500;
+      const entranceFee = 2000;
       const remaining = Math.max(0, contribVal - entranceFee);
 
       const errContrib = document.getElementById('err-appContribution');
@@ -2551,8 +2551,7 @@
           initial_investment: 0,
           target_monthly_saving: targetMonthly,
           reason_for_joining: reason,
-          entrance_fee: 1500,
-          entrance_fee_note: '₦1,500 entrance fee deducted from first contribution',
+          entrance_fee_note: '₦2,000 entrance fee deducted from first contribution',
           submitted_at: new Date().toISOString(),
           tenant_id: 'fmcksmcs'
         }
@@ -2596,7 +2595,7 @@
       document.getElementById('slipEmail').textContent = email;
       document.getElementById('slipPhone').textContent = phone;
       document.getElementById('slipContribution').textContent = fmtNaira(contribVal);
-      document.getElementById('slipEntranceFee').textContent = '-₦1,500.00';
+      document.getElementById('slipEntranceFee').textContent = '-₦2,000.00';
       document.getElementById('slipRemainingContribution').textContent = fmtNaira(remaining);
       document.getElementById('slipTargetSaving').textContent = targetMonthly > 0 ? fmtNaira(targetMonthly) + ' / month' : 'Not specified';
       document.getElementById('slipDate').textContent = dateFormatted;

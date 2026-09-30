@@ -346,7 +346,7 @@ export const MemberDashboard: React.FC = () => {
             <div className="text-sm text-primary-700">
               <p className="mb-1">Please note the following automatic deductions as per the membership agreement:</p>
               <ul className="list-disc pl-5 space-y-1">
-                <li><strong>Registration Fee:</strong> ₦1,500 (One-time deduction from first contribution)</li>
+                <li><strong>Registration Fee:</strong> ₦{isFmck ? '2,000' : '1,500'} (One-time deduction from first contribution)</li>
                 <li><strong>Monthly Admin Fee:</strong> ₦1,000 (Deducted once per month from the first contribution in that month)</li>
               </ul>
               <p className="mt-2 text-xs text-primary-600">

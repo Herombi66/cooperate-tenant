@@ -111,7 +111,7 @@ export const FmcksApplicationForm: React.FC<{
 
   // Compute calculated values
   const contributionAmount = parseFloat(formData.contribution) || 0;
-  const entranceFee = 1500;
+  const entranceFee = 2000;
   const remainingContribution = Math.max(0, contributionAmount - entranceFee);
   const targetMonthlyNum = parseFloat(formData.targetMonthlySaving) || 0;
 
@@ -152,7 +152,7 @@ export const FmcksApplicationForm: React.FC<{
       case 'contribution': {
         const val = parseFloat(value);
         if (!value.trim() || isNaN(val) || val <= 0) return 'Contribution amount is required';
-        if (val < 5000) return 'Minimum initial contribution is ₦5,000. ₦1,500 entrance fee will be deducted from this amount.';
+        if (val < 5000) return 'Minimum initial contribution is ₦5,000. ₦2,000 entrance fee will be deducted from this amount.';
         return '';
       }
       case 'reasonForJoining':
@@ -229,7 +229,7 @@ export const FmcksApplicationForm: React.FC<{
       }
 
       if (contributionAmount < 5000) {
-        toast.error('Minimum initial contribution is ₦5,000. ₦1,500 entrance fee will be deducted from this amount.');
+        toast.error('Minimum initial contribution is ₦5,000. ₦2,000 entrance fee will be deducted from this amount.');
         return;
       }
       const sanitizedPsnVal = sanitizePsn(formData.ippisNumber);
@@ -277,7 +277,7 @@ export const FmcksApplicationForm: React.FC<{
           total_initial_contribution: contributionAmount,
           initial_saving: remainingContribution,
           initial_investment: 0,
-          entrance_fee_note: '₦1,500 entrance fee will be deducted from first contribution',
+          entrance_fee_note: '₦2,000 entrance fee will be deducted from first contribution',
           target_monthly_saving: targetMonthlyNum,
           reason_for_joining: formData.reasonForJoining.trim(),
           submitted_at: new Date().toISOString()
@@ -428,17 +428,17 @@ export const FmcksApplicationForm: React.FC<{
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-slate-600">Entrance Fee (deducted):</span>
-                <span className="font-mono font-medium text-amber-700">-₦1,500.00</span>
+                <span className="font-mono font-medium text-amber-700">-₦2,000.00</span>
               </div>
               <div className="flex justify-between text-base font-bold text-[#0F3D3D] pt-2 border-t border-slate-300">
                 <span>Remaining Contribution:</span>
                 <span className="font-mono text-lg text-[#0F3D3D]">
-                  {formatNaira(Math.max(0, (parseFloat(data.contribution) || 0) - 1500))}
+                  {formatNaira(Math.max(0, (parseFloat(data.contribution) || 0) - 2000))}
                 </span>
               </div>
               <div className="bg-amber-50/80 border border-amber-200/80 rounded-lg p-2.5 mt-2 text-xs text-amber-900 flex items-start gap-2">
                 <span className="font-bold text-amber-700">★ Note:</span>
-                <span>The <strong>₦1,500 entrance fee</strong> is deducted from your first contribution.</span>
+                <span>The <strong>₦2,000 entrance fee</strong> is deducted from your first contribution.</span>
               </div>
               {parseFloat(data.targetMonthlySaving) > 0 && (
                 <div className="flex justify-between text-sm pt-2 text-slate-600">
@@ -846,7 +846,7 @@ export const FmcksApplicationForm: React.FC<{
 
               {/* Informative notice directly below the field */}
               <p className="text-xs text-slate-600 mt-1.5 leading-relaxed font-medium">
-                Minimum required: ₦5,000. ₦1,500 entrance fee will be deducted from your first contribution.
+                Minimum required: ₦5,000. ₦2,000 entrance fee will be deducted from your first contribution.
               </p>
 
               {/* Error message if invalid or < 5000 */}
@@ -882,7 +882,7 @@ export const FmcksApplicationForm: React.FC<{
                     <span className="text-[10px] text-amber-700/80">(deducted from first contribution)</span>
                   </span>
                   <span className="font-mono font-semibold">
-                    -₦1,500.00
+                    -₦2,000.00
                   </span>
                 </div>
                 <div className="flex justify-between items-center text-sm sm:text-base font-bold text-[#0F3D3D] pt-2 border-t border-slate-200">

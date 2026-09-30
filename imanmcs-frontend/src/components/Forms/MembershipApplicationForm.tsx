@@ -20,7 +20,7 @@ const membershipSchema = z.object({
   targetSaving: z.number().min(0, 'Target saving cannot be negative').optional(),
   targetPeriod: z.number().min(1, 'Target period must be at least 1 month').optional(),
 }).refine((data) => data.savings + data.investment >= 5000, {
-  message: 'Minimum initial contribution is ₦5,000. ₦1,500 entrance fee will be deducted from this amount.',
+  message: 'Minimum initial contribution is ₦5,000. ₦2,000 entrance fee will be deducted from this amount.',
   path: ['savings'],
 });
 
@@ -75,7 +75,7 @@ export const MembershipApplicationForm: React.FC<MembershipApplicationFormProps>
     try {
       const isFmckTenant = isFmck;
       const contribAmount = data.savings + (isFmckTenant ? 0 : data.investment);
-      const entranceFee = isFmckTenant ? 1500 : 0;
+      const entranceFee = isFmckTenant ? 2000 : 0;
       const remainingContribution = Math.max(0, contribAmount - entranceFee);
 
       // Transform data to match backend schema
@@ -298,7 +298,7 @@ export const MembershipApplicationForm: React.FC<MembershipApplicationFormProps>
                     placeholder="5000"
                   />
                   <p className="text-xs text-gray-600 mt-1 font-medium">
-                    Minimum required: ₦5,000. ₦1,500 entrance fee will be deducted from your first contribution.
+                    Minimum required: ₦5,000. ₦2,000 entrance fee will be deducted from your first contribution.
                   </p>
                   {errors.savings && (
                     <p className="mt-1 text-sm text-red-600">{errors.savings.message}</p>
@@ -312,11 +312,11 @@ export const MembershipApplicationForm: React.FC<MembershipApplicationFormProps>
                   </div>
                   <div className="flex justify-between text-amber-800">
                     <span>Entrance Fee (deducted):</span>
-                    <span className="font-semibold">-₦1,500.00</span>
+                    <span className="font-semibold">-₦2,000.00</span>
                   </div>
                   <div className="flex justify-between font-bold text-emerald-800 pt-1 border-t border-emerald-200 text-sm">
                     <span>Remaining Contribution:</span>
-                    <span>₦{Math.max(0, savings - 1500).toLocaleString()}</span>
+                    <span>₦{Math.max(0, savings - 2000).toLocaleString()}</span>
                   </div>
                 </div>
               </div>
@@ -367,7 +367,7 @@ export const MembershipApplicationForm: React.FC<MembershipApplicationFormProps>
                   )}
                 </p>
                 <p className="text-xs text-gray-500 mt-1">
-                  Note: ₦1,500 entrance fee will be deducted from your first contribution
+                  Note: ₦2,000 entrance fee will be deducted from your first contribution
                 </p>
               </div>
             )}

@@ -52,7 +52,10 @@ export const ApplicationReviewModal: React.FC<ApplicationReviewModalProps> = ({
     }
   };
 
-  const totalContribution = application.savings + application.investment;
+  const entranceFee = (application.metadata?.entrance_fee !== undefined && application.metadata?.entrance_fee !== null)
+    ? Number(application.metadata.entrance_fee)
+    : 2000;
+  const totalContribution = application.contribution || (application.savings + application.investment);
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-3 sm:p-4 z-50 overflow-y-auto">
@@ -190,11 +193,11 @@ export const ApplicationReviewModal: React.FC<ApplicationReviewModalProps> = ({
                 </div>
                 <div className="flex justify-between">
                   <span>Entrance Fee:</span>
-                  <span>₦1,500</span>
+                  <span>₦{entranceFee.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between font-medium border-t border-primary-200 pt-1">
                   <span>Net Initial Contribution:</span>
-                  <span>₦{(totalContribution - 1500).toLocaleString()}</span>
+                  <span>₦{Math.max(0, totalContribution - entranceFee).toLocaleString()}</span>
                 </div>
               </div>
             </div>

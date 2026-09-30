@@ -675,7 +675,7 @@ export const MembersPage: React.FC = () => {
                   {idLabel.replace(/\s+/g, '_')}, Name, Email, Phone, Facility_Name, Next_Of_Kin_Name, Next_Of_Kin_Phone, {isFmck ? 'Contribution' : 'Savings, Investment'}, Target_Saving, Target_Period
                 </p>
                 <p className="text-xs text-primary-700 mt-1">
-                  <strong>Note:</strong> {isFmck ? 'Initial Contribution must be at least ₦5,000 (₦1,500 entrance fee will be deducted).' : 'Combined Savings + Investment must be at least ₦5,000.'} All membership application fields are required.
+                  <strong>Note:</strong> {isFmck ? 'Initial Contribution must be at least ₦5,000 (₦2,000 entrance fee will be deducted).' : 'Combined Savings + Investment must be at least ₦5,000.'} All membership application fields are required.
                 </p>
               </div>
 
@@ -848,12 +848,14 @@ export const MembersPage: React.FC = () => {
                             </div>
                             <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg border border-gray-200">
                               <span className="text-sm font-medium text-gray-600">Entrance Fee (Deducted)</span>
-                              <span className="text-sm font-semibold text-gray-700">-₦1,500</span>
+                              <span className="text-sm font-semibold text-gray-700">
+                                -₦{(memberDetails.membershipApplication?.metadata?.entrance_fee ? Number(memberDetails.membershipApplication.metadata.entrance_fee) : 2000).toLocaleString()}
+                              </span>
                             </div>
                             <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
                               <span className="text-sm font-medium text-green-700">Net Credited to Savings</span>
                               <span className="text-sm font-semibold text-green-900">
-                                ₦{Math.max(0, (memberDetails.membershipApplication?.contribution ? memberDetails.membershipApplication.contribution - 1500 : (memberDetails.membershipApplication?.savings || 0))).toLocaleString()}
+                                ₦{Math.max(0, (memberDetails.membershipApplication?.contribution ? memberDetails.membershipApplication.contribution - (memberDetails.membershipApplication?.metadata?.entrance_fee ? Number(memberDetails.membershipApplication.metadata.entrance_fee) : 2000) : (memberDetails.membershipApplication?.savings || 0))).toLocaleString()}
                               </span>
                             </div>
                           </>
@@ -1101,7 +1103,7 @@ export const MembersPage: React.FC = () => {
                     required
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    Minimum required: ₦5,000. ₦1,500 entrance fee will be deducted from your first contribution.
+                    Minimum required: ₦5,000. ₦2,000 entrance fee will be deducted from your first contribution.
                   </p>
                 </div>
               ) : (
@@ -1186,11 +1188,11 @@ export const MembersPage: React.FC = () => {
                     const investmentVal = parseFloat(formData.get('investment') as string || '0');
 
                     const finalContribution = isFmck ? contributionVal : (savingsVal + investmentVal);
-                    const entranceFee = isFmck ? 1500 : 0;
+                    const entranceFee = isFmck ? 2000 : 0;
                     const remainingContribution = Math.max(0, finalContribution - entranceFee);
 
                     if (isFmck && finalContribution < 5000) {
-                      toast.error('Minimum initial contribution is ₦5,000. ₦1,500 entrance fee will be deducted from this amount.');
+                      toast.error('Minimum initial contribution is ₦5,000. ₦2,000 entrance fee will be deducted from this amount.');
                       return;
                     }
 
@@ -1350,7 +1352,7 @@ export const MembersPage: React.FC = () => {
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    Minimum required: ₦5,000. ₦1,500 entrance fee will be deducted from your first contribution.
+                    Minimum required: ₦5,000. ₦2,000 entrance fee will be deducted from your first contribution.
                   </p>
                 </div>
               ) : (
@@ -1468,7 +1470,9 @@ export const MembersPage: React.FC = () => {
                       });
 
                       if (isFmck && memberData.contribution !== undefined) {
-                        const fee = 1500;
+                        const fee = memberDetails.membershipApplication?.metadata?.entrance_fee !== undefined
+                          ? Number(memberDetails.membershipApplication.metadata.entrance_fee)
+                          : 2000;
                         memberData.savings = Math.max(0, memberData.contribution - fee);
                         memberData.investment = 0;
                         memberData.metadata = {

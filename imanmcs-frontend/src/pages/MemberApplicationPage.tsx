@@ -575,7 +575,7 @@ export const MemberApplicationPage: React.FC = () => {
           <strong>Total Initial Contribution:</strong> ₦{((parseFloat(formData.cooperativeInfo.initialSavings) || 0) + (parseFloat(formData.cooperativeInfo.initialInvestment) || 0)).toLocaleString()}
         </p>
         <p className="text-xs text-gray-500 mt-1">
-          Minimum required: ₦5,000 combined. ₦1,500 entrance fee will be deducted from your first contribution.
+          Minimum required: ₦5,000 combined. ₦2,000 entrance fee will be deducted from your first contribution.
         </p>
       </div>
 
