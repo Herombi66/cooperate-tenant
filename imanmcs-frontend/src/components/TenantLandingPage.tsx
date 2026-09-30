@@ -19,11 +19,12 @@ const RESERVED_ROUTES = [
 ];
 
 export const useTenantSlug = () => {
+  const { tenant } = useTenant();
   const { tenantSlug } = useParams<{ tenantSlug?: string }>();
   const [searchParams] = useSearchParams();
   const queryTenant = searchParams.get('tenant');
 
-  // 1. Explicit path parameter (e.g. /habu, /tenant/habu, /t/habu)
+  // 1. Explicit path parameter (e.g. /habu, /tenant/habu, /t/habu, /fmcksmcs)
   if (tenantSlug && tenantSlug !== 'default' && !RESERVED_ROUTES.includes(tenantSlug.toLowerCase())) {
     return tenantSlug.toLowerCase();
   }
@@ -33,8 +34,13 @@ export const useTenantSlug = () => {
     return queryTenant.toLowerCase();
   }
 
-  // 3. Subdomain on custom domain (e.g. habu.imanmcs.com)
-  const hostname = window.location.hostname;
+  // 3. Custom domain matching: if hostname contains 'fmcksmcs' or 'fmck'
+  const hostname = (typeof window !== 'undefined' ? window.location.hostname : '').toLowerCase();
+  if (hostname.includes('fmcksmcs') || hostname.includes('fmck')) {
+    return 'fmcksmcs';
+  }
+
+  // 4. Subdomain on custom domain (e.g. habu.imanmcs.com)
   if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
     const parts = hostname.split('.');
     if (parts.length >= 3 && parts[0] !== 'www') {
@@ -42,7 +48,12 @@ export const useTenantSlug = () => {
     }
   }
 
-  // 4. Default to 'default' when no specific tenant is requested
+  // 5. Active tenant context resolved by backend
+  if (tenant?.id && tenant.id !== 'default') {
+    return tenant.id.toLowerCase();
+  }
+
+  // 6. Default to 'default' when no specific tenant is requested
   return 'default';
 };
 
