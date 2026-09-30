@@ -238,6 +238,7 @@ async function repairDatabase() {
         ALTER TABLE contribution_withdrawals ADD COLUMN IF NOT EXISTS notes TEXT;
         ALTER TABLE contribution_withdrawals ADD COLUMN IF NOT EXISTS disbursed_by INTEGER REFERENCES users(id);
         ALTER TABLE contribution_withdrawals ADD COLUMN IF NOT EXISTS disbursed_at TIMESTAMP WITH TIME ZONE;
+      `);
     } catch (e) {}
 
     // Clean up any initial_application contribution rows so member net balances start at zero
