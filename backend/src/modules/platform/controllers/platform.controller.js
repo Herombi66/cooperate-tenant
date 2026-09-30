@@ -130,12 +130,19 @@ exports.createTenant = async (req, res) => {
       }
     };
 
+    const cleanDomain = domain && domain.trim()
+      ? domain.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/.*$/, '')
+      : null;
+    const cleanSubdomain = subdomain && subdomain.trim()
+      ? subdomain.trim().toLowerCase().replace(/[^a-z0-9-]/g, '')
+      : null;
+
     const result = await sequelize.transaction(async (t) => {
       const tenant = await Tenant.create({
         id,
         name,
-        domain: domain || null,
-        subdomain: subdomain || null,
+        domain: cleanDomain,
+        subdomain: cleanSubdomain,
         cooperative_type,
         theme: theme || defaultTheme,
         features: features || undefined,
@@ -219,10 +226,17 @@ exports.updateTenant = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Tenant not found' });
     }
 
+    const cleanDomain = domain !== undefined
+      ? (domain && domain.trim() ? domain.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/.*$/, '') : null)
+      : tenant.domain;
+    const cleanSubdomain = subdomain !== undefined
+      ? (subdomain && subdomain.trim() ? subdomain.trim().toLowerCase().replace(/[^a-z0-9-]/g, '') : null)
+      : tenant.subdomain;
+
     await tenant.update({
       name: name || tenant.name,
-      domain: domain !== undefined ? domain : tenant.domain,
-      subdomain: subdomain !== undefined ? subdomain : tenant.subdomain,
+      domain: cleanDomain,
+      subdomain: cleanSubdomain,
       status: status || tenant.status,
       cooperative_type: cooperative_type || tenant.cooperative_type,
       theme: theme ? { ...(tenant.theme || {}), ...theme } : tenant.theme,
@@ -357,10 +371,25 @@ exports.getTenantSettings = async (req, res) => {
   try {
     const { id } = req.params;
     const settings = await tenantSettingsService.get(id);
+    const tenant = await Tenant.findByPk(id);
+    if (tenant) {
+      settings.domain = tenant.domain || '';
+      settings.subdomain = tenant.subdomain || '';
+      if (!settings.cooperative_name) {
+        settings.cooperative_name = tenant.name;
+      }
+    }
     res.json({
       success: true,
       settings,
-      data: settings
+      data: settings,
+      tenant: tenant ? {
+        id: tenant.id,
+        name: tenant.name,
+        domain: tenant.domain,
+        subdomain: tenant.subdomain,
+        status: tenant.status
+      } : null
     });
   } catch (error) {
     console.error('Error getting tenant settings for super admin:', error);
@@ -374,6 +403,32 @@ exports.updateTenantSettings = async (req, res) => {
     const { id } = req.params;
     const newSettings = req.body;
     const updatedSettings = await tenantSettingsService.update(id, newSettings);
+
+    if (id !== 'default') {
+      const tenant = await Tenant.findByPk(id);
+      if (tenant) {
+        const updateFields = {};
+        if (newSettings.domain !== undefined) {
+          updateFields.domain = newSettings.domain && newSettings.domain.trim()
+            ? newSettings.domain.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/.*$/, '')
+            : null;
+        }
+        if (newSettings.subdomain !== undefined) {
+          updateFields.subdomain = newSettings.subdomain && newSettings.subdomain.trim()
+            ? newSettings.subdomain.trim().toLowerCase().replace(/[^a-z0-9-]/g, '')
+            : null;
+        }
+        if (newSettings.cooperative_name && newSettings.cooperative_name !== tenant.name) {
+          updateFields.name = newSettings.cooperative_name;
+        }
+        if (Object.keys(updateFields).length > 0) {
+          await tenant.update(updateFields);
+        }
+        updatedSettings.domain = tenant.domain || '';
+        updatedSettings.subdomain = tenant.subdomain || '';
+      }
+    }
+
     res.json({
       success: true,
       message: 'Cooperative settings updated successfully by Super Admin',

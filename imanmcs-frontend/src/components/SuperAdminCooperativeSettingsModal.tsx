@@ -4,7 +4,8 @@ import {
   Globe, DollarSign, CreditCard, TrendingUp, Percent,
   Shield, Layers, Bot, Save, Loader, Upload, CheckCircle2,
   Calendar, Key, Sparkles, Eye, EyeOff, FileText, AlertCircle,
-  Clock, Tag, Check, Hash, AlertTriangle, Receipt, Landmark
+  Clock, Tag, Check, Hash, AlertTriangle, Receipt, Landmark,
+  ExternalLink
 } from 'lucide-react';
 import axios from 'axios';
 import { API_URL } from '../config';
@@ -35,6 +36,10 @@ export const SuperAdminCooperativeSettingsModal: React.FC<SuperAdminCoopSettings
     // 1. Name
     cooperative_name: '',
     registration_number: '',
+
+    // Domain & Routing
+    domain: '',
+    subdomain: '',
 
     // 2. Logo
     cooperative_logo: '/logo.png',
@@ -406,6 +411,7 @@ export const SuperAdminCooperativeSettingsModal: React.FC<SuperAdminCoopSettings
 
   const tabs = [
     { id: 'general', name: 'General & Identity', icon: Building2 },
+    { id: 'domain', name: 'Domain & Routing', icon: Globe },
     { id: 'fees', name: 'Fees', icon: CreditCard },
     { id: 'contributions', name: 'Contribution Rules', icon: DollarSign },
     { id: 'loans', name: 'Loan Rules', icon: CreditCard },
@@ -510,6 +516,40 @@ export const SuperAdminCooperativeSettingsModal: React.FC<SuperAdminCoopSettings
                         placeholder="e.g. COOP/REG/2024/099"
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
                       />
+                    </div>
+
+                    {/* Domain & Subdomain Quick Card */}
+                    <div className="md:col-span-2 p-3.5 bg-blue-50/70 rounded-xl border border-blue-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+                          <Globe className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold text-gray-900">Custom Domain & Subdomain Access</span>
+                            {settings.domain ? (
+                              <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">
+                                {settings.domain}
+                              </span>
+                            ) : (
+                              <span className="text-[10px] bg-gray-200 text-gray-700 font-medium px-2 py-0.5 rounded-full">
+                                {settings.subdomain ? `${settings.subdomain}.imanmcs.com` : 'Default routing'}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[11px] text-gray-500">
+                            Configure dedicated white-label hostnames and DNS routing for this tenant
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('domain')}
+                        className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition shadow-sm self-start sm:self-auto shrink-0 flex items-center gap-1"
+                      >
+                        <span>Configure Domain</span>
+                        <span>&rarr;</span>
+                      </button>
                     </div>
 
                     {/* 2. Logo */}
@@ -680,6 +720,187 @@ export const SuperAdminCooperativeSettingsModal: React.FC<SuperAdminCoopSettings
                           placeholder="Name (Nigerian Naira)"
                           className="px-2.5 py-1.5 border border-gray-300 rounded-lg text-xs"
                         />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB: DOMAIN & ROUTING */}
+              {activeTab === 'domain' && (
+                <div className="space-y-6">
+                  {/* Header Banner */}
+                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200/80 rounded-2xl p-5 flex items-start gap-4 shadow-sm">
+                    <div className="w-12 h-12 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-md">
+                      <Globe className="w-6 h-6" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-base font-bold text-gray-900">
+                          {tenant ? `Domain Configuration — ${tenant.name}` : 'Platform Domain Defaults'}
+                        </h3>
+                        {settings.domain ? (
+                          <span className="text-xs px-2.5 py-0.5 rounded-full font-bold bg-emerald-100 text-emerald-800 flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                            Custom Domain Active
+                          </span>
+                        ) : (
+                          <span className="text-xs px-2.5 py-0.5 rounded-full font-bold bg-amber-100 text-amber-800 flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-600"></span>
+                            Platform Subdomain
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-gray-600 mt-1">
+                        Configure how members and administrators access this cooperative. Assign a white-labeled custom domain (e.g., <code className="bg-white px-1.5 py-0.5 rounded border text-indigo-700">coopname.org</code>) or manage its platform subdomain routing.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Domain Form Fields */}
+                  <div className="bg-white rounded-2xl border border-gray-200 p-6 space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Custom Domain Input */}
+                      <div>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <label className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
+                            <Globe className="w-4 h-4 text-primary-600" />
+                            Custom Domain (White-Label)
+                          </label>
+                          {settings.domain && (
+                            <a
+                              href={`https://${settings.domain}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-primary-600 hover:text-primary-700 font-semibold flex items-center gap-1 hover:underline"
+                            >
+                              <span>Test Domain</span>
+                              <ExternalLink className="w-3 h-3" />
+                            </a>
+                          )}
+                        </div>
+                        <div className="relative">
+                          <input
+                            type="text"
+                            value={settings.domain || ''}
+                            onChange={(e) => {
+                              const val = e.target.value.toLowerCase().replace(/^https?:\/\//, '').replace(/\/.*$/, '');
+                              handleChange('domain', val);
+                            }}
+                            placeholder="e.g. portal.mycooperative.org or coopname.com"
+                            className="w-full pl-3 pr-10 py-2.5 border border-gray-300 rounded-xl text-sm font-mono focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none"
+                          />
+                          <div className="absolute right-3 top-2.5 text-gray-400">
+                            <Globe className="w-4 h-4" />
+                          </div>
+                        </div>
+                        <p className="text-[11px] text-gray-500 mt-1.5">
+                          Enter domain without protocol prefix (<code className="bg-gray-100 px-1 py-0.5 rounded">https://</code>). Leave blank to disable custom domain.
+                        </p>
+                      </div>
+
+                      {/* Subdomain Input */}
+                      <div>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <label className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
+                            <Tag className="w-4 h-4 text-indigo-600" />
+                            Platform Subdomain
+                          </label>
+                          {settings.subdomain && (
+                            <span className="text-xs text-emerald-600 font-mono font-medium">
+                              https://{settings.subdomain}.imanmcs.com
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex">
+                          <input
+                            type="text"
+                            value={settings.subdomain || ''}
+                            onChange={(e) => handleChange('subdomain', e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                            placeholder="e.g. keffi-staff"
+                            className="w-full pl-3 pr-2 py-2.5 border border-gray-300 rounded-l-xl text-sm font-mono focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none border-r-0"
+                          />
+                          <div className="bg-gray-100 border border-gray-300 rounded-r-xl px-3 py-2.5 text-gray-600 flex items-center font-mono text-xs font-medium border-l-0 shrink-0">
+                            .imanmcs.com
+                          </div>
+                        </div>
+                        <p className="text-[11px] text-gray-500 mt-1.5">
+                          Platform subdomain slug routed through multi-tenant reverse proxy.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Multi-Tenant Routing Engine Indicator */}
+                    <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
+                      <h4 className="text-xs font-bold text-gray-800 mb-2 flex items-center gap-1.5">
+                        <Shield className="w-4 h-4 text-emerald-600" />
+                        Multi-Tenant Routing Engine Status
+                      </h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                        <div className="bg-white p-3 rounded-lg border border-gray-200">
+                          <span className="text-gray-500 block text-[10px] uppercase font-bold tracking-wider">Tenant Identifier</span>
+                          <span className="font-mono font-bold text-gray-900 mt-0.5 block">{tenant?.id || 'default'}</span>
+                        </div>
+                        <div className="bg-white p-3 rounded-lg border border-gray-200">
+                          <span className="text-gray-500 block text-[10px] uppercase font-bold tracking-wider">Active Hostname</span>
+                          <span className="font-mono font-bold text-indigo-700 mt-0.5 block truncate">
+                            {settings.domain || (settings.subdomain ? `${settings.subdomain}.imanmcs.com` : 'Platform Default')}
+                          </span>
+                        </div>
+                        <div className="bg-white p-3 rounded-lg border border-gray-200">
+                          <span className="text-gray-500 block text-[10px] uppercase font-bold tracking-wider">Routing Mechanism</span>
+                          <span className="text-emerald-700 font-bold mt-0.5 flex items-center gap-1">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                            Tenant Context Middleware
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* DNS Configuration Instructions */}
+                    <div className="p-5 bg-indigo-50/70 rounded-xl border border-indigo-100 space-y-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-xs font-bold">
+                          DNS
+                        </div>
+                        <h4 className="text-xs font-bold text-indigo-950 uppercase tracking-wider">
+                          DNS Configuration Guide (Connect External Domain)
+                        </h4>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                        <div className="bg-white p-3.5 rounded-xl border border-indigo-100 space-y-1">
+                          <div className="font-bold text-gray-900 flex items-center justify-between">
+                            <span>CNAME Record</span>
+                            <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-semibold">Subdomains</span>
+                          </div>
+                          <p className="text-[11px] text-gray-500">
+                            Point your subdomain (e.g., <code className="text-indigo-600">portal</code> or <code className="text-indigo-600">app</code>) to:
+                          </p>
+                          <div className="font-mono text-xs bg-indigo-50 text-indigo-900 px-2.5 py-1.5 rounded-lg border border-indigo-200 select-all font-semibold">
+                            imanmcs-project.vercel.app
+                          </div>
+                        </div>
+
+                        <div className="bg-white p-3.5 rounded-xl border border-indigo-100 space-y-1">
+                          <div className="font-bold text-gray-900 flex items-center justify-between">
+                            <span>A-Record</span>
+                            <span className="text-[10px] bg-purple-100 text-purple-700 px-2 py-0.5 rounded font-semibold">Apex / Root</span>
+                          </div>
+                          <p className="text-[11px] text-gray-500">
+                            Point your apex domain (@) directly to the server IP:
+                          </p>
+                          <div className="font-mono text-xs bg-indigo-50 text-indigo-900 px-2.5 py-1.5 rounded-lg border border-indigo-200 select-all font-semibold">
+                            209.38.106.28
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="text-[11px] text-indigo-800 bg-white/60 p-2.5 rounded-lg border border-indigo-100 flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4 text-indigo-600 shrink-0" />
+                        <span>
+                          Once DNS propagates (usually 5-15 mins), requests arriving from this domain will automatically load this tenant's logo, colors, policies, and landing page.
+                        </span>
                       </div>
                     </div>
                   </div>

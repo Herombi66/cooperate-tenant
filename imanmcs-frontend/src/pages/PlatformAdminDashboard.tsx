@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Settings, Globe, Shield, LogOut, CheckCircle, XCircle, Layout, Activity, Users, Box, CreditCard, Heart, Receipt, TrendingUp, Percent, Paintbrush, Trash2, ExternalLink, Sliders } from 'lucide-react';
+import { Plus, Settings, Globe, Shield, LogOut, CheckCircle, XCircle, Layout, Activity, Users, Box, CreditCard, Heart, Receipt, TrendingUp, Percent, Paintbrush, Trash2, ExternalLink, Sliders, Copy, Check } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { SuperAdminCooperativeSettingsModal } from '../components/SuperAdminCooperativeSettingsModal';
@@ -771,10 +771,132 @@ export const PlatformAdminDashboard: React.FC = () => {
             
             <form onSubmit={handleUpdateTenant} className="p-6">
               <div className="space-y-8">
-                {/* Section 1: Modular Features */}
+                {/* Section 1: Identity & Domain Configuration */}
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center text-sm">1</span>
+                    <span className="w-6 h-6 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center text-sm font-bold">1</span>
+                    Identity & Domain Configuration
+                  </h3>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-5 rounded-2xl border border-gray-100 mb-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">Cooperative Name *</label>
+                      <input
+                        type="text"
+                        required
+                        value={formData.name}
+                        onChange={(e) => setFormData({...formData, name: e.target.value})}
+                        className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all outline-none font-medium"
+                        placeholder="e.g. IMAN Abuja Cooperative"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">Cooperative Type</label>
+                      <select
+                        value={formData.cooperative_type}
+                        onChange={(e) => setFormData({...formData, cooperative_type: e.target.value})}
+                        className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all outline-none font-medium"
+                      >
+                        <option value="islamic">Islamic (Interest-Free)</option>
+                        <option value="conventional">Conventional</option>
+                      </select>
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-sm font-semibold text-gray-800 flex items-center gap-1.5">
+                          <Globe className="w-4 h-4 text-primary-600" />
+                          Custom Domain Access
+                        </label>
+                        {formData.domain && (
+                          <a
+                            href={`https://${formData.domain}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1 hover:underline"
+                          >
+                            <span>Test Live URL</span>
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                        )}
+                      </div>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={formData.domain}
+                          onChange={(e) => {
+                            const val = e.target.value.toLowerCase().replace(/^https?:\/\//, '').replace(/\/.*$/, '');
+                            setFormData({...formData, domain: val});
+                          }}
+                          className="w-full bg-white border border-gray-200 rounded-xl pl-4 pr-10 py-2.5 focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all outline-none font-mono text-sm"
+                          placeholder="e.g. portal.mycooperative.com or coopname.org"
+                        />
+                        <div className="absolute right-3 top-2.5 text-gray-400">
+                          <Globe className="w-4 h-4" />
+                        </div>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Enter your apex domain or subdomain without http:// or trailing slashes.
+                      </p>
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-sm font-semibold text-gray-800">
+                          Platform Subdomain
+                        </label>
+                        {formData.subdomain && (
+                          <span className="text-xs text-emerald-600 font-mono font-medium">
+                            https://{formData.subdomain}.imanmcs.com
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex">
+                        <input
+                          type="text"
+                          value={formData.subdomain}
+                          onChange={(e) => setFormData({...formData, subdomain: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '')})}
+                          className="w-full bg-white border border-gray-200 rounded-l-xl px-4 py-2.5 focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all outline-none border-r-0 font-mono text-sm"
+                          placeholder="tenant-slug"
+                        />
+                        <div className="bg-gray-100 border border-gray-200 rounded-r-xl px-4 py-2.5 text-gray-600 flex items-center font-mono text-sm font-medium border-l-0 shrink-0">
+                          .imanmcs.com
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* DNS Guidance Box */}
+                  <div className="p-4 bg-indigo-50/60 rounded-xl border border-indigo-100 text-xs text-indigo-900 space-y-2">
+                    <div className="font-bold flex items-center gap-1.5 text-indigo-950">
+                      <Shield className="w-3.5 h-3.5 text-indigo-600" />
+                      DNS Setup Instructions for Custom Domain
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+                      <div className="bg-white/80 p-2.5 rounded-lg border border-indigo-100">
+                        <span className="font-semibold text-gray-700 block mb-0.5">Option A: CNAME Record (Recommended)</span>
+                        <div className="font-mono text-indigo-700 bg-indigo-50 px-2 py-1 rounded select-all mt-1">
+                          CNAME &rarr; imanmcs-project.vercel.app
+                        </div>
+                      </div>
+                      <div className="bg-white/80 p-2.5 rounded-lg border border-indigo-100">
+                        <span className="font-semibold text-gray-700 block mb-0.5">Option B: A-Record (Root Domain)</span>
+                        <div className="font-mono text-indigo-700 bg-indigo-50 px-2 py-1 rounded select-all mt-1">
+                          A &rarr; 209.38.106.28
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-[11px] text-indigo-700">
+                      Once DNS propagates, our tenant routing engine automatically serves this cooperative's portal and branding on incoming traffic.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Section 2: Modular Features */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center text-sm">2</span>
                     Enable Modules
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -823,11 +945,11 @@ export const PlatformAdminDashboard: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Section 2: Landing Page Customization */}
+                {/* Section 3: Landing Page Customization */}
                 {formData.features.landing_page && (
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center text-sm">2</span>
+                    <span className="w-6 h-6 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center text-sm">3</span>
                     Landing Page Configuration
                   </h3>
                   <div className="grid grid-cols-1 gap-4 bg-gray-50 p-5 rounded-xl border border-gray-100">
