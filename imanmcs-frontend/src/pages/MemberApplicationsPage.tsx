@@ -9,6 +9,7 @@ import api from '../services/api';
 import toast from 'react-hot-toast';
 import { Application } from '../types';
 import { useTenantTerminology } from '../utils/tenantTerminology';
+import { FMC_DEPARTMENTS } from '../components/FmcksApplicationForm';
 
 interface StatsState {
   total: number;
@@ -56,7 +57,7 @@ export const MemberApplicationsPage: React.FC = () => {
     this_month: 0
   });
 
-  const departmentList = [
+  const departmentList = isFmck ? FMC_DEPARTMENTS : [
     'Clinical Services',
     'Nursing',
     'Pharmacy',
