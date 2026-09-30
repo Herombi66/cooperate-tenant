@@ -47,23 +47,21 @@ if (process.env.NODE_ENV !== 'test') {
 }
 require('./models');
 
-// Run migrations and repairs on startup
+// Run migrations, repairs, and seed initial accounts on startup
 if (process.env.NODE_ENV !== 'test' && !process.env.SKIP_DB_INIT) {
-  // Execute repair script to fix schema (enums, columns) automatically
-  repairDatabase().then(() => {
+  const seedDefaults = require('./db/seedDefaults');
+  repairDatabase()
+    .then(async () => {
       console.log('✅ Startup DB Repair completed.');
-  }).catch(err => console.error('❌ Startup DB Repair failed:', err));
-
-  // Force sync for new ContributionWithdrawal table
-  const { ContributionWithdrawal } = require('./models');
-  ContributionWithdrawal.sync({ alter: true })
-    .then(() => console.log('✅ ContributionWithdrawal table synced'))
-    .catch(err => console.error('❌ ContributionWithdrawal sync failed:', err));
-
-  // Ensure all tables (tenants, platform_admins, rbac, etc.) exist
-  sequelize.sync().then(() => {
-    console.log('✅ All database tables synchronized successfully');
-  }).catch(err => console.error('❌ Database sync failed:', err));
+      try {
+        await sequelize.sync();
+        console.log('✅ All database tables synchronized successfully.');
+      } catch (sErr) {
+        console.warn('⚠️ Sequelize sync notice:', sErr.message);
+      }
+      await seedDefaults();
+    })
+    .catch(err => console.error('❌ Startup DB Repair / Init failed:', err));
 }
 
 const app = express();

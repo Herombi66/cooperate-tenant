@@ -106,18 +106,26 @@ const login = async (req, res) => {
 
     console.log(`Login attempt: PSN=${psn}, BasePSN=${basePsn}, TargetRole=${targetRole || 'Any/Member'}`);
 
+    const searchConditions = [
+      { psn: basePsn },
+      { email: basePsn }
+    ];
+    try {
+      if (User.sequelize.getDialect() === 'postgres') {
+        searchConditions.push(
+          { psn: { [Op.iLike]: basePsn } },
+          { email: { [Op.iLike]: basePsn } }
+        );
+      }
+    } catch (e) {}
+
     // Find ALL users by PSN through membership application
-    // We use findAll because there might be multiple user accounts (roles) for one PSN
-    // and potentially duplicate MembershipApplication records (legacy data issues)
     let users = await User.findAll({
       include: [{
         model: MembershipApplication,
         as: 'membershipApplication',
         where: {
-          [Op.or]: [
-            { psn: basePsn },
-            { email: basePsn }
-          ]
+          [Op.or]: searchConditions
         },
         required: true
       }],
@@ -133,10 +141,7 @@ const login = async (req, res) => {
           as: 'membershipApplication',
           skipTenant: true,
           where: {
-            [Op.or]: [
-              { psn: basePsn },
-              { email: basePsn }
-            ]
+            [Op.or]: searchConditions
           },
           required: true
         }],
@@ -144,7 +149,10 @@ const login = async (req, res) => {
       });
     }
 
+    console.log(`[Auth Login] Search for "${basePsn}": found ${users?.length || 0} user record(s).`);
+
     if (!users || users.length === 0) {
+      console.log(`[Auth Login] No user record found in database for "${basePsn}".`);
       return res.status(401).json({
         success: false,
         message: 'Invalid PSN or password'
@@ -159,19 +167,19 @@ const login = async (req, res) => {
     } else {
         // No suffix provided (e.g. "12525" or "admin001")
         // If the user has a 'member' account, default to that (standard member login)
-        // This prevents members from accidentally logging into leadership accounts without the suffix
         const hasMemberAccount = users.some(u => u.role === 'member');
         if (hasMemberAccount) {
             candidates = users.filter(u => u.role === 'member');
         }
-        // If no member account exists (e.g. pure admin "admin001"), keep all candidates
     }
 
+    console.log(`[Auth Login] Candidates after role filter: ${candidates.length} (roles: ${candidates.map(u => u.role).join(', ')})`);
+
     if (candidates.length === 0) {
-        console.log(`No users found for role ${targetRole} with PSN ${basePsn}`);
+        console.log(`[Auth Login] No candidates matched role ${targetRole} for PSN ${basePsn}`);
         return res.status(401).json({
             success: false,
-            message: 'Invalid PSN or password' // Role mismatch effectively
+            message: 'Invalid PSN or password'
         });
     }
 
@@ -181,7 +189,6 @@ const login = async (req, res) => {
     let hasClosedCandidate = false;
     
     for (const user of candidates) {
-        // Check if user is active
         if (user.status === 'closed') {
             hasClosedCandidate = true;
             continue;
@@ -192,6 +199,7 @@ const login = async (req, res) => {
         }
 
         const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+        console.log(`[Auth Login] Checking candidate ID=${user.id} (${user.role}, tenant=${user.tenant_id}): match=${isPasswordValid}`);
         if (isPasswordValid) {
             validUser = user;
             break; // Found a match
