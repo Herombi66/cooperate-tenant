@@ -109,11 +109,27 @@ const tenantStorage = require('../src/middleware/tenant-storage');
 const sequelize = getSequelizeInstance();
 
 // Add global hooks for multi-tenancy
-const globalModels = ['PlatformAdmin', 'Tenant'];
+const globalModels = [
+  'PlatformAdmin',
+  'Tenant',
+  'AuditNote',
+  'SystemBackup',
+  'ReceiptTemplate',
+  'ReceiptTemplateVersion',
+  'ReceiptRecord',
+  'DocumentTemplate',
+  'DocumentTemplateVersion'
+];
 
 function applyTenantFilter(options) {
-  const modelName = (options && options.model && options.model.name) || (this && this.name);
+  const model = (options && options.model) || this;
+  const modelName = (model && model.name) || (this && this.name);
   if (modelName && globalModels.includes(modelName)) return;
+
+  // Crucial safeguard: only filter by tenant_id if the model defines this attribute
+  if (model && model.rawAttributes && !model.rawAttributes.tenant_id) {
+    return;
+  }
 
   const tenantId = tenantStorage.getStore();
   // If tenantId exists and we are not explicitly skipping tenant isolation
@@ -127,8 +143,14 @@ function applyTenantFilter(options) {
 }
 
 function applyTenantCreate(instance, options) {
-  const modelName = (instance && instance.constructor && instance.constructor.name) || (this && this.name);
+  const model = instance && instance.constructor;
+  const modelName = (model && model.name) || (this && this.name);
   if (modelName && globalModels.includes(modelName)) return;
+
+  // Crucial safeguard: only assign tenant_id if the model defines this attribute
+  if (model && model.rawAttributes && !model.rawAttributes.tenant_id) {
+    return;
+  }
 
   const tenantId = tenantStorage.getStore();
   if (tenantId && (!options || !options.skipTenant)) {
@@ -144,8 +166,13 @@ sequelize.addHook('beforeDestroy', applyTenantFilter);
 sequelize.addHook('beforeCreate', applyTenantCreate);
 sequelize.addHook('beforeBulkCreate', function(instances, options) {
   if (!instances || !instances.length) return;
-  const modelName = (instances[0] && instances[0].constructor && instances[0].constructor.name) || (this && this.name);
+  const model = instances[0] && instances[0].constructor;
+  const modelName = (model && model.name) || (this && this.name);
   if (modelName && globalModels.includes(modelName)) return;
+
+  if (model && model.rawAttributes && !model.rawAttributes.tenant_id) {
+    return;
+  }
 
   const tenantId = tenantStorage.getStore();
   if (tenantId && (!options || !options.skipTenant)) {

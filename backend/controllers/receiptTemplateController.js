@@ -597,8 +597,8 @@ exports.getTemplates = async (req, res) => {
         ['id', 'ASC']
       ],
       include: [
-        { model: User, as: 'creator', attributes: ['id', 'role'] },
-        { model: User, as: 'updater', attributes: ['id', 'role'] }
+        { model: User, as: 'creator', attributes: ['id', 'role'], required: false },
+        { model: User, as: 'updater', attributes: ['id', 'role'], required: false }
       ]
     });
 
@@ -626,7 +626,8 @@ exports.getTemplateById = async (req, res) => {
           model: ReceiptTemplateVersion,
           as: 'versions',
           order: [['version', 'DESC']],
-          limit: 10
+          limit: 10,
+          required: false
         }
       ]
     });
