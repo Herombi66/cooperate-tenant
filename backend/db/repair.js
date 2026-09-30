@@ -238,8 +238,17 @@ async function repairDatabase() {
         ALTER TABLE contribution_withdrawals ADD COLUMN IF NOT EXISTS notes TEXT;
         ALTER TABLE contribution_withdrawals ADD COLUMN IF NOT EXISTS disbursed_by INTEGER REFERENCES users(id);
         ALTER TABLE contribution_withdrawals ADD COLUMN IF NOT EXISTS disbursed_at TIMESTAMP WITH TIME ZONE;
-      `);
     } catch (e) {}
+
+    // Clean up any initial_application contribution rows so member net balances start at zero
+    try {
+      await sequelize.query(`
+        DELETE FROM contributions WHERE payment_method = 'initial_application';
+      `);
+      log('✅ Cleaned up any legacy initial_application contribution records (net balance starts at ₦0.00).');
+    } catch (e) {
+      log('ℹ️ Notice during initial_application cleanup: ' + e.message);
+    }
 
     // Ensure settings table has tenant_id and relaxed unique constraint
     try {
