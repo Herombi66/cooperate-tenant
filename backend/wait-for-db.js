@@ -19,10 +19,19 @@ async function waitForDatabase(maxRetries = 60, retryDelay = 5000) {
           cwd: process.cwd()
         });
 
-        migrateProcess.on('close', (code) => {
+        migrateProcess.on('close', async (code) => {
           if (code === 0) {
             console.log('✅ Database migrations completed successfully!');
-            resolve();
+            try {
+              console.log('🔄 Synchronizing Sequelize models (tenants, platform_admins, etc.)...');
+              require('./models');
+              await sequelize.sync();
+              console.log('✅ All tables synchronized successfully!');
+              resolve();
+            } catch (syncErr) {
+              console.error('⚠️ Model sync warning:', syncErr.message);
+              resolve(); // Proceed to start app
+            }
           } else {
             console.error(`❌ Migration process failed with exit code ${code}`);
             reject(new Error(`Migration failed with exit code ${code}`));

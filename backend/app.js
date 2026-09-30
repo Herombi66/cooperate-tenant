@@ -54,26 +54,16 @@ if (process.env.NODE_ENV !== 'test' && !process.env.SKIP_DB_INIT) {
       console.log('✅ Startup DB Repair completed.');
   }).catch(err => console.error('❌ Startup DB Repair failed:', err));
 
-  // runMigrations().then(async () => {
-  //   console.log('✅ Database migrations executed successfully');
-    
-    // Run repair script to ensure schema integrity
-    // await repairDatabase();
+  // Force sync for new ContributionWithdrawal table
+  const { ContributionWithdrawal } = require('./models');
+  ContributionWithdrawal.sync({ alter: true })
+    .then(() => console.log('✅ ContributionWithdrawal table synced'))
+    .catch(err => console.error('❌ ContributionWithdrawal sync failed:', err));
 
-    // Force sync for new ContributionWithdrawal table (Temporary Fix)
-    const { ContributionWithdrawal } = require('./models');
-    ContributionWithdrawal.sync({ alter: true })
-      .then(() => console.log('✅ ContributionWithdrawal table synced'))
-      .catch(err => console.error('❌ ContributionWithdrawal sync failed:', err));
-
-    if (process.env.NODE_ENV !== 'production') {
-      sequelize.sync().then(() => {
-        console.log('✅ Database tables synchronized successfully');
-      }).catch(err => console.error('❌ Database sync failed:', err));
-    }
-  // }).catch(err => {
-  //   console.error('❌ Database migration failed:', err);
-  // });
+  // Ensure all tables (tenants, platform_admins, rbac, etc.) exist
+  sequelize.sync().then(() => {
+    console.log('✅ All database tables synchronized successfully');
+  }).catch(err => console.error('❌ Database sync failed:', err));
 }
 
 const app = express();
@@ -190,10 +180,16 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions)); // Enable pre-flight for all routes
 
-// Health check
-app.get('/health', (req, res) => {
-  res.json({ status: 'OK', message: 'IMAN MCS Backend is running' });
-});
+// Health check (supports /health, /api/health)
+const healthCheckHandler = (req, res) => {
+  res.json({
+    status: 'OK',
+    message: 'IMAN MCS Backend is running',
+    timestamp: new Date().toISOString()
+  });
+};
+app.get('/health', healthCheckHandler);
+app.get('/api/health', healthCheckHandler);
 
 // View engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -231,6 +227,7 @@ app.use('/uploads', (req, res, next) => {
 // API ROUTES
 // -----------------------------
 const apiRouter = express.Router();
+apiRouter.get('/health', healthCheckHandler);
 apiRouter.use('/', indexRouter);
 apiRouter.use('/users', usersRouter);
 apiRouter.use('/dashboard', dashboardRouter);
