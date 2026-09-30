@@ -1400,7 +1400,7 @@ export const AdminLayyahManagement: React.FC = () => {
 
       {confirmEdit && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-3 sm:p-4 z-50 overflow-y-auto"
           role="dialog"
           aria-modal="true"
           aria-label="Confirm amount update"
@@ -1411,7 +1411,7 @@ export const AdminLayyahManagement: React.FC = () => {
             }
           }}
         >
-          <div className="bg-white rounded-lg shadow-xl max-w-lg w-full">
+          <div className="bg-white rounded-lg shadow-xl max-w-lg w-full max-h-[90vh] my-auto overflow-y-auto">
             <div className="p-6">
               <h2 className="text-lg font-semibold text-gray-900">Confirm update</h2>
               <p className="text-sm text-gray-600 mt-1">Are you sure you want to update this layyah amount?</p>
@@ -1450,7 +1450,7 @@ export const AdminLayyahManagement: React.FC = () => {
 
       {confirmDisburse && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-3 sm:p-4 z-50 overflow-y-auto"
           role="dialog"
           aria-modal="true"
           aria-label="Confirm disbursement"
@@ -1461,7 +1461,7 @@ export const AdminLayyahManagement: React.FC = () => {
             }
           }}
         >
-          <div className="bg-white rounded-lg shadow-xl max-w-lg w-full">
+          <div className="bg-white rounded-lg shadow-xl max-w-lg w-full max-h-[90vh] my-auto overflow-y-auto">
             <div className="p-6">
               <h2 className="text-lg font-semibold text-gray-900">Confirm disbursement</h2>
               <p className="text-sm text-gray-600 mt-1">This will create a loan and move the application to disbursed.</p>
@@ -1504,7 +1504,7 @@ export const AdminLayyahManagement: React.FC = () => {
 
       {confirmReversal && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-3 sm:p-4 z-50 overflow-y-auto"
           role="dialog"
           aria-modal="true"
           aria-label="Confirm status reversal"
@@ -1515,7 +1515,7 @@ export const AdminLayyahManagement: React.FC = () => {
             }
           }}
         >
-          <div className="bg-white rounded-lg shadow-xl max-w-lg w-full">
+          <div className="bg-white rounded-lg shadow-xl max-w-lg w-full max-h-[90vh] my-auto overflow-y-auto">
             <div className="p-6">
               <h2 className="text-lg font-semibold text-gray-900">Confirm status reversal</h2>
               <p className="text-sm text-gray-600 mt-1">This will change the application status and record an audit log.</p>
@@ -1587,8 +1587,8 @@ export const AdminLayyahManagement: React.FC = () => {
 
       {/* Application Detail Modal */}
       {selectedApplication && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className={`bg-white rounded-lg shadow-xl w-full max-h-[90vh] overflow-hidden ${isManagingGroup ? 'max-w-4xl' : 'max-w-2xl'}`}>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-3 sm:p-4 z-50 overflow-y-auto">
+          <div className={`bg-white rounded-lg shadow-xl w-full max-h-[90vh] my-auto overflow-hidden ${isManagingGroup ? 'max-w-4xl' : 'max-w-2xl'}`}>
             {isManagingGroup && selectedApplication.kind === 'group' ? (
               <AdminGroupManagement 
                 group={selectedApplication} 

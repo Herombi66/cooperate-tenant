@@ -310,8 +310,8 @@ export const AdminGroupManagement: React.FC<AdminGroupManagementProps> = ({ grou
 
       {/* Disqualify Modal */}
       {disqualifyModal.open && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-[60]">
-          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full overflow-hidden">
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-3 sm:p-4 z-[60] overflow-y-auto">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] my-auto overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center space-x-3 text-red-600 mb-4">
                 <AlertTriangle className="h-6 w-6" />

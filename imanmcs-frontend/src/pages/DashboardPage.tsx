@@ -14,15 +14,21 @@ export const DashboardPage: React.FC = () => {
     switch (user.role) {
       case 'admin':
       case 'super_admin':
+      case 'secretary':
+      case 'assistant_secretary':
+      case 'auditor':
+      case 'state_auditor':
+      case 'pro':
         return <AdminDashboard />;
       case 'member':
         return <MemberDashboard />;
       case 'treasurer':
+      case 'financial_secretary':
         return <TreasurerDashboard />;
       case 'chairman':
         return <ChairmanDashboard />;
       default:
-        return <div>Invalid role</div>;
+        return <AdminDashboard />;
     }
   };
 
@@ -33,7 +39,7 @@ export const DashboardPage: React.FC = () => {
           Welcome back, {user.name}
         </h1>
         <div className="text-sm text-gray-500">
-          Role: <span className="capitalize font-medium">{user.role}</span>
+          Role: <span className="capitalize font-medium">{user.role?.replace(/_/g, ' ')}</span>
         </div>
       </div>
       {renderDashboard()}

@@ -14,7 +14,11 @@ const {
   importMembers,
   validateGrantor,
   updateMemberJoinDate,
-  getMemberFinancialProfile
+  getMemberFinancialProfile,
+  transferFunds,
+  getMemberStatement,
+  getCloseAccountPreview,
+  closeMemberAccount
 } = require('../controllers/memberController');
 const { authenticateToken, authorizeRole, requireAdmin } = require('../middleware/auth');
 
@@ -58,25 +62,31 @@ const upload = multer({
 router.use(authenticateToken);
 
 // GET /members - Get all members (Staff only)
-router.get('/', authorizeRole(['admin', 'super_admin', 'chairman', 'treasurer', 'secretary', 'state_auditor']), getMembers);
+router.get('/', authorizeRole(['admin', 'super_admin', 'chairman', 'treasurer', 'secretary', 'assistant_secretary', 'financial_secretary', 'auditor', 'state_auditor', 'pro']), getMembers);
 
 // GET /members/export - Export members data (Staff only)
-router.get('/export', authorizeRole(['admin', 'super_admin', 'chairman', 'treasurer', 'secretary', 'state_auditor']), exportMembers);
+router.get('/export', authorizeRole(['admin', 'super_admin', 'chairman', 'treasurer', 'secretary', 'assistant_secretary', 'financial_secretary', 'auditor', 'state_auditor', 'pro']), exportMembers);
 
-// POST /members/import - Bulk import members (Admin/Chairman/Secretary)
-router.post('/import', upload.single('file'), authorizeRole(['admin', 'super_admin', 'chairman', 'secretary']), importMembers);
+// POST /members/import - Bulk import members (Admin/Chairman/Secretary/Assistant Secretary)
+router.post('/import', upload.single('file'), authorizeRole(['admin', 'super_admin', 'chairman', 'secretary', 'assistant_secretary']), importMembers);
 
 // GET /members/validate-grantor - Validate grantor PSN (Available to all authenticated users)
 router.get('/validate-grantor', validateGrantor);
 
-// POST /members - Create new member (Admin/Chairman/Secretary)
-router.post('/', authorizeRole(['admin', 'super_admin', 'chairman', 'secretary']), createMember);
+// POST /members - Create new member (Admin/Chairman/Secretary/Assistant Secretary)
+router.post('/', authorizeRole(['admin', 'super_admin', 'chairman', 'secretary', 'assistant_secretary']), createMember);
 
 // GET /members/:id - Get member by ID (Staff only)
-router.get('/:id', authorizeRole(['admin', 'super_admin', 'chairman', 'treasurer', 'secretary', 'state_auditor']), getMemberById);
+router.get('/:id', authorizeRole(['admin', 'super_admin', 'chairman', 'treasurer', 'secretary', 'assistant_secretary', 'financial_secretary', 'auditor', 'state_auditor', 'pro']), getMemberById);
 
-// GET /members/:id/financial-profile - Get member financial profile (Admin/Treasurer/Chairman)
-router.get('/:id/financial-profile', authorizeRole(['admin', 'super_admin', 'chairman', 'treasurer', 'state_auditor']), getMemberFinancialProfile);
+// GET /members/:id/financial-profile - Get member financial profile (Admin/Treasurer/Chairman/FinSec/Auditor)
+router.get('/:id/financial-profile', authorizeRole(['admin', 'super_admin', 'chairman', 'treasurer', 'financial_secretary', 'auditor', 'state_auditor']), getMemberFinancialProfile);
+
+// GET /members/:id/statement - Get member running balance statement (Self or Staff)
+router.get('/:id/statement', getMemberStatement);
+
+// POST /members/:id/transfer-funds - Transfer funds between savings/investment/target accounts (Admin/Treasurer/Chairman/FinSec)
+router.post('/:id/transfer-funds', authorizeRole(['admin', 'super_admin', 'chairman', 'treasurer', 'financial_secretary']), transferFunds);
 
 // PUT /members/:id - Update member (Admin/Chairman)
 router.put('/:id', authorizeRole(['admin', 'super_admin', 'chairman']), updateMember);
@@ -92,6 +102,12 @@ router.put('/:id/activate', authorizeRole(['admin', 'super_admin', 'chairman']),
 
 // PUT /members/:id/reset-password - Reset member password (Admin/Chairman)
 router.put('/:id/reset-password', authorizeRole(['admin', 'super_admin', 'chairman']), resetMemberPassword);
+
+// GET /members/:id/close-preview - Preview account closure and loan liquidation (Admin/Chairman/Treasurer/FinSec)
+router.get('/:id/close-preview', authorizeRole(['admin', 'super_admin', 'chairman', 'treasurer', 'financial_secretary']), getCloseAccountPreview);
+
+// POST /members/:id/close-account - Close member account, liquidate loans & refund (Admin/Chairman/Treasurer/FinSec)
+router.post('/:id/close-account', authorizeRole(['admin', 'super_admin', 'chairman', 'treasurer', 'financial_secretary']), closeMemberAccount);
 
 // DELETE /members/:id - Soft delete member (Admin only)
 router.delete('/:id', requireAdmin, deleteMember);

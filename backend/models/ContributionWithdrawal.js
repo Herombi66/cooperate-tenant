@@ -35,6 +35,34 @@ const ContributionWithdrawal = sequelize.define('ContributionWithdrawal', {
     type: DataTypes.INTEGER,
     allowNull: false
   },
+  withdrawal_type: {
+    type: DataTypes.STRING(50),
+    defaultValue: 'regular'
+  },
+  payment_method: {
+    type: DataTypes.STRING(50),
+    allowNull: true
+  },
+  reference: {
+    type: DataTypes.STRING(255),
+    allowNull: true
+  },
+  notes: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  },
+  disbursed_by: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    references: {
+      model: 'users',
+      key: 'id'
+    }
+  },
+  disbursed_at: {
+    type: DataTypes.DATE,
+    allowNull: true
+  },
   status: {
     type: DataTypes.ENUM('pending', 'approved', 'rejected', 'disbursed'),
     defaultValue: 'pending'

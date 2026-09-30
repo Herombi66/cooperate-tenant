@@ -14,7 +14,7 @@ const authenticatePlatformAdmin = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
-    if (!decoded.platformAdmin) {
+    if (!decoded.platformAdmin && decoded.role !== 'super_admin') {
       return res.status(403).json({ success: false, message: 'Platform admin access required' });
     }
     req.admin = decoded;
@@ -26,6 +26,14 @@ const authenticatePlatformAdmin = (req, res, next) => {
 
 // Auth
 router.post('/auth/login', platformController.login);
+
+// Global Default Cooperative Settings (Protected)
+router.get('/settings/defaults', authenticatePlatformAdmin, platformController.getDefaultSettings);
+router.put('/settings/defaults', authenticatePlatformAdmin, platformController.updateDefaultSettings);
+
+// Tenant-Specific Cooperative Settings (Protected)
+router.get('/tenants/:id/settings', authenticatePlatformAdmin, platformController.getTenantSettings);
+router.put('/tenants/:id/settings', authenticatePlatformAdmin, platformController.updateTenantSettings);
 
 // Tenants CRUD (Protected)
 router.use('/tenants', authenticatePlatformAdmin);

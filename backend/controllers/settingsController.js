@@ -54,37 +54,60 @@ exports.getSettings = async (req, res) => {
       address: 'Gombe State, Nigeria',
       contact_email: 'info@imancooperative.org',
       contact_phone: '+234-xxx-xxx-xxxx',
+      contact_website: 'https://imancooperative.org',
+      support_phone: '+234-800-111-2222',
       cooperative_logo: null,
+      currency_code: 'NGN',
+      currency_symbol: '₦',
+      currency_name: 'Nigerian Naira',
 
-      // Financial
+      // Financial / Fees
       administrative_fee_monthly: 1000,
       entrance_fee: 5000,
       minimum_shares: 20000,
       maximum_shares_percent: 20,
+      registration_fee: 2000,
+      auto_deduct_registration_fee: true,
+      monthly_admin_fee: 1000,
+      auto_deduct_monthly_admin_fee: true,
 
       // Contribution Settings
       fixed_deposit_percent: 20,
       investment_fund_percent: 30,
       savings_percent: 50,
       minimum_savings: 1000,
-      minimum_investment: 5000,
       minimum_target_savings: 2000,
-      registration_fee: 2000,
-      monthly_admin_fee: 200,
+      target_savings_min_period: 6,
+      allow_voluntary_savings: true,
+      savings_withdrawal_lock_months: 6,
+      max_savings_withdrawal_percent: 70,
 
       // Loan Settings
+      max_loan_amount: 1000000,
       cash_loan_limit: 500000,
       cash_loan_processing_fee: 1000,
       venture_loan_multiplier: 10,
       venture_loan_limit: 1000000,
       venture_loan_interest_percent: 5,
       emergency_loan_limit: 20000,
-      max_cash_loan: 100000,
+      max_cash_loan: 500000,
       investment_loan_multiplier: 3,
       default_repayment_period: 12,
+      min_membership_months_for_loan: 6,
+      loan_interest_rate: 5,
       late_payment_fee: 5,
+      max_active_loans_per_member: 2,
+      require_guarantors: true,
+      min_guarantors_count: 2,
       agent_agreement_template: '<h2>Agent Agreement</h2><p>This Agreement is made on [Date] between [Cooperative Name] (Principal) and [Member Name] (Agent).</p><p>1. <strong>Appointment:</strong> The Principal appoints the Agent to purchase the Goods...</p>',
       murabaha_contract_template: '<h2>Murabaha Contract</h2><p>This Contract is made on [Date] between [Cooperative Name] and [Member Name].</p><p>1. <strong>Sale:</strong> The Seller sells the Goods to the Buyer for the Total Price...</p>',
+
+      // Investment Settings
+      minimum_investment: 5000,
+      investment_lock_period_months: 12,
+      expected_roi_percent: 15,
+      allow_early_liquidation: false,
+      early_termination_penalty_percent: 10,
 
       // Profit Sharing Settings
       profit_interest_percent: 5,
@@ -100,6 +123,49 @@ exports.getSettings = async (req, res) => {
       committee_bonus_percentage: 5,
       bad_debt_reserve_percentage: 3.5,
       general_reserve_percentage: 2.8,
+      member_dividend_percentage: 73.7,
+
+      // Subscription Settings
+      subscription_status: 'active',
+      subscription_plan: 'Growth Plan',
+      subscription_rate_per_member: 150,
+      subscription_member_bracket: '501 Up to 1,000 members',
+      subscription_expiry: '2027-12-31',
+      subscription_billing_cycle: 'monthly',
+      subscription_amount_payable: 112500,
+      subscription_currency: 'NGN',
+      subscription_payment_status: 'paid',
+      subscription_payment_method: 'Bank Transfer',
+      subscription_next_billing_date: '2027-12-31',
+      subscription_invoice_reference: 'INV-2025-IMAN-001',
+      subscription_member_limit: 1000,
+      subscription_billing_notes: 'Growth plan active with ₦150/member rate, automated reminders, and investment portfolios.',
+
+      // Enabled Modules
+      enabled_modules: {
+        loans: true,
+        contributions: true,
+        investments: true,
+        layyah: true,
+        expenses: true,
+        profit_sharing: true,
+        withdrawals: true,
+        receipt_designer: true,
+        document_designer: true,
+        member_portal: true
+      },
+
+      // AI Settings
+      ai_settings: {
+        enabled: true,
+        provider: 'gemini',
+        model: 'gemini-2.5-flash',
+        api_key: '',
+        loan_risk_scoring: true,
+        financial_advisor: true,
+        document_ocr: true,
+        auto_reporting: true
+      },
 
       // Notification Settings
       email_notifications: true,
@@ -123,8 +189,12 @@ exports.getSettings = async (req, res) => {
       general: {},
       contributions: {},
       loans: {},
+      investments: {},
       profits: {},
-      notifications: {}
+      notifications: {},
+      subscription: {},
+      modules: {},
+      ai: {}
     };
 
     for (const [key, obj] of Object.entries(formattedSettings)) {
@@ -588,8 +658,8 @@ function validateSettings(updates) {
   }
 
   // Profit sharing frequency validation
-  if (updates.profit_sharing_frequency && !['monthly', 'quarterly', 'annually'].includes(updates.profit_sharing_frequency)) {
-    errors.push('profit_sharing_frequency: Must be monthly, quarterly, or annually');
+  if (updates.profit_sharing_frequency && !['monthly', 'quarterly', 'bi-annually', 'annually'].includes(updates.profit_sharing_frequency)) {
+    errors.push('profit_sharing_frequency: Must be monthly, quarterly, bi-annually, or annually');
     result.isValid = false;
   }
 

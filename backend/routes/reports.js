@@ -19,8 +19,22 @@ const { authenticateToken } = require('../middleware/auth');
 router.use(authenticateToken);
 router.use((req, res, next) => {
   const role = req.user?.role;
-  const allowedRoles = ['admin', 'super_admin', 'chairman', 'secretary', 'treasurer', 'state_auditor'];
+  const allowedRoles = [
+    'admin',
+    'super_admin',
+    'chairman',
+    'secretary',
+    'assistant_secretary',
+    'financial_secretary',
+    'treasurer',
+    'auditor',
+    'state_auditor',
+    'pro'
+  ];
   if (!allowedRoles.includes(role)) {
+    if (req.path === '/member-statement') {
+      return next();
+    }
     return res.status(403).json({
       success: false,
       message: 'Access denied. Insufficient privileges for reports.'

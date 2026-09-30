@@ -33,16 +33,23 @@ const getSequelizeInstance = () => {
     }
   };
 
-  // SSL Configuration for Digital Ocean
-  const sslConfig = {
-    require: true,
-    rejectUnauthorized: false // This allows self-signed certificates
-  };
+  // SSL Configuration for PostgreSQL:
+  // If DB_SSL is explicitly set, use it. Otherwise, disable SSL for local/docker hosts (postgres, localhost, 127.0.0.1, db)
+  // and enable SSL for external hosts (e.g. DigitalOcean Managed Database).
+  const isLocalHost = !process.env.DB_HOST || ['localhost', '127.0.0.1', 'postgres', 'db'].includes(process.env.DB_HOST.trim().toLowerCase());
+  const shouldRequireSSL = process.env.DB_SSL !== undefined
+    ? process.env.DB_SSL === 'true'
+    : !isLocalHost;
 
-  // Option 1: Individual Variables (Digital Ocean style)
+  const sslConfig = shouldRequireSSL ? {
+    require: true,
+    rejectUnauthorized: false // Allows self-signed certificates
+  } : false;
+
+  // Option 1: Individual Variables (Digital Ocean / Docker style)
   // We check this FIRST to avoid issues where stale DATABASE_URL (sqlite) overrides real config
   if (process.env.DB_HOST) {
-    console.log(`🔌 Connecting to DB_HOST: ${process.env.DB_HOST}`);
+    console.log(`🔌 Connecting to DB_HOST: ${process.env.DB_HOST} (SSL: ${shouldRequireSSL ? 'enabled' : 'disabled'})`);
     
     // Debug password presence (do not log actual password)
     if (!process.env.DB_PASSWORD) {
@@ -57,11 +64,9 @@ const getSequelizeInstance = () => {
       process.env.DB_PASSWORD,
       {
         host: process.env.DB_HOST,
-        port: process.env.DB_PORT || 25060,
+        port: process.env.DB_PORT || (isLocalHost ? 5432 : 25060),
         dialect: 'postgres',
-        dialectOptions: {
-          ssl: sslConfig
-        },
+        dialectOptions: sslConfig ? { ssl: sslConfig } : {},
         ...config
       }
     );
@@ -80,7 +85,7 @@ const getSequelizeInstance = () => {
        console.warn('⚠️ WARNING: Using SQLite in PRODUCTION via DATABASE_URL. Ensure this is intended.');
     }
 
-    if (!isSqlite) {
+    if (!isSqlite && shouldRequireSSL) {
       config.dialectOptions = {
         ssl: sslConfig
       };

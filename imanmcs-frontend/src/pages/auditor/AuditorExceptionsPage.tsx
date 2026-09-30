@@ -133,8 +133,8 @@ export const AuditorExceptionsPage: React.FC = () => {
 
       {/* Note Modal */}
       {showNoteModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 border border-amber-300">
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-3 sm:p-4 backdrop-blur-sm overflow-y-auto">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 border border-amber-300 max-h-[90vh] my-auto overflow-y-auto">
             <h3 className="text-base font-bold text-gray-900 mb-2 flex items-center gap-2">
               <MessageSquare className="w-5 h-5 text-amber-600" /> Attach Audit Note to Exception
             </h3>

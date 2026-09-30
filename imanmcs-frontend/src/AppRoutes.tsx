@@ -93,7 +93,7 @@ const DashboardRouter: React.FC = () => {
     return <MemberDashboard />;
   }
 
-  if (user?.role === 'treasurer') {
+  if (user?.role === 'treasurer' || user?.role === 'financial_secretary') {
     return <TreasurerDashboard />;
   }
 

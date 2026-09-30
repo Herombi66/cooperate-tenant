@@ -761,278 +761,70 @@ const getMemberStatementReport = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Member not found' });
     }
 
-    const contribWhere = { user_id: user.id };
-    const withdrawalWhere = { user_id: user.id };
-    const loanWhere = { user_id: user.id };
-    const repaymentWhere = { user_id: user.id };
+    // Verify permission: member can view their own, staff can view any
+    const currentUser = req.user;
+    const allowedStaff = ['admin', 'super_admin', 'chairman', 'secretary', 'treasurer', 'state_auditor'];
+    const isStaff = allowedStaff.includes(currentUser?.role);
+    const isSelf = currentUser?.id === user.id || currentUser?.membershipApplication?.psn === user.membershipApplication?.psn;
 
-    if (range) {
-      contribWhere.contribution_date = { [Op.between]: [range.from, range.to] };
-      withdrawalWhere.created_at = { [Op.between]: [range.from, range.to] };
-      loanWhere.application_date = { [Op.between]: [range.from, range.to] };
-      const fromDateOnly = range.from.toISOString().slice(0, 10);
-      const toDateOnly = range.to.toISOString().slice(0, 10);
-      repaymentWhere.repayment_date = { [Op.between]: [fromDateOnly, toDateOnly] };
+    if (!isStaff && !isSelf) {
+      return res.status(403).json({ success: false, message: 'Access denied to member statement' });
     }
 
-    const [contributions, withdrawals, loans, repayments] = await withRetries(
-      async () =>
-        Promise.all([
-          Contribution.findAll({ where: contribWhere, order: [['contribution_date', 'ASC'], ['id', 'ASC']] }),
-          ContributionWithdrawal.findAll({ where: withdrawalWhere, order: [['created_at', 'ASC'], ['id', 'ASC']] }),
-          Loan.findAll({ where: loanWhere, order: [['application_date', 'ASC'], ['id', 'ASC']] }),
-          LoanRepayment.findAll({ where: repaymentWhere, order: [['repayment_date', 'ASC'], ['id', 'ASC']] })
-        ]),
-      3
-    );
-
-    const approvedContribSum = contributions
-      .filter((c) => String(c.status || '').toLowerCase() === 'approved')
-      .reduce((sum, c) => sum + Number(c.total_amount || 0), 0);
-
-    const approvedWithdrawalSum = withdrawals
-      .filter((w) => ['approved', 'disbursed'].includes(String(w.status || '').toLowerCase()))
-      .reduce((sum, w) => sum + Number(w.amount || 0), 0);
-
-    const contributionBalance = Math.max(0, approvedContribSum - approvedWithdrawalSum);
-
-    const verifiedRepaymentsByLoanId = repayments
-      .filter((r) => String(r.status || '').toLowerCase() === 'verified')
-      .reduce((acc, r) => {
-        const id = Number(r.loan_id);
-        acc[id] = (acc[id] || 0) + Number(r.repayment_amount || 0);
-        return acc;
-      }, {});
-
-    const loanSummaries = loans.map((loan) => {
-      const approved = Number(loan.amount_approved || 0);
-      const repaid = Number(verifiedRepaymentsByLoanId[Number(loan.id)] || 0);
-      const outstanding = Math.max(0, approved - repaid);
-      return {
-        id: loan.id,
-        status: loan.status,
-        loan_type: loan.loan_type,
-        amount_approved: approved,
-        amount_requested: Number(loan.amount_requested || 0),
-        interest_rate: Number(loan.interest_rate || 0),
-        application_date: loan.application_date,
-        approval_date: loan.approval_date,
-        disbursement_date: loan.disbursement_date,
-        repaid_amount: repaid,
-        outstanding_amount: outstanding
-      };
-    });
-
-    const totalOutstandingLoans = loanSummaries.reduce((sum, l) => sum + Number(l.outstanding_amount || 0), 0);
-
-    const report = {
-      period: period || (range ? `${range.from.toISOString()} to ${range.to.toISOString()}` : 'All Time'),
-      member: {
-        user_id: user.id,
-        psn: user.membershipApplication.psn,
-        name: user.membershipApplication.name,
-        email: user.membershipApplication.email,
-        phone: user.membershipApplication.phone || null,
-        facility_name: user.membershipApplication.facility_name || null
-      },
-      balances: {
-        total_contributions_approved: approvedContribSum,
-        total_withdrawals_approved: approvedWithdrawalSum,
-        contribution_balance: contributionBalance,
-        total_outstanding_loans: totalOutstandingLoans
-      },
-      transactions: {
-        contributions: contributions.map((c) => ({
-          id: c.id,
-          contribution_date: c.contribution_date,
-          month: c.month,
-          year: c.year,
-          savings: Number(c.savings || 0),
-          investment: Number(c.investment || 0),
-          target_saving: Number(c.target_saving || 0),
-          total_amount: Number(c.total_amount || 0),
-          status: c.status,
-          payment_method: c.payment_method,
-          notes: c.notes || null,
-          created_at: c.created_at
-        })),
-        withdrawals: withdrawals.map((w) => ({
-          id: w.id,
-          created_at: w.created_at,
-          year: w.year,
-          amount: Number(w.amount || 0),
-          status: w.status,
-          reason: w.reason || null,
-          approved_at: w.approved_at || null,
-          rejection_reason: w.rejection_reason || null
-        })),
-        loans: loanSummaries,
-        repayments: repayments.map((r) => ({
-          id: r.id,
-          loan_id: r.loan_id,
-          repayment_date: r.repayment_date,
-          repayment_amount: Number(r.repayment_amount || 0),
-          payment_method: r.payment_method,
-          status: r.status,
-          recorded_by: r.recorded_by
-        }))
-      },
-      generatedAt: new Date()
-    };
+    const { getMemberStatementData } = require('../utils/statementHelper');
+    const statementData = await getMemberStatementData({ userId: user.id, startDate, endDate, period });
+    if (!statementData) {
+      return res.status(404).json({ success: false, message: 'Member not found' });
+    }
 
     const formatVal = String(format || '').toLowerCase().trim();
     if (formatVal === 'csv') {
       const rows = [];
-      rows.push(['timestamp', 'type', 'reference', 'status', 'credit', 'debit', 'notes'].map(escapeCsv).join(','));
+      rows.push(['MEMBER ACCOUNT STATEMENT']);
+      rows.push([`Member: ${statementData.member.name} (PSN: ${statementData.member.psn})`]);
+      rows.push([`Generated on: ${new Date().toLocaleString()}`]);
+      rows.push([]);
+      rows.push(['Date,Reference,Category,Description,Debit (NGN),Credit (NGN),Balance (NGN)']);
 
-      const tx = [];
-      for (const c of report.transactions.contributions) {
-        tx.push({
-          ts: c.contribution_date || c.created_at,
-          type: 'contribution',
-          ref: `contribution#${c.id}`,
-          status: c.status,
-          credit: c.total_amount,
-          debit: '',
-          notes: c.notes || ''
-        });
-      }
-      for (const w of report.transactions.withdrawals) {
-        tx.push({
-          ts: w.created_at,
-          type: 'withdrawal',
-          ref: `withdrawal#${w.id}`,
-          status: w.status,
-          credit: '',
-          debit: w.amount,
-          notes: w.reason || ''
-        });
-      }
-      for (const l of report.transactions.loans) {
-        tx.push({
-          ts: l.application_date,
-          type: 'loan',
-          ref: `loan#${l.id}`,
-          status: l.status,
-          credit: '',
-          debit: l.amount_approved,
-          notes: ''
-        });
-      }
-      for (const r of report.transactions.repayments) {
-        tx.push({
-          ts: r.repayment_date,
-          type: 'loan_repayment',
-          ref: `repayment#${r.id} loan#${r.loan_id}`,
-          status: r.status,
-          credit: r.repayment_amount,
-          debit: '',
-          notes: ''
-        });
-      }
-
-      tx.sort((a, b) => new Date(a.ts || 0).getTime() - new Date(b.ts || 0).getTime());
-      tx.forEach((t) => {
-        rows.push([t.ts, t.type, t.ref, t.status, t.credit, t.debit, t.notes].map(escapeCsv).join(','));
+      statementData.statement.forEach((r) => {
+        rows.push([r.date, r.reference, r.category, `"${(r.description || '').replace(/"/g, '""')}"`, r.debit || 0, r.credit || 0, r.balance || 0].join(','));
       });
 
-      const filename = `member_statement_${report.member.psn}_${new Date().toISOString().slice(0, 10)}.csv`;
-      if (Date.now() - startedAt > 2000) warnings.push('Report generation exceeded 2 seconds.');
-      await ActivityLog.logActivity(req.user, 'export_member_statement_csv', 'report', null, `Exported member statement CSV for ${report.member.psn}`, { psn: report.member.psn }, req);
-      return sendCsvDownload({ res, filename, lines: rows });
+      const filename = `member_statement_${statementData.member.psn}_${new Date().toISOString().slice(0, 10)}.csv`;
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      await ActivityLog.logActivity(req.user, 'export_member_statement_csv', 'report', null, `Exported member statement CSV for ${statementData.member.psn}`, { psn: statementData.member.psn }, req);
+      return res.send(rows.join('\n'));
     }
 
     if (formatVal === 'pdf') {
-      const Pdf = tryGetPdfKit();
-      if (!Pdf) return res.status(500).json({ success: false, message: 'PDF generation is not available' });
-
+      const { createPdfDocument } = require('../utils/pdfHelper');
       res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename="member_statement_${report.member.psn}_${new Date().toISOString().slice(0, 10)}.pdf"`);
+      res.setHeader('Content-Disposition', `attachment; filename="member_statement_${statementData.member.psn}_${new Date().toISOString().slice(0, 10)}.pdf"`);
 
-      const doc = new Pdf({ margin: 40, size: 'A4' });
+      const doc = createPdfDocument({ margin: 36, size: 'A4' });
       doc.pipe(res);
 
-      doc.fontSize(16).text('Member Account Statement', { align: 'center' });
+      doc.fontSize(16).fillColor('#15803d').text('MEMBER ACCOUNT STATEMENT', { align: 'center', bold: true });
       doc.moveDown(0.5);
-      doc.fontSize(10).text(`Generated: ${new Date().toLocaleString()}`);
-      doc.fontSize(10).text(`Period: ${report.period}`);
-      doc.moveDown(0.5);
-      doc.fontSize(11).text(`Member: ${report.member.name} (${report.member.psn})`);
-      doc.fontSize(10).text(`Email: ${report.member.email}`);
-      if (report.member.phone) doc.fontSize(10).text(`Phone: ${report.member.phone}`);
-      if (report.member.facility_name) doc.fontSize(10).text(`Facility: ${report.member.facility_name}`);
-      doc.moveDown(0.8);
+      doc.fontSize(10).fillColor('#374151').text(`Member: ${statementData.member.name} | PSN: ${statementData.member.psn}`, { align: 'center' });
+      doc.text(`Closing Balance: NGN ${Number(statementData.balances.closing_ledger_balance).toLocaleString()}`, { align: 'center' });
+      doc.moveDown(1);
 
-      doc.fontSize(12).text('Balances', { underline: true });
-      doc.fontSize(10).text(`Total Approved Contributions: ₦${report.balances.total_contributions_approved.toLocaleString()}`);
-      doc.fontSize(10).text(`Total Approved Withdrawals: ₦${report.balances.total_withdrawals_approved.toLocaleString()}`);
-      doc.fontSize(10).text(`Contribution Balance: ₦${report.balances.contribution_balance.toLocaleString()}`);
-      doc.fontSize(10).text(`Total Outstanding Loans: ₦${report.balances.total_outstanding_loans.toLocaleString()}`);
-      doc.moveDown(0.8);
-
-      const writeTable = (title, headers, rowsData) => {
-        doc.fontSize(12).text(title, { underline: true });
-        doc.moveDown(0.3);
-        doc.fontSize(9).text(headers.join(' | '));
-        doc.moveDown(0.2);
-        for (const row of rowsData) {
-          if (doc.y > 760) doc.addPage();
-          doc.fontSize(9).text(row.join(' | '));
-        }
-        doc.moveDown(0.6);
-      };
-
-      writeTable(
-        'Contributions',
-        ['Date', 'Total', 'Status', 'Method'],
-        report.transactions.contributions.slice(-200).map((c) => [
-          c.contribution_date ? new Date(c.contribution_date).toLocaleDateString() : '—',
-          `₦${Number(c.total_amount || 0).toLocaleString()}`,
-          String(c.status || ''),
-          String(c.payment_method || '')
-        ])
-      );
-
-      writeTable(
-        'Withdrawals',
-        ['Date', 'Amount', 'Status'],
-        report.transactions.withdrawals.slice(-200).map((w) => [
-          w.created_at ? new Date(w.created_at).toLocaleDateString() : '—',
-          `₦${Number(w.amount || 0).toLocaleString()}`,
-          String(w.status || '')
-        ])
-      );
-
-      writeTable(
-        'Loans',
-        ['Date', 'Loan', 'Approved', 'Outstanding', 'Status'],
-        report.transactions.loans.slice(-200).map((l) => [
-          l.application_date ? new Date(l.application_date).toLocaleDateString() : '—',
-          `#${l.id}`,
-          `₦${Number(l.amount_approved || 0).toLocaleString()}`,
-          `₦${Number(l.outstanding_amount || 0).toLocaleString()}`,
-          String(l.status || '')
-        ])
-      );
-
-      writeTable(
-        'Loan Repayments',
-        ['Date', 'Loan', 'Amount', 'Status'],
-        report.transactions.repayments.slice(-200).map((r) => [
-          r.repayment_date ? String(r.repayment_date) : '—',
-          `#${r.loan_id}`,
-          `₦${Number(r.repayment_amount || 0).toLocaleString()}`,
-          String(r.status || '')
-        ])
-      );
+      doc.fontSize(9).fillColor('#111827');
+      statementData.statement.slice(0, 100).forEach((r) => {
+        doc.text(`${r.date} | ${r.reference} | ${r.category} | Cr: ${r.credit} | Db: ${r.debit} | Bal: ${r.balance}`);
+      });
 
       doc.end();
-      await ActivityLog.logActivity(req.user, 'export_member_statement_pdf', 'report', null, `Exported member statement PDF for ${report.member.psn}`, { psn: report.member.psn }, req);
+      await ActivityLog.logActivity(req.user, 'export_member_statement_pdf', 'report', null, `Exported member statement PDF for ${statementData.member.psn}`, { psn: statementData.member.psn }, req);
       return;
     }
 
-    if (Date.now() - startedAt > 2000) warnings.push('Report generation exceeded 2 seconds.');
-    return await finishReport({ req, res, reportType: 'member-statement', report, warnings, startedAt });
+    return res.json({
+      success: true,
+      report: statementData
+    });
   } catch (error) {
     const retryable = isTransientDbError(error);
     console.error('Get member statement report error:', error);

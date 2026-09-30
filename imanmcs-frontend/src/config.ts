@@ -7,7 +7,9 @@ const getDynamicApiUrl = () => {
     }
     return import.meta.env.VITE_API_URL || 'http://localhost:3001';
   }
-  return import.meta.env.VITE_API_URL || 'https://imanmcs.duckdns.org';
+  // Production fallback:
+  // If VITE_API_URL is explicitly set, use it. Otherwise, use '/api' for same-origin Nginx reverse proxy.
+  return import.meta.env.VITE_API_URL || '/api';
 };
 
 export const API_URL = getDynamicApiUrl();

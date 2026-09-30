@@ -453,8 +453,8 @@ export const CommunicationPage: React.FC = () => {
       </div>
 
       {selectedComplaint && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white w-full max-w-2xl rounded-lg shadow-lg overflow-hidden">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-white w-full max-w-2xl rounded-lg shadow-lg max-h-[90vh] my-auto overflow-y-auto">
             <div className="px-6 py-4 border-b flex items-center justify-between">
               <div>
                 <div className="text-sm text-gray-500">{selectedComplaint.tracking_id}</div>

@@ -249,8 +249,8 @@ export const RolesPage: React.FC = () => {
       </div>
 
       {editingRole && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-          <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} className="bg-card border border-border text-foreground rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col">
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-3 sm:p-4 overflow-y-auto">
+          <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} className="bg-card border border-border text-foreground rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col my-auto">
             <div className="p-6 border-b border-border flex justify-between items-center">
               <h2 className="text-xl font-bold text-foreground">Edit Permissions: <span className="capitalize">{editingRole.name}</span></h2>
               <button onClick={() => setEditingRole(null)} className="text-muted-foreground hover:text-foreground">

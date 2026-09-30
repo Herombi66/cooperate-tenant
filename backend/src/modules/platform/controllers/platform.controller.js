@@ -1,6 +1,7 @@
 const { PlatformAdmin, Tenant, MembershipApplication, User, sequelize } = require('../../../../models');
 const emailService = require('../../../../services/emailService');
 const landingPageGenerator = require('../../../services/landingPageGenerator.service');
+const tenantSettingsService = require('../../settings/services/tenant-settings.service');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 // Platform Admin Login
@@ -186,6 +187,16 @@ exports.createTenant = async (req, res) => {
       console.error('Failed to generate landing page file for tenant:', genError);
     }
 
+    // Initialize cooperative settings for tenant if provided
+    try {
+      const initialSettings = req.body.settings || {};
+      if (name) initialSettings.cooperative_name = name;
+      if (features) initialSettings.enabled_modules = { ...(initialSettings.enabled_modules || {}), ...features };
+      await tenantSettingsService.update(id, initialSettings);
+    } catch (setErr) {
+      console.warn('Failed to initialize tenant settings:', setErr.message);
+    }
+
     res.status(201).json({
       success: true,
       message: 'Tenant created successfully',
@@ -217,6 +228,14 @@ exports.updateTenant = async (req, res) => {
       theme: theme ? { ...(tenant.theme || {}), ...theme } : tenant.theme,
       features: features ? { ...(tenant.features || {}), ...features } : tenant.features
     });
+
+    if (req.body.settings && typeof req.body.settings === 'object') {
+      try {
+        await tenantSettingsService.update(id, req.body.settings);
+      } catch (setErr) {
+        console.warn('Failed to update tenant settings in updateTenant:', setErr.message);
+      }
+    }
 
     res.json({
       success: true,
@@ -330,5 +349,70 @@ exports.regenerateTenantLandingPage = async (req, res) => {
   } catch (error) {
     console.error('Error regenerating landing page:', error);
     res.status(500).json({ success: false, message: error.message || 'Internal server error' });
+  }
+};
+
+// Get settings for a specific tenant (Super Admin)
+exports.getTenantSettings = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const settings = await tenantSettingsService.get(id);
+    res.json({
+      success: true,
+      settings,
+      data: settings
+    });
+  } catch (error) {
+    console.error('Error getting tenant settings for super admin:', error);
+    res.status(500).json({ success: false, message: 'Failed to get tenant settings' });
+  }
+};
+
+// Update settings for a specific tenant (Super Admin)
+exports.updateTenantSettings = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const newSettings = req.body;
+    const updatedSettings = await tenantSettingsService.update(id, newSettings);
+    res.json({
+      success: true,
+      message: 'Cooperative settings updated successfully by Super Admin',
+      settings: updatedSettings,
+      data: updatedSettings
+    });
+  } catch (error) {
+    console.error('Error updating tenant settings for super admin:', error);
+    res.status(500).json({ success: false, message: 'Failed to update tenant settings' });
+  }
+};
+
+// Get global platform default settings (Super Admin)
+exports.getDefaultSettings = async (req, res) => {
+  try {
+    const defaults = await tenantSettingsService.get('default');
+    res.json({
+      success: true,
+      settings: defaults,
+      data: defaults
+    });
+  } catch (error) {
+    console.error('Error getting default settings:', error);
+    res.status(500).json({ success: false, message: 'Failed to get default settings' });
+  }
+};
+
+// Update global platform default settings (Super Admin)
+exports.updateDefaultSettings = async (req, res) => {
+  try {
+    const updated = await tenantSettingsService.update('default', req.body);
+    res.json({
+      success: true,
+      message: 'Global cooperative default settings updated successfully',
+      settings: updated,
+      data: updated
+    });
+  } catch (error) {
+    console.error('Error updating default settings:', error);
+    res.status(500).json({ success: false, message: 'Failed to update default settings' });
   }
 };

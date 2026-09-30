@@ -1,18 +1,21 @@
-FROM node:18-alpine
+FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy package.json and package-lock.json
+# Copy dependency definitions
 COPY package*.json ./
 
-# Install dependencies
+# Install production dependencies
 RUN npm ci --only=production
 
-# Copy application code
+# Copy application files
 COPY . .
 
-# Expose port
+# Ensure entrypoint is executable
+RUN chmod +x ./docker-entrypoint.sh
+
+# Expose backend port
 EXPOSE 3001
 
-# Start the application
-CMD ["npm", "start"]
+# Run entrypoint
+ENTRYPOINT ["./docker-entrypoint.sh"]

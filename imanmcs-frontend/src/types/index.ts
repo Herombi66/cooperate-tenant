@@ -4,7 +4,8 @@ export interface User {
   name: string;
   email: string;
   phone?: string;
-  role: 'admin' | 'super_admin' | 'member' | 'treasurer' | 'chairman' | 'secretary' | 'manager' | 'operator' | 'viewer' | 'state_auditor';
+  role: 'admin' | 'super_admin' | 'member' | 'treasurer' | 'chairman' | 'secretary' | 'assistant_secretary' | 'financial_secretary' | 'auditor' | 'state_auditor' | 'pro' | 'manager' | 'operator' | 'viewer';
+  additional_role?: string | null;
   can_create_animal_requests?: boolean;
   canCreateAnimalRequests?: boolean;
   isDefaultPassword?: boolean;

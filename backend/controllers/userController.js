@@ -96,11 +96,22 @@ const assignMemberRole = async (req, res) => {
     const { role } = req.body;
 
     // Validate role
-    const validRoles = ['admin', 'member', 'treasurer', 'chairman', 'secretary', 'state_auditor'];
+    const validRoles = [
+      'admin',
+      'member',
+      'chairman',
+      'secretary',
+      'assistant_secretary',
+      'financial_secretary',
+      'treasurer',
+      'auditor',
+      'state_auditor',
+      'pro'
+    ];
     if (!validRoles.includes(role)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid role. Must be admin, member, treasurer, chairman, secretary, or state_auditor'
+        message: 'Invalid role. Must be admin, member, chairman, secretary, assistant_secretary, financial_secretary, treasurer, auditor, state_auditor, or pro'
       });
     }
     if (role === 'super_admin') {
@@ -200,11 +211,21 @@ const assignAdditionalRole = async (req, res) => {
     const { additionalRole } = req.body;
 
     // Validate additional role
-    const validRoles = ['admin', 'treasurer', 'chairman', 'state_auditor'];
+    const validRoles = [
+      'admin',
+      'chairman',
+      'secretary',
+      'assistant_secretary',
+      'financial_secretary',
+      'treasurer',
+      'auditor',
+      'state_auditor',
+      'pro'
+    ];
     if (additionalRole && !validRoles.includes(additionalRole)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid additional role. Must be admin, treasurer, chairman, or state_auditor'
+        message: 'Invalid additional role. Must be admin, chairman, secretary, assistant_secretary, financial_secretary, treasurer, auditor, state_auditor, or pro'
       });
     }
     if (additionalRole === 'super_admin') {

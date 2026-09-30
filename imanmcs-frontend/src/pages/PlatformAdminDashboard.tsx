@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Settings, Globe, Shield, LogOut, CheckCircle, XCircle, Layout, Activity, Users, Box, CreditCard, Heart, Receipt, TrendingUp, Percent, Paintbrush, Trash2, ExternalLink } from 'lucide-react';
+import { Plus, Settings, Globe, Shield, LogOut, CheckCircle, XCircle, Layout, Activity, Users, Box, CreditCard, Heart, Receipt, TrendingUp, Percent, Paintbrush, Trash2, ExternalLink, Sliders } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { SuperAdminCooperativeSettingsModal } from '../components/SuperAdminCooperativeSettingsModal';
+import { API_URL } from '../config';
 
 interface TenantFeatures {
   landing_page: boolean;
@@ -40,6 +42,8 @@ export const PlatformAdminDashboard: React.FC = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedTenantId, setSelectedTenantId] = useState<string | null>(null);
+  const [showCoopSettingsModal, setShowCoopSettingsModal] = useState(false);
+  const [selectedCoopSettingsTenant, setSelectedCoopSettingsTenant] = useState<{ id: string; name: string } | null>(null);
 
   const initialFormState = {
     id: '',
@@ -269,13 +273,25 @@ export const PlatformAdminDashboard: React.FC = () => {
             <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Ecosystem Overview</h1>
             <p className="text-gray-500 mt-1 text-lg">Manage cooperatives and their modular features</p>
           </div>
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-xl font-medium shadow-xl shadow-gray-900/20 hover:bg-gray-800 hover:-translate-y-0.5 transition-all duration-200"
-          >
-            <Plus className="w-5 h-5" />
-            Onboard Cooperative
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => {
+                setSelectedCoopSettingsTenant(null);
+                setShowCoopSettingsModal(true);
+              }}
+              className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-purple-50 via-indigo-50 to-white border border-purple-200 text-purple-900 hover:bg-purple-100/70 rounded-xl font-bold shadow-sm transition"
+            >
+              <CreditCard className="w-5 h-5 text-purple-700" />
+              Platform Plan Pricing & Defaults
+            </button>
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-xl font-medium shadow-xl shadow-gray-900/20 hover:bg-gray-800 hover:-translate-y-0.5 transition-all duration-200"
+            >
+              <Plus className="w-5 h-5" />
+              Onboard Cooperative
+            </button>
+          </div>
         </div>
 
         {/* Stats Row */}
@@ -352,6 +368,16 @@ export const PlatformAdminDashboard: React.FC = () => {
                       <Paintbrush className="w-5 h-5" />
                     </button>
                     <button 
+                      onClick={() => {
+                        setSelectedCoopSettingsTenant({ id: tenant.id, name: tenant.name });
+                        setShowCoopSettingsModal(true);
+                      }}
+                      className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                      title="Configure 15 Cooperative Settings (Super Admin)"
+                    >
+                      <Sliders className="w-5 h-5 text-indigo-600" />
+                    </button>
+                    <button 
                       onClick={() => handleOpenEditModal(tenant)}
                       className="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
                       title="Edit Tenant Settings"
@@ -399,7 +425,18 @@ export const PlatformAdminDashboard: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="pt-5 border-t border-gray-100">
+                  {/* Plan & Amount Payable Summary */}
+                  <div className="flex items-center justify-between p-2.5 rounded-xl bg-purple-50/60 border border-purple-100 text-xs mb-4">
+                    <div className="flex items-center gap-1.5 text-purple-900 font-bold">
+                      <Shield className="w-3.5 h-3.5 text-purple-600" />
+                      <span>Cooperative License</span>
+                    </div>
+                    <span className="font-bold text-indigo-700 bg-white px-2 py-0.5 rounded-lg border border-purple-200 text-[11px] shadow-2xs">
+                      Managed by Super Admin
+                    </span>
+                  </div>
+
+                  <div className="pt-4 border-t border-gray-100">
                     <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-3">Active Modules</p>
                     <div className="flex flex-wrap gap-2">
                       {tenant.features?.loans !== false && (
@@ -423,6 +460,16 @@ export const PlatformAdminDashboard: React.FC = () => {
                         </span>
                       )}
                     </div>
+                    <button
+                      onClick={() => {
+                        setSelectedCoopSettingsTenant({ id: tenant.id, name: tenant.name });
+                        setShowCoopSettingsModal(true);
+                      }}
+                      className="w-full mt-4 py-2 px-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition"
+                    >
+                      <Sliders className="w-3.5 h-3.5" />
+                      Cooperative Settings (15 Policies)
+                    </button>
                   </div>
                 </div>
               );
@@ -433,9 +480,9 @@ export const PlatformAdminDashboard: React.FC = () => {
 
       {/* Modern Add Tenant Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
           <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" onClick={() => setShowAddModal(false)} />
-          <div className="relative bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+          <div className="relative bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] my-auto overflow-y-auto shadow-2xl animate-in fade-in zoom-in-95 duration-200">
             <div className="sticky top-0 bg-white/80 backdrop-blur-xl border-b border-gray-100 p-6 flex justify-between items-center z-10 rounded-t-3xl">
               <div>
                 <h2 className="text-2xl font-bold text-gray-900">Onboard Cooperative</h2>
@@ -709,9 +756,9 @@ export const PlatformAdminDashboard: React.FC = () => {
 
       {/* Edit Tenant Settings Modal */}
       {showEditModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
           <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" onClick={() => setShowEditModal(false)} />
-          <div className="relative bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+          <div className="relative bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] my-auto overflow-y-auto shadow-2xl animate-in fade-in zoom-in-95 duration-200">
             <div className="sticky top-0 bg-white/80 backdrop-blur-xl border-b border-gray-100 p-6 flex justify-between items-center z-10 rounded-t-3xl">
               <div>
                 <h2 className="text-2xl font-bold text-gray-900">Edit Settings: {formData.name}</h2>
@@ -860,6 +907,13 @@ export const PlatformAdminDashboard: React.FC = () => {
           </div>
         </div>
       )}
+      {/* Super Admin Cooperative Settings Modal (All 15 Components) */}
+      <SuperAdminCooperativeSettingsModal
+        isOpen={showCoopSettingsModal}
+        onClose={() => setShowCoopSettingsModal(false)}
+        tenant={selectedCoopSettingsTenant}
+        onSuccess={() => fetchTenants()}
+      />
     </div>
   );
 };

@@ -56,19 +56,19 @@ router.get('/', authenticateToken, getApplications);
 router.get('/:id', authenticateToken, getApplicationById);
 
 // Admin routes for member management through applications
-router.post('/admin/create-member', authenticateToken, authorizeRole(['admin', 'super_admin', 'treasurer', 'chairman']), (req, res) => {
+router.post('/admin/create-member', authenticateToken, authorizeRole(['admin', 'super_admin', 'treasurer', 'chairman', 'secretary', 'assistant_secretary']), (req, res) => {
   // Add auto_approve flag for admin direct creation
   req.body.auto_approve = true;
   return submitApplication(req, res);
 });
 
-router.post('/admin/bulk-import', authenticateToken, authorizeRole(['admin', 'super_admin', 'treasurer', 'chairman']), uploadMiddleware, bulkImportApplications);
+router.post('/admin/bulk-import', authenticateToken, authorizeRole(['admin', 'super_admin', 'treasurer', 'chairman', 'secretary', 'assistant_secretary']), uploadMiddleware, bulkImportApplications);
 
 // Application status management
-router.put('/:id/status', authenticateToken, authorizeRole(['admin', 'super_admin', 'treasurer', 'chairman']), updateApplicationStatus);
-router.delete('/:id', authenticateToken, authorizeRole(['admin', 'super_admin', 'treasurer', 'chairman']), deleteApplication);
+router.put('/:id/status', authenticateToken, authorizeRole(['admin', 'super_admin', 'treasurer', 'chairman', 'secretary', 'assistant_secretary']), updateApplicationStatus);
+router.delete('/:id', authenticateToken, authorizeRole(['admin', 'super_admin', 'treasurer', 'chairman', 'secretary', 'assistant_secretary']), deleteApplication);
 
 // Legacy route for frontend compatibility
-router.put('/:id/approve', authenticateToken, authorizeRole(['admin', 'super_admin', 'treasurer', 'chairman']), updateApplicationStatus);
+router.put('/:id/approve', authenticateToken, authorizeRole(['admin', 'super_admin', 'treasurer', 'chairman', 'secretary', 'assistant_secretary']), updateApplicationStatus);
 
 module.exports = router;

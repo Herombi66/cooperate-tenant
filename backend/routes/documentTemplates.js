@@ -11,7 +11,7 @@ router.get('/verify/:ref', documentTemplateController.verifyAgreementPublic);
 router.use(authenticateToken);
 
 // View templates (Admins, Treasurers, Auditors, Leadership)
-const allowedViewers = ['admin', 'super_admin', 'treasurer', 'auditor', 'state_auditor', 'chairman', 'secretary'];
+const allowedViewers = ['admin', 'super_admin', 'treasurer', 'financial_secretary', 'auditor', 'state_auditor', 'chairman', 'secretary', 'assistant_secretary', 'pro'];
 router.get('/', authorizeRole(allowedViewers), documentTemplateController.getTemplates);
 router.get('/:id', authorizeRole(allowedViewers), documentTemplateController.getTemplateById);
 router.get('/:id/versions', authorizeRole(allowedViewers), documentTemplateController.getVersions);

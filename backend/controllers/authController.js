@@ -84,7 +84,17 @@ const login = async (req, res) => {
     // Parse PSN to handle role-specific logins (e.g., "12345_chairman")
     let basePsn = psn;
     let targetRole = null;
-    const validRoles = ['admin', 'chairman', 'secretary', 'treasurer', 'state_auditor'];
+    const validRoles = [
+      'assistant_secretary',
+      'financial_secretary',
+      'state_auditor',
+      'secretary',
+      'treasurer',
+      'chairman',
+      'auditor',
+      'admin',
+      'pro'
+    ];
     
     for (const role of validRoles) {
         if (psn.endsWith(`_${role}`)) {
@@ -148,9 +158,14 @@ const login = async (req, res) => {
     // Verify password against candidates
     let validUser = null;
     let hasInactiveCandidate = false;
+    let hasClosedCandidate = false;
     
     for (const user of candidates) {
         // Check if user is active
+        if (user.status === 'closed') {
+            hasClosedCandidate = true;
+            continue;
+        }
         if (user.status !== 'active') {
             hasInactiveCandidate = true;
             continue;
@@ -164,6 +179,12 @@ const login = async (req, res) => {
     }
 
     if (!validUser) {
+      if (hasClosedCandidate) {
+        return res.status(401).json({
+          success: false,
+          message: 'This account has been closed. Please contact cooperative administration.'
+        });
+      }
       if (hasInactiveCandidate) {
         return res.status(401).json({
           success: false,

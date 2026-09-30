@@ -4,7 +4,7 @@ const crypto = require('crypto');
 const emailService = require('../services/emailService');
 const { Op } = require('sequelize');
 const { sequelize } = require('../db/connection');
-const { Contribution, LoanRepayment } = require('../models');
+const { Contribution, LoanRepayment, ContributionWithdrawal } = require('../models');
 
 const getMembers = async (req, res) => {
   try {
@@ -1482,11 +1482,29 @@ const getMemberFinancialProfile = async (req, res) => {
     const contributions = await Contribution.findAll({
       where: { user_id: id },
       order: [['contribution_date', 'DESC'], ['id', 'DESC']],
-      attributes: ['id', 'total_amount', 'status', 'payment_method', 'contribution_date', 'month', 'year', 'notes']
+      attributes: ['id', 'savings', 'investment', 'target_saving', 'total_amount', 'status', 'payment_method', 'contribution_date', 'month', 'year', 'notes']
     });
 
     const totalContributionsRaw = await Contribution.sum('total_amount', { where: { user_id: id, status: 'approved' } });
     const totalContributions = parseFloat(totalContributionsRaw || 0);
+
+    const totalSavingsRaw = await Contribution.sum('savings', { where: { user_id: id, status: 'approved' } });
+    const totalInvestmentRaw = await Contribution.sum('investment', { where: { user_id: id, status: 'approved' } });
+    const totalTargetSavingRaw = await Contribution.sum('target_saving', { where: { user_id: id, status: 'approved' } });
+
+    const totalTargetWithdrawnRaw = await ContributionWithdrawal.sum('amount', {
+      where: {
+        user_id: id,
+        status: { [Op.in]: ['approved', 'disbursed'] },
+        withdrawal_type: 'target_savings'
+      }
+    }).catch(() => 0);
+
+    const totalSavings = parseFloat(totalSavingsRaw || 0);
+    const totalInvestment = parseFloat(totalInvestmentRaw || 0);
+    const totalTargetWithdrawn = parseFloat(totalTargetWithdrawnRaw || 0);
+    const totalTargetSaving = Math.max(0, parseFloat(totalTargetSavingRaw || 0) - totalTargetWithdrawn);
+    const netBalance = Math.round((totalSavings + totalInvestment + totalTargetSaving) * 100) / 100;
 
     const activeLoan = await Loan.findOne({
       where: { user_id: id, status: { [Op.in]: ['disbursed', 'active', 'defaulted'] } },
@@ -1571,10 +1589,18 @@ const getMemberFinancialProfile = async (req, res) => {
         },
         contributions: {
           total_approved: totalContributions,
+          total_savings: totalSavings,
+          total_investment: totalInvestment,
+          total_target_saving: totalTargetSaving,
+          total_target_withdrawn: totalTargetWithdrawn,
+          net_balance: netBalance,
           history: contributions.map((c) => ({
             id: c.id,
             date: c.contribution_date,
             amount: parseFloat(c.total_amount || 0),
+            savings: parseFloat(c.savings || 0),
+            investment: parseFloat(c.investment || 0),
+            target_saving: parseFloat(c.target_saving || 0),
             status: c.status,
             payment_method: c.payment_method,
             month: c.month,
@@ -1592,6 +1618,481 @@ const getMemberFinancialProfile = async (req, res) => {
   }
 };
 
+const transferFunds = async (req, res) => {
+  const transaction = await sequelize.transaction();
+  try {
+    const allowedRoles = ['admin', 'super_admin', 'chairman', 'treasurer'];
+    if (!allowedRoles.includes(String(req.user?.role || ''))) {
+      await transaction.rollback();
+      return res.status(403).json({ success: false, message: 'Access denied' });
+    }
+
+    const id = parseInt(req.params.id, 10);
+    if (!Number.isFinite(id) || id <= 0) {
+      await transaction.rollback();
+      return res.status(400).json({ success: false, message: 'Invalid member id' });
+    }
+
+    const { source = 'savings', destination, amount, notes } = req.body;
+    const transferAmount = parseFloat(amount);
+
+    if (!transferAmount || transferAmount <= 0) {
+      await transaction.rollback();
+      return res.status(400).json({ success: false, message: 'Valid transfer amount is required' });
+    }
+
+    const validAccounts = ['savings', 'investment', 'target_saving'];
+    if (!validAccounts.includes(source) || !validAccounts.includes(destination)) {
+      await transaction.rollback();
+      return res.status(400).json({ success: false, message: 'Invalid source or destination account' });
+    }
+
+    if (source === destination) {
+      await transaction.rollback();
+      return res.status(400).json({ success: false, message: 'Source and destination accounts cannot be the same' });
+    }
+
+    const member = await User.findByPk(id, {
+      include: [{ model: MembershipApplication, as: 'membershipApplication' }],
+      transaction
+    });
+
+    if (!member || member.deleted_at) {
+      await transaction.rollback();
+      return res.status(404).json({ success: false, message: 'Member not found' });
+    }
+
+    // Check available source balance
+    let availableSource = 0;
+    if (source === 'savings') {
+      const sum = await Contribution.sum('savings', { where: { user_id: id, status: 'approved' }, transaction });
+      availableSource = parseFloat(sum || 0);
+    } else if (source === 'investment') {
+      const sum = await Contribution.sum('investment', { where: { user_id: id, status: 'approved' }, transaction });
+      availableSource = parseFloat(sum || 0);
+    } else if (source === 'target_saving') {
+      const sum = await Contribution.sum('target_saving', { where: { user_id: id, status: 'approved' }, transaction });
+      const withdrawn = await ContributionWithdrawal.sum('amount', {
+        where: { user_id: id, withdrawal_type: 'target_savings', status: { [Op.in]: ['approved', 'disbursed'] } },
+        transaction
+      }).catch(() => 0);
+      availableSource = Math.max(0, parseFloat(sum || 0) - parseFloat(withdrawn || 0));
+    }
+
+    if (transferAmount > availableSource) {
+      await transaction.rollback();
+      const accountLabel = source.replace(/_/g, ' ');
+      return res.status(400).json({
+        success: false,
+        message: `Insufficient ${accountLabel} balance for transfer. Available: ₦${availableSource.toLocaleString()}`
+      });
+    }
+
+    // Create the transfer record in Contribution as an internal transfer
+    const now = new Date();
+    const contribData = {
+      user_id: id,
+      tenant_id: member.tenant_id,
+      month: now.getMonth() + 1,
+      year: now.getFullYear(),
+      savings: 0,
+      investment: 0,
+      target_saving: 0,
+      total_amount: 0,
+      status: 'approved',
+      contribution_date: now,
+      payment_method: 'internal_transfer',
+      notes: notes || `Internal fund transfer from ${source} to ${destination}`
+    };
+
+    contribData[source] = -transferAmount;
+    contribData[destination] = transferAmount;
+
+    await Contribution.create(contribData, { transaction });
+
+    // Calculate updated balances
+    let updatedSourceBalance = Math.round((availableSource - transferAmount) * 100) / 100;
+
+    let destCurrent = 0;
+    if (destination === 'savings') {
+      const sum = await Contribution.sum('savings', { where: { user_id: id, status: 'approved' }, transaction });
+      destCurrent = parseFloat(sum || 0);
+    } else if (destination === 'investment') {
+      const sum = await Contribution.sum('investment', { where: { user_id: id, status: 'approved' }, transaction });
+      destCurrent = parseFloat(sum || 0);
+    } else if (destination === 'target_saving') {
+      const sum = await Contribution.sum('target_saving', { where: { user_id: id, status: 'approved' }, transaction });
+      const withdrawn = await ContributionWithdrawal.sum('amount', {
+        where: { user_id: id, withdrawal_type: 'target_savings', status: { [Op.in]: ['approved', 'disbursed'] } },
+        transaction
+      }).catch(() => 0);
+      destCurrent = Math.max(0, parseFloat(sum || 0) - parseFloat(withdrawn || 0));
+    }
+    let updatedDestinationBalance = destCurrent;
+
+    let updatedSavings = 0;
+    if (source === 'savings') updatedSavings = updatedSourceBalance;
+    else if (destination === 'savings') updatedSavings = updatedDestinationBalance;
+    else {
+      const sum = await Contribution.sum('savings', { where: { user_id: id, status: 'approved' }, transaction });
+      updatedSavings = parseFloat(sum || 0);
+    }
+
+    await transaction.commit();
+
+    await ActivityLog.logActivity(
+      req.user,
+      'member_fund_transfer',
+      'member',
+      id,
+      `Transferred ₦${transferAmount.toLocaleString()} from ${source} to ${destination} for ${member.membershipApplication?.name || member.id}`,
+      { source, destination, amount: transferAmount, member_user_id: id },
+      req
+    );
+
+    res.json({
+      success: true,
+      message: `Successfully transferred ₦${transferAmount.toLocaleString()} from ${source} to ${destination}`,
+      transfer: {
+        source,
+        destination,
+        amount: transferAmount,
+        updated_source_balance: updatedSourceBalance,
+        updated_destination_balance: updatedDestinationBalance,
+        updated_savings: updatedSavings
+      }
+    });
+
+  } catch (error) {
+    await transaction.rollback();
+    console.error('Transfer funds error:', error);
+    res.status(500).json({ success: false, message: 'Server error during fund transfer' });
+  }
+};
+
+const getMemberStatement = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { startDate, endDate, period, format } = req.query;
+
+    const requestedUserId = parseInt(id, 10);
+    const currentUser = req.user;
+
+    const allowedStaff = ['admin', 'super_admin', 'chairman', 'secretary', 'treasurer', 'state_auditor'];
+    const isStaff = allowedStaff.includes(currentUser?.role);
+    const isSelf = currentUser?.id === requestedUserId;
+
+    if (!isStaff && !isSelf) {
+      return res.status(403).json({ success: false, message: 'Access denied to member statement' });
+    }
+
+    const { getMemberStatementData } = require('../utils/statementHelper');
+    const statementData = await getMemberStatementData({ userId: requestedUserId, startDate, endDate, period });
+    if (!statementData) {
+      return res.status(404).json({ success: false, message: 'Member not found' });
+    }
+
+    const formatVal = String(format || '').toLowerCase().trim();
+    if (formatVal === 'csv') {
+      const rows = [];
+      rows.push(['MEMBER ACCOUNT STATEMENT']);
+      rows.push([`Member: ${statementData.member.name} (PSN: ${statementData.member.psn})`]);
+      rows.push([`Generated on: ${new Date().toLocaleString()}`]);
+      rows.push([]);
+      rows.push(['Date,Reference,Category,Description,Debit (NGN),Credit (NGN),Balance (NGN)']);
+
+      statementData.statement.forEach((r) => {
+        rows.push([r.date, r.reference, r.category, `"${(r.description || '').replace(/"/g, '""')}"`, r.debit || 0, r.credit || 0, r.balance || 0].join(','));
+      });
+
+      const filename = `member_statement_${statementData.member.psn}_${new Date().toISOString().slice(0, 10)}.csv`;
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      return res.send(rows.join('\n'));
+    }
+
+    if (formatVal === 'pdf') {
+      const { createPdfDocument } = require('../utils/pdfHelper');
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="member_statement_${statementData.member.psn}_${new Date().toISOString().slice(0, 10)}.pdf"`);
+
+      const doc = createPdfDocument({ margin: 36, size: 'A4' });
+      doc.pipe(res);
+
+      doc.fontSize(16).fillColor('#15803d').text('MEMBER ACCOUNT STATEMENT', { align: 'center', bold: true });
+      doc.moveDown(0.5);
+      doc.fontSize(10).fillColor('#374151').text(`Member: ${statementData.member.name} | PSN: ${statementData.member.psn}`, { align: 'center' });
+      doc.text(`Closing Balance: NGN ${Number(statementData.balances.closing_ledger_balance).toLocaleString()}`, { align: 'center' });
+      doc.moveDown(1);
+
+      doc.fontSize(9).fillColor('#111827');
+      statementData.statement.slice(0, 100).forEach((r) => {
+        doc.text(`${r.date} | ${r.reference} | ${r.category} | Cr: ${r.credit} | Db: ${r.debit} | Bal: ${r.balance}`);
+      });
+
+      doc.end();
+      return;
+    }
+
+    return res.json({
+      success: true,
+      data: statementData
+    });
+  } catch (error) {
+    console.error('getMemberStatement error:', error);
+    res.status(500).json({ success: false, message: 'Server error retrieving statement', error: error.message });
+  }
+};
+
+const getCloseAccountPreview = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const member = await User.findByPk(id, {
+      include: [{
+        model: MembershipApplication,
+        as: 'membershipApplication'
+      }]
+    });
+
+    if (!member || member.deleted_at) {
+      return res.status(404).json({ success: false, message: 'Member not found' });
+    }
+
+    const contributionSum = await Contribution.sum('total_amount', {
+      where: {
+        user_id: id,
+        status: 'approved'
+      }
+    });
+    const contributionBalance = Math.max(0, parseFloat(contributionSum || 0));
+
+    const loans = await Loan.findAll({
+      where: {
+        user_id: id,
+        status: { [Op.in]: ['active', 'approved'] }
+      },
+      order: [['created_at', 'ASC']]
+    });
+
+    let totalLoanBalance = 0;
+    const outstandingLoans = [];
+
+    for (const loan of loans) {
+      const repaidSum = await LoanRepayment.sum('repayment_amount', {
+        where: {
+          loan_id: loan.id,
+          status: 'verified'
+        }
+      });
+      const totalPaid = parseFloat(repaidSum || 0);
+      const remainingBalance = Math.max(0, parseFloat(loan.total_repayment || 0) - totalPaid);
+
+      if (remainingBalance > 0) {
+        totalLoanBalance += remainingBalance;
+        outstandingLoans.push({
+          id: loan.id,
+          loan_type: loan.loan_type,
+          total_repayment: parseFloat(loan.total_repayment || 0),
+          total_paid: totalPaid,
+          remaining_balance: remainingBalance
+        });
+      }
+    }
+
+    const canLiquidate = contributionBalance > 0 && totalLoanBalance > 0;
+    const maxLiquidatable = canLiquidate ? Math.min(contributionBalance, totalLoanBalance) : 0;
+    const projectedRemainingContribution = Math.max(0, contributionBalance - maxLiquidatable);
+    const projectedRefundAmount = projectedRemainingContribution;
+    const projectedRemainingLoan = Math.max(0, totalLoanBalance - maxLiquidatable);
+
+    return res.json({
+      success: true,
+      contribution_balance: contributionBalance,
+      total_loan_balance: totalLoanBalance,
+      can_liquidate: canLiquidate,
+      max_liquidatable: maxLiquidatable,
+      projected_remaining_contribution: projectedRemainingContribution,
+      projected_refund_amount: projectedRefundAmount,
+      final_contribution_balance_after_closure: 0,
+      projected_remaining_loan: projectedRemainingLoan,
+      outstanding_loans: outstandingLoans
+    });
+  } catch (error) {
+    console.error('getCloseAccountPreview error:', error);
+    res.status(500).json({ success: false, message: 'Server error retrieving closure preview', error: error.message });
+  }
+};
+
+const closeMemberAccount = async (req, res) => {
+  const transaction = await sequelize.transaction();
+  try {
+    const { id } = req.params;
+    const {
+      liquidate_from_contribution = true,
+      closure_reason = '',
+      settlement_notes = ''
+    } = req.body;
+
+    const member = await User.findByPk(id, {
+      include: [{
+        model: MembershipApplication,
+        as: 'membershipApplication'
+      }],
+      transaction
+    });
+
+    if (!member || member.deleted_at) {
+      await transaction.rollback();
+      return res.status(404).json({ success: false, message: 'Member not found' });
+    }
+
+    const contributionSum = await Contribution.sum('total_amount', {
+      where: {
+        user_id: id,
+        status: 'approved'
+      },
+      transaction
+    });
+    let currentContributionBalance = Math.max(0, parseFloat(contributionSum || 0));
+
+    const loans = await Loan.findAll({
+      where: {
+        user_id: id,
+        status: { [Op.in]: ['active', 'approved'] }
+      },
+      order: [['created_at', 'ASC']],
+      transaction
+    });
+
+    let totalLiquidated = 0;
+    let remainingLoanBalanceAcrossAll = 0;
+    const LoanLiquidation = require('../models/LoanLiquidation');
+
+    for (const loan of loans) {
+      const repaidSum = await LoanRepayment.sum('repayment_amount', {
+        where: {
+          loan_id: loan.id,
+          status: 'verified'
+        },
+        transaction
+      });
+      const totalPaid = parseFloat(repaidSum || 0);
+      let loanRemaining = Math.max(0, parseFloat(loan.total_repayment || 0) - totalPaid);
+
+      if (loanRemaining <= 0) continue;
+
+      if (liquidate_from_contribution && currentContributionBalance > 0) {
+        const amountToLiquidate = Math.min(currentContributionBalance, loanRemaining);
+
+        if (amountToLiquidate > 0) {
+          const deduction = await Contribution.create({
+            user_id: member.id,
+            total_amount: -amountToLiquidate,
+            savings: -amountToLiquidate,
+            status: 'approved',
+            month: new Date().getMonth() + 1,
+            year: new Date().getFullYear(),
+            contribution_date: new Date(),
+            payment_method: 'liquidation_deduction',
+            notes: `Loan #${loan.id} liquidation upon account closure`
+          }, { transaction });
+
+          const repayment = await LoanRepayment.create({
+            loan_id: loan.id,
+            user_id: member.id,
+            tenant_id: member.tenant_id || 'default',
+            repayment_amount: amountToLiquidate,
+            repayment_date: new Date(),
+            payment_method: 'contribution_deduction',
+            recorded_by: req.user.id,
+            status: 'verified',
+            notes: `Loan #${loan.id} liquidation upon account closure`
+          }, { transaction });
+
+          await LoanLiquidation.create({
+            loan_id: loan.id,
+            member_user_id: member.id,
+            member_psn: member.membershipApplication?.psn || null,
+            member_name: member.membershipApplication?.name || null,
+            admin_user_id: req.user.id,
+            admin_role: req.user.role || null,
+            admin_name: req.user.name || null,
+            loan_repayment_id: repayment.id,
+            contribution_id: deduction.id,
+            amount: amountToLiquidate,
+            loan_balance_before: loanRemaining,
+            loan_balance_after: loanRemaining - amountToLiquidate,
+            contribution_balance_before: currentContributionBalance,
+            contribution_balance_after: currentContributionBalance - amountToLiquidate,
+            tenant_id: member.tenant_id || 'default'
+          }, { transaction });
+
+          currentContributionBalance -= amountToLiquidate;
+          totalLiquidated += amountToLiquidate;
+          loanRemaining -= amountToLiquidate;
+
+          if (loanRemaining <= 0) {
+            await loan.update({ status: 'completed' }, { transaction });
+          }
+        }
+      }
+
+      if (loanRemaining > 0) {
+        remainingLoanBalanceAcrossAll += loanRemaining;
+      }
+    }
+
+    let refundedAmount = 0;
+    if (currentContributionBalance > 0) {
+      refundedAmount = currentContributionBalance;
+      await Contribution.create({
+        user_id: member.id,
+        total_amount: -refundedAmount,
+        savings: -refundedAmount,
+        status: 'approved',
+        month: new Date().getMonth() + 1,
+        year: new Date().getFullYear(),
+        contribution_date: new Date(),
+        payment_method: 'closure_refund',
+        notes: `Account closure refund (${closure_reason || 'Settlement'})`
+      }, { transaction });
+      currentContributionBalance = 0;
+    }
+
+    await member.update({ status: 'closed' }, { transaction });
+
+    await ActivityLog.create({
+      user_id: req.user.id,
+      user_name: req.user.name,
+      user_role: req.user.role,
+      action: 'CLOSE_MEMBER_ACCOUNT',
+      resource_type: 'MEMBER',
+      resource_id: member.id,
+      description: `Closed member account for ${member.membershipApplication?.name || member.id}. Liquidated: ₦${totalLiquidated}, Refunded: ₦${refundedAmount}. Reason: ${closure_reason || 'N/A'}`,
+      ip_address: req.ip,
+      user_agent: req.headers['user-agent']
+    }, { transaction });
+
+    await transaction.commit();
+
+    return res.json({
+      success: true,
+      message: 'Member account successfully closed',
+      closure_summary: {
+        status: 'closed',
+        total_liquidated: totalLiquidated,
+        refunded_amount: refundedAmount,
+        remaining_contribution_balance: 0,
+        remaining_loan_balance: remainingLoanBalanceAcrossAll
+      }
+    });
+  } catch (error) {
+    await transaction.rollback();
+    console.error('closeMemberAccount error:', error);
+    res.status(500).json({ success: false, message: 'Server error closing member account', error: error.message });
+  }
+};
+
 module.exports = {
   getMembers,
   getMemberById,
@@ -1606,5 +2107,9 @@ module.exports = {
   importMembers,
   validateGrantor,
   updateMemberJoinDate,
-  getMemberFinancialProfile
+  getMemberFinancialProfile,
+  transferFunds,
+  getMemberStatement,
+  getCloseAccountPreview,
+  closeMemberAccount
 };

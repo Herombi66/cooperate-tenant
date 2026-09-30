@@ -860,8 +860,8 @@ ${sample2},target_savings,1500,12,2025,salary deduction`;
           </div>
 
           {reviewingRequest ? (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-              <div className="bg-white w-full max-w-lg rounded-lg shadow-lg overflow-hidden">
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-3 sm:p-4 overflow-y-auto">
+              <div className="bg-white w-full max-w-lg rounded-lg shadow-lg max-h-[90vh] my-auto overflow-y-auto">
                 <div className="p-6 border-b border-gray-200 flex items-center justify-between">
                   <h3 className="text-lg font-semibold text-gray-900">
                     {reviewAction === 'approve' ? 'Approve' : 'Reject'} Request #{reviewingRequest.id}
@@ -1166,8 +1166,8 @@ ${sample2},target_savings,1500,12,2025,salary deduction`;
 
       {/* Add Contribution Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-3 sm:p-4 z-50 overflow-y-auto">
+          <div className="bg-white rounded-lg p-6 w-full max-w-lg mx-auto max-h-[90vh] overflow-y-auto my-auto shadow-xl">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900">Add New Contribution</h3>
               <button
@@ -1419,8 +1419,8 @@ ${sample2},target_savings,1500,12,2025,salary deduction`;
 
       {/* Import Contributions Modal */}
       {showImportModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg w-full max-w-2xl flex flex-col max-h-[90vh] shadow-xl">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-white rounded-lg w-full max-w-2xl flex flex-col max-h-[90vh] shadow-xl my-auto">
             <div className="p-6 border-b flex items-center justify-between sticky top-0 bg-white z-10 rounded-t-lg">
               <h3 className="text-lg font-semibold text-gray-900">Import Contributions</h3>
               <button
@@ -1617,8 +1617,8 @@ ${sample2},target_savings,1500,12,2025,salary deduction`;
 
       {/* Import Review / Error Fix Modal */}
       {showImportReviewModal && importBatchId && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg w-full max-w-5xl flex flex-col max-h-[90vh] shadow-xl">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-white rounded-lg w-full max-w-5xl flex flex-col max-h-[90vh] shadow-xl my-auto">
             <div className="p-6 border-b flex items-center justify-between sticky top-0 bg-white z-10 rounded-t-lg">
               <div>
                 <h3 className="text-lg font-semibold text-gray-900">Import Review (Batch #{importBatchId})</h3>
@@ -1967,8 +1967,8 @@ ${sample2},target_savings,1500,12,2025,salary deduction`;
 
       {/* View Contribution Details Modal */}
       {showViewModal && selectedContribution && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-lg mx-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-3 sm:p-4 z-50 overflow-y-auto">
+          <div className="bg-white rounded-lg p-6 w-full max-w-lg mx-auto max-h-[90vh] overflow-y-auto my-auto shadow-xl">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900">Contribution Details</h3>
               <button

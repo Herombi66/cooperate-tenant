@@ -31,12 +31,12 @@ const User = sequelize.define('User', {
     allowNull: false
   },
   role: {
-    type: DataTypes.STRING(20),
+    type: DataTypes.STRING(50),
     allowNull: false,
     defaultValue: 'member'
   },
   additional_role: {
-    type: DataTypes.STRING(20),
+    type: DataTypes.STRING(50),
     allowNull: true,
     defaultValue: null,
     comment: 'Additional administrative role without affecting core membership'

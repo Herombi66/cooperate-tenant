@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Search, UserPlus, Shield, Crown, Calculator, User, CheckCircle, Users, Trash2, Eye, Edit, Lock, X, Copy } from 'lucide-react';
+import { Search, UserPlus, Shield, Crown, Calculator, User, CheckCircle, Users, Trash2, Eye, Edit, Lock, X, Copy, FileText, BookOpen, Coins, Megaphone } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 import api from '../services/api';
@@ -23,20 +23,39 @@ interface FoundMember {
   }>; // All accounts for this member
 }
 
-const roleIcons = {
+const roleIcons: Record<string, any> = {
   admin: Shield,
   chairman: Crown,
+  secretary: FileText,
+  assistant_secretary: BookOpen,
+  financial_secretary: Coins,
   treasurer: Calculator,
+  auditor: Search,
   state_auditor: Eye,
+  pro: Megaphone,
   member: User
 };
 
-const roleColors = {
+const roleColors: Record<string, string> = {
   admin: 'bg-red-100 text-red-800 border-red-200',
   chairman: 'bg-purple-100 text-purple-800 border-purple-200',
+  secretary: 'bg-indigo-100 text-indigo-800 border-indigo-200',
+  assistant_secretary: 'bg-sky-100 text-sky-800 border-sky-200',
+  financial_secretary: 'bg-teal-100 text-teal-800 border-teal-200',
   treasurer: 'bg-primary-100 text-primary-800 border-primary-200',
+  auditor: 'bg-yellow-100 text-yellow-800 border-yellow-200',
   state_auditor: 'bg-amber-100 text-amber-800 border-amber-200',
+  pro: 'bg-cyan-100 text-cyan-800 border-cyan-200',
   member: 'bg-green-100 text-green-800 border-green-200'
+};
+
+const formatRoleName = (role: string | null | undefined): string => {
+  if (!role) return '';
+  if (role.toLowerCase() === 'pro') return 'PRO';
+  return role
+    .split('_')
+    .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ');
 };
 
 interface UserData {
@@ -162,7 +181,7 @@ export const UserManagementPage: React.FC = () => {
 
       const data = response.data;
       if (data.success) {
-        toast.success(`${selectedRole.charAt(0).toUpperCase() + selectedRole.slice(1)} account created successfully for ${foundMember.name}!`);
+        toast.success(`${formatRoleName(selectedRole)} account created successfully for ${foundMember.name}!`);
 
         // Clear the selected role
         setSelectedRole('');
@@ -309,30 +328,54 @@ export const UserManagementPage: React.FC = () => {
             </div>
 
             {/* Summary Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-              <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-                <div className="text-2xl font-bold text-red-600">
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 text-center">
+              <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-sm">
+                <div className="text-xl font-bold text-red-600">
                   {allUsers.filter(u => u.role === 'admin').length}
                 </div>
-                <div className="text-sm text-gray-500">Admins</div>
+                <div className="text-xs text-gray-500 font-medium">Admins</div>
               </div>
-              <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-                <div className="text-2xl font-bold text-purple-600">
+              <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-sm">
+                <div className="text-xl font-bold text-purple-600">
                   {allUsers.filter(u => u.role === 'chairman').length}
                 </div>
-                <div className="text-sm text-gray-500">Chairmen</div>
+                <div className="text-xs text-gray-500 font-medium">Chairmen</div>
               </div>
-              <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-                <div className="text-2xl font-bold text-primary-600">
+              <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-sm">
+                <div className="text-xl font-bold text-indigo-600">
+                  {allUsers.filter(u => u.role === 'secretary' || u.role === 'assistant_secretary').length}
+                </div>
+                <div className="text-xs text-gray-500 font-medium">Secretaries</div>
+              </div>
+              <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-sm">
+                <div className="text-xl font-bold text-teal-600">
+                  {allUsers.filter(u => u.role === 'financial_secretary').length}
+                </div>
+                <div className="text-xs text-gray-500 font-medium">Fin. Sec</div>
+              </div>
+              <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-sm">
+                <div className="text-xl font-bold text-primary-600">
                   {allUsers.filter(u => u.role === 'treasurer').length}
                 </div>
-                <div className="text-sm text-gray-500">Treasurers</div>
+                <div className="text-xs text-gray-500 font-medium">Treasurers</div>
               </div>
-              <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-                <div className="text-2xl font-bold text-green-600">
+              <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-sm">
+                <div className="text-xl font-bold text-amber-600">
+                  {allUsers.filter(u => u.role === 'auditor' || u.role === 'state_auditor').length}
+                </div>
+                <div className="text-xs text-gray-500 font-medium">Auditors</div>
+              </div>
+              <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-sm">
+                <div className="text-xl font-bold text-cyan-600">
+                  {allUsers.filter(u => u.role === 'pro').length}
+                </div>
+                <div className="text-xs text-gray-500 font-medium">PRO</div>
+              </div>
+              <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-sm">
+                <div className="text-xl font-bold text-green-600">
                   {allUsers.filter(u => u.role === 'member').length}
                 </div>
-                <div className="text-sm text-gray-500">Members</div>
+                <div className="text-xs text-gray-500 font-medium">Members</div>
               </div>
             </div>
           </div>
@@ -392,8 +435,13 @@ export const UserManagementPage: React.FC = () => {
                     <option value="">All Roles</option>
                     <option value="admin">Admin</option>
                     <option value="chairman">Chairman</option>
+                    <option value="secretary">Secretary</option>
+                    <option value="assistant_secretary">Assistant Secretary</option>
+                    <option value="financial_secretary">Financial Secretary</option>
                     <option value="treasurer">Treasurer</option>
+                    <option value="auditor">Auditor</option>
                     <option value="state_auditor">State Auditor</option>
+                    <option value="pro">PRO</option>
                     <option value="member">Member</option>
                   </select>
                 </div>
@@ -463,7 +511,7 @@ export const UserManagementPage: React.FC = () => {
                               <div className="flex items-center">
                                 <RoleIcon className="w-4 h-4 mr-2 text-gray-400" />
                                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${roleColors[userData.role as keyof typeof roleColors] || 'bg-gray-100 text-gray-800'}`}>
-                                  {userData.role.charAt(0).toUpperCase() + userData.role.slice(1)}
+                                  {formatRoleName(userData.role)}
                                 </span>
                               </div>
                             </td>
@@ -613,8 +661,8 @@ export const UserManagementPage: React.FC = () => {
 
         {/* Role Assignment Modal */}
         {showRoleAssignmentModal && (
-          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-            <div className="relative top-20 mx-auto p-5 border w-11/12 max-w-4xl shadow-lg rounded-md bg-white">
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center p-3 sm:p-4 z-50 overflow-y-auto">
+            <div className="relative mx-auto p-5 border w-full max-w-4xl max-h-[90vh] overflow-y-auto my-auto shadow-lg rounded-md bg-white">
               <div className="mt-3">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-6">
@@ -724,7 +772,7 @@ export const UserManagementPage: React.FC = () => {
                           <div className="flex items-center space-x-2">
                             {foundMember.additionalRole ? (
                               <span className={`inline-flex items-center px-2 py-1 rounded-full text-sm font-medium ${roleColors[foundMember.additionalRole as keyof typeof roleColors] || 'bg-gray-100 text-gray-800'}`}>
-                                {foundMember.additionalRole} Role
+                                {formatRoleName(foundMember.additionalRole)} Role
                               </span>
                             ) : (
                               <span className="inline-flex items-center px-2 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
@@ -752,8 +800,13 @@ export const UserManagementPage: React.FC = () => {
                             <option value="">Select a leadership role...</option>
                             <option value="admin">👑 Admin - Full system access</option>
                             <option value="chairman">🎯 Chairman - Executive oversight</option>
+                            <option value="secretary">📝 Secretary - Administrative & member records</option>
+                            <option value="assistant_secretary">📋 Assistant Secretary - Secretarial assistance</option>
+                            <option value="financial_secretary">📊 Financial Secretary - Financial records & ledgers</option>
                             <option value="treasurer">💰 Treasurer - Financial management</option>
+                            <option value="auditor">🔍 Auditor - Internal inspection & audit</option>
                             <option value="state_auditor">🧾 State Auditor - Read-only audit access</option>
+                            <option value="pro">📢 PRO - Public relations & member announcements</option>
                           </select>
                           <button
                             onClick={assignRole}
@@ -768,7 +821,7 @@ export const UserManagementPage: React.FC = () => {
                         {foundMember?.additionalRole && (
                           <div className="flex items-center justify-between p-3 bg-orange-50 border border-orange-200 rounded-md">
                             <div>
-                              <span className="text-sm font-medium text-orange-800">Current Additional Role: {foundMember.additionalRole}</span>
+                              <span className="text-sm font-medium text-orange-800">Current Additional Role: {formatRoleName(foundMember.additionalRole)}</span>
                               <p className="text-xs text-orange-600 mt-1">Click to remove this additional role</p>
                             </div>
                             <button
@@ -826,11 +879,11 @@ export const UserManagementPage: React.FC = () => {
 
         {/* Password Reset Success Modal */}
         {showResetSuccessModal && resetSuccessData && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-3 sm:p-4 z-50 overflow-y-auto">
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-4"
+              className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-auto max-h-[90vh] my-auto overflow-y-auto"
             >
               <div className="flex justify-between items-start mb-4">
                 <div className="flex items-center text-green-600">

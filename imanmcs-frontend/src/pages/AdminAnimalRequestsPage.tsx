@@ -886,8 +886,8 @@ export const AdminAnimalRequestsPage: React.FC = () => {
       )}
 
       {rejectModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded shadow-lg w-full max-w-md p-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-3 sm:p-4 z-50 overflow-y-auto">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-4 max-h-[90vh] my-auto overflow-y-auto">
             <h3 className="text-lg font-semibold text-gray-900">Reject Request #{rejectModal.id}</h3>
             <div className="mt-3">
               <label className="block text-sm font-medium text-gray-700" htmlFor="reject_reason">

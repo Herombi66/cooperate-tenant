@@ -45,7 +45,7 @@ router.get('/commitment', authenticateToken, getMyCommitment);
 router.get(
   '/increase-requests',
   authenticateToken,
-  authorizeRole(['admin', 'super_admin', 'chairman', 'treasurer', 'secretary', 'manager', 'operator', 'state_auditor']),
+  authorizeRole(['admin', 'super_admin', 'chairman', 'treasurer', 'financial_secretary', 'secretary', 'assistant_secretary', 'auditor', 'manager', 'operator', 'state_auditor']),
   listIncreaseRequests
 );
 
@@ -53,7 +53,7 @@ router.get(
 router.post(
   '/increase-requests/:id/approve',
   authenticateToken,
-  authorizeRole(['admin', 'super_admin', 'treasurer']),
+  authorizeRole(['admin', 'super_admin', 'treasurer', 'financial_secretary']),
   approveIncreaseRequest
 );
 
@@ -61,7 +61,7 @@ router.post(
 router.post(
   '/increase-requests/:id/reject',
   authenticateToken,
-  authorizeRole(['admin', 'super_admin', 'treasurer']),
+  authorizeRole(['admin', 'super_admin', 'treasurer', 'financial_secretary']),
   rejectIncreaseRequest
 );
 
@@ -69,7 +69,7 @@ router.post(
 router.post(
   '/increase-requests/export/pdf',
   authenticateToken,
-  authorizeRole(['admin', 'super_admin', 'chairman', 'treasurer', 'secretary', 'state_auditor']),
+  authorizeRole(['admin', 'super_admin', 'chairman', 'treasurer', 'financial_secretary', 'secretary', 'assistant_secretary', 'auditor', 'state_auditor']),
   exportIncreaseRequestsPdf
 );
 
@@ -77,7 +77,7 @@ router.post(
 router.get(
   '/validate-psn/:psn',
   authenticateToken,
-  authorizeRole(['admin', 'super_admin', 'chairman', 'treasurer', 'secretary', 'manager', 'operator', 'state_auditor']),
+  authorizeRole(['admin', 'super_admin', 'chairman', 'treasurer', 'financial_secretary', 'secretary', 'assistant_secretary', 'auditor', 'manager', 'operator', 'state_auditor']),
   async (req, res) => {
   try {
     const { psn } = req.params;
@@ -139,7 +139,7 @@ router.get('/:id', authenticateToken, getContributionById);
 router.post(
   '/by-psn',
   authenticateToken,
-  authorizeRole(['admin', 'super_admin', 'chairman', 'treasurer', 'secretary', 'manager', 'operator']),
+  authorizeRole(['admin', 'super_admin', 'chairman', 'treasurer', 'financial_secretary', 'secretary', 'assistant_secretary', 'manager', 'operator']),
   createContributionByPsn
 );
 
@@ -163,14 +163,14 @@ router.post('/bulk-upload',
       next();
     });
   }, 
-  authorizeRole(['admin', 'super_admin', 'chairman', 'treasurer', 'secretary', 'manager', 'operator']),
+  authorizeRole(['admin', 'super_admin', 'chairman', 'treasurer', 'financial_secretary', 'secretary', 'assistant_secretary', 'manager', 'operator']),
   bulkUploadContributions
 );
 
 // PUT /contributions/:id - Update contribution
-router.put('/:id', authenticateToken, authorizeRole(['admin', 'super_admin', 'treasurer']), updateContribution);
+router.put('/:id', authenticateToken, authorizeRole(['admin', 'super_admin', 'treasurer', 'financial_secretary']), updateContribution);
 
 // DELETE /contributions/:id - Delete contribution
-router.delete('/:id', authenticateToken, authorizeRole(['admin', 'super_admin', 'treasurer']), deleteContribution);
+router.delete('/:id', authenticateToken, authorizeRole(['admin', 'super_admin', 'treasurer', 'financial_secretary']), deleteContribution);
 
 module.exports = router;

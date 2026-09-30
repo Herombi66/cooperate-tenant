@@ -1009,8 +1009,8 @@ export const SecurityCenterPage: React.FC = () => {
 
       {/* INVESTIGATION DETAIL MODAL */}
       {activeIncident && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl max-w-2xl w-full border border-gray-200 shadow-2xl overflow-hidden my-8">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-2xl w-full border border-gray-200 shadow-2xl overflow-hidden my-auto max-h-[90vh] flex flex-col">
             {/* Modal Header */}
             <div className="p-5 border-b border-gray-200 bg-gray-900 text-white flex items-center justify-between">
               <div className="flex items-center gap-2.5">
@@ -1241,8 +1241,8 @@ export const SecurityCenterPage: React.FC = () => {
 
       {/* SECURITY SETTINGS & BLOCKED IPS MODAL */}
       {showSettingsModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl max-w-xl w-full border border-gray-200 shadow-2xl overflow-hidden my-8">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-xl w-full border border-gray-200 shadow-2xl overflow-hidden my-auto max-h-[90vh] flex flex-col">
             <div className="p-5 border-b border-gray-200 bg-gray-900 text-white flex items-center justify-between">
               <h3 className="text-base font-bold text-white flex items-center gap-2">
                 <Sliders className="w-5 h-5 text-primary-400" />
@@ -1256,7 +1256,7 @@ export const SecurityCenterPage: React.FC = () => {
               </button>
             </div>
 
-            <div className="p-6 space-y-5 text-xs">
+            <div className="p-6 space-y-5 text-xs overflow-y-auto flex-1">
               {/* Large Transaction Threshold */}
               <div>
                 <label className="block text-gray-700 font-bold mb-1">

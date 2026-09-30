@@ -64,7 +64,13 @@ const seedRBAC = async () => {
     const rolesData = [
       { name: 'admin', description: 'System Administrator', is_system: true },
       { name: 'chairman', description: 'Cooperative Chairman', is_system: true },
+      { name: 'secretary', description: 'General Secretary', is_system: true },
+      { name: 'assistant_secretary', description: 'Assistant Secretary', is_system: true },
+      { name: 'financial_secretary', description: 'Financial Secretary', is_system: true },
       { name: 'treasurer', description: 'Cooperative Treasurer', is_system: true },
+      { name: 'auditor', description: 'Internal Auditor', is_system: true },
+      { name: 'state_auditor', description: 'State Auditor', is_system: true },
+      { name: 'pro', description: 'Public Relations Officer', is_system: true },
       { name: 'member', description: 'Standard Member', is_system: true }
     ];
 
@@ -81,10 +87,32 @@ const seedRBAC = async () => {
         'view_contributions', 'approve_withdrawal',
         'view_expenses', 'approve_expense'
       ],
+      'secretary': [
+        'view_users', 'create_user', 'edit_user',
+        'view_loans', 'view_contributions'
+      ],
+      'assistant_secretary': [
+        'view_users', 'create_user', 'edit_user',
+        'view_loans', 'view_contributions'
+      ],
+      'financial_secretary': [
+        'view_users', 'view_loans',
+        'view_contributions', 'record_contribution',
+        'view_expenses', 'record_expense'
+      ],
       'treasurer': [
         'view_users', 'view_loans', 'disburse_loan',
         'view_contributions', 'record_contribution',
         'view_expenses', 'record_expense'
+      ],
+      'auditor': [
+        'view_users', 'view_loans', 'view_contributions', 'view_expenses'
+      ],
+      'state_auditor': [
+        'view_users', 'view_loans', 'view_contributions', 'view_expenses'
+      ],
+      'pro': [
+        'view_users'
       ],
       'member': [
         'apply_loan'

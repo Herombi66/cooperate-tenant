@@ -42,7 +42,7 @@ router.post('/admin/request', authenticateToken, authorizeRole(['admin', 'super_
 // Get all withdrawals (Member sees own, Admin sees all)
 router.get('/', authenticateToken, withdrawalController.getWithdrawals);
 
-// Approve/Reject (Treasurer, Chairman, Admin)
-router.put('/:id/status', authenticateToken, authorizeRole(['admin', 'super_admin', 'treasurer', 'chairman']), withdrawalController.updateStatus);
+// Approve/Reject (Treasurer, Chairman, Admin, Financial Secretary)
+router.put('/:id/status', authenticateToken, authorizeRole(['admin', 'super_admin', 'treasurer', 'financial_secretary', 'chairman']), withdrawalController.updateStatus);
 
 module.exports = router;

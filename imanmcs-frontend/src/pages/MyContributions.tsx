@@ -601,8 +601,8 @@ export const MyContributions: React.FC = () => {
       )}
 
       {showIncreaseModal ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white w-full max-w-lg rounded-lg shadow-lg overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-white w-full max-w-lg rounded-lg shadow-lg max-h-[90vh] my-auto overflow-y-auto">
             <div className="p-6 border-b border-gray-200 flex items-center justify-between">
               <h3 className="text-lg font-semibold text-gray-900">Request Contribution Increase</h3>
               <button

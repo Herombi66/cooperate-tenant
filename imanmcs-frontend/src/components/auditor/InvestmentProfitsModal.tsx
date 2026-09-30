@@ -115,7 +115,7 @@ export const InvestmentProfitsModal: React.FC<InvestmentProfitsModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4">
-      <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-7xl max-h-[92vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+      <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-7xl max-h-[92vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150 my-auto">
         
         {/* Modal Header */}
         <div className="bg-gradient-to-r from-lime-800 via-lime-700 to-amber-700 text-white px-6 py-5 flex items-center justify-between border-b-4 border-amber-400">

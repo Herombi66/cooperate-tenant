@@ -1,4 +1,3 @@
-
 const tenantSettingsService = require('../services/tenant-settings.service');
 const SettingsRepository = require('../repositories/settings.repository');
 
@@ -12,12 +11,13 @@ class SettingsController {
    */
   async getSettings(req, res) {
     try {
-      const tenantId = req.tenantId || 'default';
+      const tenantId = req.tenantId || req.tenant?.id || 'default';
       const settings = await tenantSettingsService.get(tenantId);
       
       res.json({
         success: true,
-        settings
+        settings,
+        data: settings
       });
     } catch (error) {
       console.error('Error getting settings:', error);
@@ -33,11 +33,12 @@ class SettingsController {
    */
   async updateSettings(req, res) {
     try {
-      const tenantId = req.tenantId || 'default';
+      const tenantId = req.tenantId || req.tenant?.id || 'default';
       const newSettings = req.body;
       
-      // Only allow admins to update settings
-      if (!['admin', 'super_admin', 'chairman'].includes(req.user?.role)) {
+      // Allow administrative leadership roles to update settings
+      const allowedRoles = ['admin', 'super_admin', 'chairman', 'president', 'treasurer'];
+      if (!allowedRoles.includes(req.user?.role)) {
         return res.status(403).json({
           success: false,
           message: 'Not authorized to update settings'
@@ -49,7 +50,8 @@ class SettingsController {
       res.json({
         success: true,
         message: 'Settings updated successfully',
-        settings: updatedSettings
+        settings: updatedSettings,
+        data: updatedSettings
       });
     } catch (error) {
       console.error('Error updating settings:', error);
@@ -61,13 +63,60 @@ class SettingsController {
   }
 
   /**
+   * Upload logo
+   */
+  async uploadLogo(req, res) {
+    try {
+      const tenantId = req.tenantId || req.tenant?.id || 'default';
+      const allowedRoles = ['admin', 'super_admin', 'chairman', 'president', 'treasurer'];
+      if (!allowedRoles.includes(req.user?.role)) {
+        return res.status(403).json({
+          success: false,
+          message: 'Not authorized to upload logo'
+        });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({
+          success: false,
+          message: 'No logo file provided'
+        });
+      }
+
+      const file = req.file;
+      const base64 = file.buffer.toString('base64');
+      const dataUri = `data:${file.mimetype};base64,${base64}`;
+
+      await tenantSettingsService.update(tenantId, {
+        cooperative_logo: dataUri
+      });
+
+      res.json({
+        success: true,
+        message: 'Logo uploaded successfully',
+        data: {
+          logo: dataUri
+        },
+        logo: dataUri
+      });
+    } catch (error) {
+      console.error('Error uploading logo:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to upload logo'
+      });
+    }
+  }
+
+  /**
    * Reset settings to defaults
    */
   async resetSettings(req, res) {
     try {
-      const tenantId = req.tenantId || 'default';
+      const tenantId = req.tenantId || req.tenant?.id || 'default';
+      const allowedRoles = ['admin', 'super_admin', 'chairman', 'president'];
       
-      if (!['admin', 'super_admin'].includes(req.user?.role)) {
+      if (!allowedRoles.includes(req.user?.role)) {
         return res.status(403).json({
           success: false,
           message: 'Not authorized to reset settings'
@@ -79,7 +128,8 @@ class SettingsController {
       res.json({
         success: true,
         message: 'Settings reset to defaults',
-        settings
+        settings,
+        data: settings
       });
     } catch (error) {
       console.error('Error resetting settings:', error);
@@ -99,7 +149,8 @@ class SettingsController {
       
       res.json({
         success: true,
-        settings: defaults
+        settings: defaults,
+        data: defaults
       });
     } catch (error) {
       console.error('Error getting default settings:', error);

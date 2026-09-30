@@ -11,7 +11,7 @@ router.get('/verify/:receiptNumber', receiptTemplateController.verifyReceiptPubl
 router.use(authenticateToken);
 
 // View templates (Admins, Treasurers, Auditors)
-const allowedViewers = ['admin', 'super_admin', 'treasurer', 'auditor', 'state_auditor', 'chairman'];
+const allowedViewers = ['admin', 'super_admin', 'treasurer', 'financial_secretary', 'auditor', 'state_auditor', 'chairman'];
 router.get('/', authorizeRole(allowedViewers), receiptTemplateController.getTemplates);
 router.get('/:id', authorizeRole(allowedViewers), receiptTemplateController.getTemplateById);
 router.get('/:id/versions', authorizeRole(allowedViewers), receiptTemplateController.getTemplateVersions);

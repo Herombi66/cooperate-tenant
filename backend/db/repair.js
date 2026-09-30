@@ -14,6 +14,11 @@ async function repairDatabase() {
   log('🔧 Starting database repair check...');
 
   try {
+    if (sequelize.getDialect() === 'sqlite') {
+      log('ℹ️ SQLite detected, skipping Postgres-specific schema repairs.');
+      return logs;
+    }
+
     // 1. Ensure payslip_url exists in loans table
     const [results] = await sequelize.query(`
       SELECT column_name 

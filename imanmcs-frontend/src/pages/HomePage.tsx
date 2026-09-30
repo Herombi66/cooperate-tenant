@@ -579,7 +579,7 @@ export const HomePage: React.FC = () => {
 
       <div
         className={[
-          'fixed inset-0 z-[60] flex items-center justify-center p-4',
+          'fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-4 overflow-y-auto',
           reducedMotion ? '' : 'transition-opacity duration-200',
           contactOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         ].join(' ')}
@@ -598,7 +598,7 @@ export const HomePage: React.FC = () => {
           aria-modal="true"
           aria-label="Office contact information"
           className={[
-            'relative w-full max-w-xl rounded-2xl border border-border bg-card shadow-lg',
+            'relative w-full max-w-xl rounded-2xl border border-border bg-card shadow-lg max-h-[90vh] my-auto overflow-y-auto',
             reducedMotion ? '' : 'transition-transform duration-200',
             contactOpen ? 'translate-y-0 scale-100' : 'translate-y-2 scale-95'
           ].join(' ')}
