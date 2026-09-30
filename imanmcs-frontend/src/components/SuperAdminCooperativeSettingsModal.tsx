@@ -5,7 +5,7 @@ import {
   Shield, Layers, Bot, Save, Loader, Upload, CheckCircle2,
   Calendar, Key, Sparkles, Eye, EyeOff, FileText, AlertCircle,
   Clock, Tag, Check, Hash, AlertTriangle, Receipt, Landmark,
-  ExternalLink
+  ExternalLink, Copy, Lock, UserCheck, RefreshCw, User
 } from 'lucide-react';
 import axios from 'axios';
 import { API_URL } from '../config';
@@ -31,6 +31,30 @@ export const SuperAdminCooperativeSettingsModal: React.FC<SuperAdminCoopSettings
   const [showApiKey, setShowApiKey] = useState(false);
   const [showPricingConfig, setShowPricingConfig] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Tenant Admin Security State
+  const [adminInfo, setAdminInfo] = useState<{
+    id: number;
+    name: string;
+    email: string;
+    psn: string;
+    phone?: string;
+    role: string;
+    status: string;
+    is_default_password?: boolean;
+  } | null>(null);
+  const [customPassword, setCustomPassword] = useState('');
+  const [showCustomPassword, setShowCustomPassword] = useState(false);
+  const [resettingPassword, setResettingPassword] = useState(false);
+  const [resetResult, setResetResult] = useState<{
+    newPassword: string;
+    isCustom: boolean;
+    name: string;
+    email: string;
+    psn: string;
+    timestamp: string;
+  } | null>(null);
+  const [copiedPassword, setCopiedPassword] = useState(false);
 
   const defaultSettings = {
     // 1. Name
@@ -254,6 +278,8 @@ export const SuperAdminCooperativeSettingsModal: React.FC<SuperAdminCoopSettings
   const loadSettings = async () => {
     try {
       setLoading(true);
+      setResetResult(null);
+      setCustomPassword('');
       const token = localStorage.getItem('platformToken');
       const endpoint = tenant
         ? `${API_URL}/platform/tenants/${tenant.id}/settings`
@@ -278,10 +304,17 @@ export const SuperAdminCooperativeSettingsModal: React.FC<SuperAdminCoopSettings
           }
         });
       }
+
+      if (res.data.admin) {
+        setAdminInfo(res.data.admin);
+      } else {
+        setAdminInfo(null);
+      }
     } catch (err: any) {
       console.error('Failed to load cooperative settings for super admin:', err);
       toast.error('Could not load settings. Using defaults.');
       setSettings(defaultSettings);
+      setAdminInfo(null);
     } finally {
       setLoading(false);
     }
@@ -409,9 +442,77 @@ export const SuperAdminCooperativeSettingsModal: React.FC<SuperAdminCoopSettings
     }
   };
 
+  const handleResetAdminPassword = async () => {
+    if (!tenant) return;
+    if (customPassword && customPassword.trim().length > 0 && customPassword.trim().length < 6) {
+      toast.error('Custom password must be at least 6 characters long');
+      return;
+    }
+
+    const actionText = customPassword.trim()
+      ? `set the specified custom password for ${adminInfo?.name || tenant.name + ' Admin'}`
+      : `generate a new secure random password for ${adminInfo?.name || tenant.name + ' Admin'}`;
+
+    if (!window.confirm(`Are you sure you want to ${actionText}?`)) {
+      return;
+    }
+
+    try {
+      setResettingPassword(true);
+      const token = localStorage.getItem('platformToken');
+      const res = await axios.post(
+        `${API_URL}/platform/tenants/${tenant.id}/reset-admin-password`,
+        {
+          password: customPassword.trim() || undefined,
+          userId: adminInfo?.id
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      if (res.data.success) {
+        toast.success(res.data.message || 'Administrator password updated successfully!');
+        setResetResult({
+          newPassword: res.data.data.newPassword,
+          isCustom: res.data.data.isCustom,
+          name: res.data.data.name,
+          email: res.data.data.email,
+          psn: res.data.data.psn,
+          timestamp: new Date().toLocaleTimeString()
+        });
+        setCustomPassword('');
+        setAdminInfo(prev => ({
+          id: res.data.data.userId || prev?.id || 1,
+          name: res.data.data.name || prev?.name || `${tenant.name} Administrator`,
+          email: res.data.data.email || prev?.email || '',
+          psn: res.data.data.psn || prev?.psn || '',
+          phone: prev?.phone || '',
+          role: 'admin',
+          status: 'active',
+          is_default_password: true
+        }));
+      }
+    } catch (err: any) {
+      console.error('Password reset error:', err);
+      toast.error(err.response?.data?.message || 'Failed to reset administrator password');
+    } finally {
+      setResettingPassword(false);
+    }
+  };
+
+  const handleCopyPassword = () => {
+    if (!resetResult?.newPassword) return;
+    navigator.clipboard.writeText(resetResult.newPassword);
+    setCopiedPassword(true);
+    toast.success('Password copied to clipboard!');
+    setTimeout(() => setCopiedPassword(false), 3000);
+  };
+
   const tabs = [
     { id: 'general', name: 'General & Identity', icon: Building2 },
     { id: 'domain', name: 'Domain & Routing', icon: Globe },
+    ...(tenant ? [{ id: 'admin_security', name: 'Admin Security', icon: Key }] : []),
     { id: 'fees', name: 'Fees', icon: CreditCard },
     { id: 'contributions', name: 'Contribution Rules', icon: DollarSign },
     { id: 'loans', name: 'Loan Rules', icon: CreditCard },
@@ -904,6 +1005,227 @@ export const SuperAdminCooperativeSettingsModal: React.FC<SuperAdminCoopSettings
                       </div>
                     </div>
                   </div>
+                </div>
+              )}
+
+              {/* TAB: ADMIN SECURITY & CREDENTIALS */}
+              {activeTab === 'admin_security' && tenant && (
+                <div className="space-y-6">
+                  {/* Header Banner */}
+                  <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/80 rounded-2xl p-5 flex items-start gap-4 shadow-sm">
+                    <div className="w-12 h-12 rounded-xl bg-amber-600 text-white flex items-center justify-center shrink-0 shadow-md">
+                      <Key className="w-6 h-6" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-base font-bold text-gray-900">
+                          Admin Security & Password Reset — {tenant.name}
+                        </h3>
+                        <span className="text-xs px-2.5 py-0.5 rounded-full font-bold bg-amber-100 text-amber-800 flex items-center gap-1">
+                          <Shield className="w-3 h-3 text-amber-700" />
+                          Platform Super Admin Access
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-600 mt-1">
+                        Manage login credentials for this cooperative's primary administrator. You can reset their password to an automatically generated secure key or assign an optional custom password.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Tenant Administrator Details Card */}
+                  <div className="bg-white rounded-2xl border border-gray-200 p-6 space-y-4">
+                    <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-gray-100 text-gray-700 flex items-center justify-center">
+                          <User className="w-5 h-5 text-gray-600" />
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-bold text-gray-900">
+                            {adminInfo?.name || `${tenant.name} Administrator`}
+                          </h4>
+                          <p className="text-xs text-gray-500">
+                            Tenant Administrator Account (Role: {adminInfo?.role || 'admin'})
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {adminInfo?.is_default_password ? (
+                          <span className="text-[11px] px-2.5 py-1 rounded-full font-medium bg-amber-50 text-amber-700 border border-amber-200 flex items-center gap-1">
+                            <AlertCircle className="w-3 h-3" />
+                            Default Password Active
+                          </span>
+                        ) : (
+                          <span className="text-[11px] px-2.5 py-1 rounded-full font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
+                            <CheckCircle2 className="w-3 h-3" />
+                            Account Verified
+                          </span>
+                        )}
+                        <span className="text-[11px] px-2.5 py-1 rounded-full font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                          Status: {adminInfo?.status || 'active'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1 text-xs">
+                      <div className="bg-gray-50 p-3.5 rounded-xl border border-gray-100">
+                        <span className="text-gray-500 font-medium block mb-1">Login Username / PSN</span>
+                        <div className="flex items-center justify-between">
+                          <span className="font-mono font-bold text-gray-900 text-sm select-all">
+                            {adminInfo?.psn || `${tenant.id.toUpperCase()}-ADM-001`}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              navigator.clipboard.writeText(adminInfo?.psn || `${tenant.id.toUpperCase()}-ADM-001`);
+                              toast.success('Login ID copied to clipboard');
+                            }}
+                            className="p-1 text-gray-400 hover:text-gray-700 rounded transition"
+                            title="Copy Login ID"
+                          >
+                            <Copy className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="bg-gray-50 p-3.5 rounded-xl border border-gray-100">
+                        <span className="text-gray-500 font-medium block mb-1">Official Email Address</span>
+                        <span className="font-semibold text-gray-900 text-sm truncate block select-all">
+                          {adminInfo?.email || 'admin@' + tenant.id.toLowerCase() + '.coop'}
+                        </span>
+                      </div>
+
+                      <div className="bg-gray-50 p-3.5 rounded-xl border border-gray-100">
+                        <span className="text-gray-500 font-medium block mb-1">Phone Number</span>
+                        <span className="font-semibold text-gray-900 text-sm truncate block select-all">
+                          {adminInfo?.phone || settings.contact_phone || 'N/A'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Reset Password Form Card */}
+                  <div className="bg-white rounded-2xl border border-gray-200 p-6 space-y-5">
+                    <div>
+                      <h4 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                        <Lock className="w-4 h-4 text-primary-600" />
+                        Reset Administrator Password
+                      </h4>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Type an optional custom password below, or leave it completely blank to automatically generate a secure randomized password.
+                      </p>
+                    </div>
+
+                    <div className="max-w-xl space-y-2">
+                      <label className="block text-xs font-bold text-gray-700 flex items-center justify-between">
+                        <span>Custom Password (Optional)</span>
+                        <button
+                          type="button"
+                          onClick={() => setShowCustomPassword(!showCustomPassword)}
+                          className="text-xs text-primary-600 hover:underline flex items-center gap-1 font-normal"
+                        >
+                          {showCustomPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                          {showCustomPassword ? 'Hide' : 'Show'}
+                        </button>
+                      </label>
+                      <div className="relative">
+                        <input
+                          type={showCustomPassword ? 'text' : 'password'}
+                          value={customPassword}
+                          onChange={(e) => setCustomPassword(e.target.value)}
+                          placeholder="Leave blank to auto-generate a secure password"
+                          className="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-sm font-mono focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                        />
+                      </div>
+                      <p className="text-[11px] text-gray-500">
+                        {customPassword.trim().length > 0 ? (
+                          <span className={customPassword.trim().length >= 6 ? 'text-emerald-600 font-medium' : 'text-amber-600 font-medium'}>
+                            {customPassword.trim().length >= 6
+                              ? '✓ Custom password meets minimum length requirement (min 6 characters)'
+                              : `Must be at least 6 characters (currently ${customPassword.trim().length})`}
+                          </span>
+                        ) : (
+                          'If left empty, a randomized password like Admin@849210 will be automatically generated.'
+                        )}
+                      </p>
+                    </div>
+
+                    <div className="pt-2 flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={handleResetAdminPassword}
+                        disabled={resettingPassword || (customPassword.trim().length > 0 && customPassword.trim().length < 6)}
+                        className="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-sm font-semibold flex items-center gap-2 shadow-sm transition disabled:opacity-50"
+                      >
+                        {resettingPassword ? (
+                          <>
+                            <Loader className="w-4 h-4 animate-spin" />
+                            <span>Updating Password...</span>
+                          </>
+                        ) : (
+                          <>
+                            <RefreshCw className="w-4 h-4" />
+                            <span>{customPassword.trim() ? 'Set Custom Password' : 'Reset & Generate Password'}</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Reset Result Card Banner */}
+                  {resetResult && (
+                    <div className="bg-emerald-50 border-2 border-emerald-300 rounded-2xl p-5 space-y-3 shadow-md animate-fade-in">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-emerald-900 font-bold text-sm">
+                          <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                          <span>Admin Password Reset Successfully!</span>
+                          <span className="text-[11px] font-normal text-emerald-700">({resetResult.timestamp})</span>
+                        </div>
+                        <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200">
+                          {resetResult.isCustom ? 'Custom Password' : 'Auto-Generated'}
+                        </span>
+                      </div>
+
+                      <div className="bg-white p-4 rounded-xl border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                          <span className="text-xs text-gray-500 font-medium block">
+                            Credentials for {resetResult.name} ({resetResult.psn || resetResult.email}):
+                          </span>
+                          <span className="font-mono text-lg font-bold text-gray-900 select-all tracking-wide">
+                            {resetResult.newPassword}
+                          </span>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={handleCopyPassword}
+                          className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition shadow-sm ${
+                            copiedPassword
+                              ? 'bg-emerald-600 text-white'
+                              : 'bg-emerald-100 hover:bg-emerald-200 text-emerald-900'
+                          }`}
+                        >
+                          {copiedPassword ? (
+                            <>
+                              <Check className="w-4 h-4" />
+                              <span>Copied to Clipboard!</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-4 h-4" />
+                              <span>Copy Password</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+
+                      <div className="flex items-center gap-2 text-xs text-emerald-800">
+                        <AlertCircle className="w-4 h-4 shrink-0 text-emerald-600" />
+                        <span>
+                          Please copy and share this password with the tenant administrator. The account has been marked with a default password flag so they will be prompted to update it on login.
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 

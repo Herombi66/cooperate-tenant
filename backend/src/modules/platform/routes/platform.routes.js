@@ -34,6 +34,7 @@ router.put('/settings/defaults', authenticatePlatformAdmin, platformController.u
 // Tenant-Specific Cooperative Settings (Protected)
 router.get('/tenants/:id/settings', authenticatePlatformAdmin, platformController.getTenantSettings);
 router.put('/tenants/:id/settings', authenticatePlatformAdmin, platformController.updateTenantSettings);
+router.post('/tenants/:id/reset-admin-password', authenticatePlatformAdmin, platformController.resetTenantAdminPassword);
 
 // Tenants CRUD (Protected)
 router.use('/tenants', authenticatePlatformAdmin);
