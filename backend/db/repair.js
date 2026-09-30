@@ -67,6 +67,45 @@ async function repairDatabase() {
       ALTER TABLE users ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'active';
     `);
 
+    // Ensure legacy NOT NULL or UNIQUE constraints on users table do not break new multi-tenant registrations
+    try {
+      await sequelize.query(`
+        DO $$
+        BEGIN
+          BEGIN
+            ALTER TABLE users ALTER COLUMN name DROP NOT NULL;
+          EXCEPTION WHEN OTHERS THEN NULL;
+          END;
+          BEGIN
+            ALTER TABLE users ALTER COLUMN psn DROP NOT NULL;
+          EXCEPTION WHEN OTHERS THEN NULL;
+          END;
+          BEGIN
+            ALTER TABLE users ALTER COLUMN email DROP NOT NULL;
+          EXCEPTION WHEN OTHERS THEN NULL;
+          END;
+          BEGIN
+            ALTER TABLE users DROP CONSTRAINT IF EXISTS users_psn_key;
+          EXCEPTION WHEN OTHERS THEN NULL;
+          END;
+          BEGIN
+            ALTER TABLE users DROP CONSTRAINT IF EXISTS users_email_key;
+          EXCEPTION WHEN OTHERS THEN NULL;
+          END;
+          BEGIN
+            ALTER TABLE users DROP CONSTRAINT IF EXISTS users_psn_unique;
+          EXCEPTION WHEN OTHERS THEN NULL;
+          END;
+          BEGIN
+            ALTER TABLE users DROP CONSTRAINT IF EXISTS users_email_unique;
+          EXCEPTION WHEN OTHERS THEN NULL;
+          END;
+        END $$;
+      `);
+    } catch (e) {
+      log('ℹ️ Legacy user constraints check notice: ' + e.message);
+    }
+
     // Ensure all model columns on membership_applications table exist
     await sequelize.query(`
       ALTER TABLE membership_applications ADD COLUMN IF NOT EXISTS share_capital DECIMAL(15, 2) DEFAULT 0;

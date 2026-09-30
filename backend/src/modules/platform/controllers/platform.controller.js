@@ -1,4 +1,5 @@
 const { PlatformAdmin, Tenant, MembershipApplication, User, sequelize } = require('../../../../models');
+const { Op } = require('sequelize');
 const emailService = require('../../../../services/emailService');
 const landingPageGenerator = require('../../../services/landingPageGenerator.service');
 const tenantSettingsService = require('../../settings/services/tenant-settings.service');
@@ -381,20 +382,65 @@ exports.getTenantSettings = async (req, res) => {
         settings.cooperative_name = tenant.name;
       }
 
-      // Fetch primary admin for this tenant
-      const adminUser = await User.findOne({
+      // Fetch primary admin for this tenant (case-insensitive and prefix tolerant)
+      const possibleTenantIds = [id, id.toLowerCase(), id.toUpperCase()];
+      if (id.length > 4) {
+        const prefix = id.substring(0, 4);
+        possibleTenantIds.push(prefix, prefix.toLowerCase(), prefix.toUpperCase());
+      }
+
+      let adminUser = await User.findOne({
         where: {
-          tenant_id: id,
+          tenant_id: { [Op.in]: possibleTenantIds },
           role: ['admin', 'super_admin']
         },
         include: [{
           model: MembershipApplication,
           as: 'membershipApplication',
-          required: false
+          required: false,
+          skipTenant: true
         }],
         order: [['id', 'ASC']],
         skipTenant: true
       });
+
+      if (!adminUser) {
+        const psnPatterns = [
+          `${id.toUpperCase()}-ADM-001`,
+          `${id.toUpperCase()}-ADM%`,
+          `%ADM-001`
+        ];
+        if (id.length > 4) {
+          psnPatterns.push(`${id.substring(0, 4).toUpperCase()}-ADM-001`);
+          psnPatterns.push(`${id.substring(0, 4).toUpperCase()}-ADM%`);
+        }
+
+        const app = await MembershipApplication.findOne({
+          where: {
+            [Op.or]: [
+              { tenant_id: { [Op.in]: possibleTenantIds } },
+              ...psnPatterns.map(pattern => ({
+                psn: { [Op.like]: pattern }
+              }))
+            ]
+          },
+          order: [['id', 'ASC']],
+          skipTenant: true
+        });
+
+        if (app) {
+          adminUser = await User.findOne({
+            where: { membership_application_id: app.id },
+            include: [{
+              model: MembershipApplication,
+              as: 'membershipApplication',
+              required: false,
+              skipTenant: true
+            }],
+            skipTenant: true
+          });
+        }
+      }
 
       if (adminUser) {
         admin = {
@@ -539,58 +585,115 @@ exports.resetTenantAdminPassword = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(targetPassword, salt);
 
+    // Build flexible tenant ID matching array (e.g. 'fmcksmcs', 'FMCKSMCS', 'fmck', 'FMCK')
+    const possibleTenantIds = [id, id.toLowerCase(), id.toUpperCase()];
+    if (id.length > 4) {
+      const prefix = id.substring(0, 4);
+      possibleTenantIds.push(prefix, prefix.toLowerCase(), prefix.toUpperCase());
+    }
+
+    const psnPatterns = [
+      `${id.toUpperCase()}-ADM-001`,
+      `${id.toUpperCase()}-ADM%`,
+      `%ADM-001`
+    ];
+    if (id.length > 4) {
+      psnPatterns.push(`${id.substring(0, 4).toUpperCase()}-ADM-001`);
+      psnPatterns.push(`${id.substring(0, 4).toUpperCase()}-ADM%`);
+    }
+
     let adminUser = null;
 
+    // 1. If explicit userId provided
     if (userId) {
       adminUser = await User.findOne({
-        where: { id: userId, tenant_id: id },
+        where: { id: userId },
         include: [{
           model: MembershipApplication,
           as: 'membershipApplication',
-          required: false
+          required: false,
+          skipTenant: true
         }],
         skipTenant: true
       });
     }
 
+    // 2. Search by tenant_id matching and admin role
     if (!adminUser) {
-      // Find admin by tenant_id and role
       adminUser = await User.findOne({
         where: {
-          tenant_id: id,
+          tenant_id: { [Op.in]: possibleTenantIds },
           role: ['admin', 'super_admin']
         },
         include: [{
           model: MembershipApplication,
           as: 'membershipApplication',
-          required: false
+          required: false,
+          skipTenant: true
         }],
         order: [['id', 'ASC']],
         skipTenant: true
       });
     }
 
-    // Fallback: If still not found, check if there's any user with admin PSN for this tenant
+    // 3. Search via MembershipApplication by matching tenant_id or PSN patterns
     if (!adminUser) {
-      const adminPsn = `${id.toUpperCase()}-ADM-001`;
-      const memApp = await MembershipApplication.findOne({
-        where: { psn: adminPsn },
+      const apps = await MembershipApplication.findAll({
+        where: {
+          [Op.or]: [
+            { tenant_id: { [Op.in]: possibleTenantIds } },
+            ...psnPatterns.map(pattern => ({
+              psn: { [Op.like]: pattern }
+            }))
+          ]
+        },
+        order: [['id', 'ASC']],
         skipTenant: true
       });
-      if (memApp) {
-        adminUser = await User.findOne({
-          where: { membership_application_id: memApp.id },
+
+      for (const app of apps) {
+        const u = await User.findOne({
+          where: {
+            membership_application_id: app.id,
+            role: ['admin', 'super_admin']
+          },
           include: [{
             model: MembershipApplication,
             as: 'membershipApplication',
-            required: false
+            required: false,
+            skipTenant: true
           }],
           skipTenant: true
         });
+        if (u) {
+          adminUser = u;
+          break;
+        }
+      }
+
+      // If still not found by admin role, check if any user exists for the application and promote
+      if (!adminUser && apps.length > 0) {
+        for (const app of apps) {
+          const u = await User.findOne({
+            where: { membership_application_id: app.id },
+            include: [{
+              model: MembershipApplication,
+              as: 'membershipApplication',
+              required: false,
+              skipTenant: true
+            }],
+            skipTenant: true
+          });
+          if (u) {
+            adminUser = u;
+            await adminUser.update({ role: 'admin' }, { skipTenant: true });
+            break;
+          }
+        }
       }
     }
 
-    // If still no admin user exists, auto-provision one for this tenant
+    // 4. If still no admin exists, auto-provision both application and user
     if (!adminUser) {
       const adminPsn = `${id.toUpperCase()}-ADM-001`;
       let memApp = await MembershipApplication.findOne({
@@ -598,22 +701,32 @@ exports.resetTenantAdminPassword = async (req, res) => {
         skipTenant: true
       });
 
+      const adminName = `${tenant.name} Administrator`;
+      const adminEmail = `admin@${id.toLowerCase()}.coop`;
+
       if (!memApp) {
         memApp = await MembershipApplication.create({
           psn: adminPsn,
-          name: `${tenant.name} Administrator`,
-          email: `admin@${id.toLowerCase()}.coop`,
+          name: adminName,
+          email: adminEmail,
           phone: '08000000000',
           facility_name: 'Tenant Admin',
           next_of_kin_name: 'N/A',
           next_of_kin_phone: 'N/A',
-          status: 'approved'
+          status: 'approved',
+          tenant_id: id.toLowerCase(),
+          savings: 0,
+          investment: 0
         }, { skipTenant: true });
       }
 
+      // Provide all legacy columns (name, psn, email) to satisfy existing table constraints
       adminUser = await User.create({
         membership_application_id: memApp.id,
-        tenant_id: id,
+        tenant_id: id.toLowerCase(),
+        name: adminName,
+        psn: adminPsn,
+        email: adminEmail,
         password_hash: hashedPassword,
         role: 'admin',
         status: 'active',
@@ -622,18 +735,26 @@ exports.resetTenantAdminPassword = async (req, res) => {
 
       adminUser.membershipApplication = memApp;
     } else {
-      // Update existing admin user
+      // 5. Update existing admin user and synchronize tenant_id to id.toLowerCase()
       await adminUser.update({
+        tenant_id: id.toLowerCase(),
         password_hash: hashedPassword,
         is_default_password: true,
         status: 'active',
         deleted_at: null
       }, { skipTenant: true });
+
+      if (adminUser.membershipApplication) {
+        await adminUser.membershipApplication.update({
+          tenant_id: id.toLowerCase(),
+          status: 'approved'
+        }, { skipTenant: true });
+      }
     }
 
-    const adminName = adminUser.membershipApplication ? adminUser.membershipApplication.name : `${tenant.name} Administrator`;
-    const adminEmail = adminUser.membershipApplication ? adminUser.membershipApplication.email : '';
-    const adminPsn = adminUser.membershipApplication ? adminUser.membershipApplication.psn : '';
+    const finalName = adminUser.membershipApplication ? adminUser.membershipApplication.name : `${tenant.name} Administrator`;
+    const finalEmail = adminUser.membershipApplication ? adminUser.membershipApplication.email : '';
+    const finalPsn = adminUser.membershipApplication ? adminUser.membershipApplication.psn : '';
 
     return res.json({
       success: true,
@@ -642,10 +763,10 @@ exports.resetTenantAdminPassword = async (req, res) => {
         : `Administrator password successfully reset with a new secure password for ${tenant.name}.`,
       data: {
         userId: adminUser.id,
-        tenantId: id,
-        name: adminName,
-        email: adminEmail,
-        psn: adminPsn,
+        tenantId: id.toLowerCase(),
+        name: finalName,
+        email: finalEmail,
+        psn: finalPsn,
         newPassword: targetPassword,
         isCustom
       }
