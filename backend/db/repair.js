@@ -40,6 +40,14 @@ async function repairDatabase() {
       ON CONFLICT (id) DO NOTHING;
     `);
 
+    try {
+      await sequelize.query(`
+        UPDATE tenants
+        SET domain = 'www.fmcksmcs.com'
+        WHERE id = 'fmcksmcs' AND (domain IS NULL OR domain = '');
+      `);
+    } catch (e) {}
+
     await sequelize.query(`
       CREATE TABLE IF NOT EXISTS platform_admins (
         id SERIAL PRIMARY KEY,
