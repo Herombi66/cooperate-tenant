@@ -68,13 +68,8 @@
     overflow-x: hidden;
   }
 
-  /* ── Standard Browser Cursor Enforcement ── */
-  *, *::before, *::after {
-    cursor: auto;
-  }
-  html, body {
-    cursor: default;
-  }
+  *, *::before, *::after { cursor: auto; }
+  html, body { cursor: default; }
   a, button:not(:disabled), [role="button"], input[type="submit"], input[type="button"], select {
     cursor: pointer !important;
   }
@@ -95,9 +90,7 @@
     animation: fmckSpin 0.7s linear infinite;
     flex-shrink: 0;
   }
-  @keyframes fmckSpin {
-    to { transform: rotate(360deg); }
-  }
+  @keyframes fmckSpin { to { transform: rotate(360deg); } }
 
   a { color: inherit; text-decoration: none; }
   img { max-width: 100%; display: block; }
@@ -107,7 +100,6 @@
   .wrap { max-width: 1160px; margin: 0 auto; padding: 0 28px; }
   .hairline { border-top: 1px solid var(--line); }
 
-  /* Typography styles */
   h1, h2, h3, h4, .font-serif {
     font-family: var(--serif);
     font-weight: 600;
@@ -132,7 +124,6 @@
     background: var(--gold);
   }
 
-  /* Watermark and grain pattern overlay */
   .grain-bg {
     position: fixed;
     inset: 0;
@@ -157,6 +148,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 16px 0;
+    gap: 12px;
   }
   .brand {
     display: flex;
@@ -166,6 +158,17 @@
     font-weight: 700;
     font-size: 1.12rem;
     color: var(--ink);
+    flex-shrink: 0;
+  }
+  .brand-text-wrap {
+    white-space: nowrap;
+    display: flex;
+    flex-direction: column;
+  }
+  .brand-title {
+    white-space: nowrap;
+    display: block;
+    line-height: 1.15;
   }
   .brand-logo-wrap {
     width: 42px;
@@ -198,6 +201,7 @@
     display: block;
     line-height: 1;
     margin-top: 2px;
+    white-space: nowrap;
   }
   nav.links {
     display: flex;
@@ -212,9 +216,7 @@
     transition: color 0.2s;
     padding: 4px 0;
   }
-  nav.links a:hover {
-    color: var(--gold);
-  }
+  nav.links a:hover { color: var(--gold); }
   nav.links a::after {
     content: "";
     position: absolute;
@@ -228,6 +230,12 @@
   nav.links a:hover::after { width: 100%; }
 
   .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+  .desktop-actions {
     display: flex;
     align-items: center;
     gap: 12px;
@@ -275,6 +283,7 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
+    white-space: nowrap;
   }
   .nav-cta:hover {
     background: var(--teal);
@@ -292,19 +301,74 @@
   /* Mobile menu button */
   .mobile-toggle {
     display: none;
-    width: 36px;
-    height: 36px;
+    width: 38px;
+    height: 38px;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     gap: 5px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--line-heavy);
+    background: var(--paper-2);
+    padding: 6px;
   }
   .mobile-toggle span {
     display: block;
     width: 20px;
     height: 2px;
     background: var(--ink);
-    transition: 0.2s;
+    transition: transform 0.2s, opacity 0.2s;
+  }
+  .mobile-toggle.open span:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+  }
+  .mobile-toggle.open span:nth-child(2) {
+    opacity: 0;
+  }
+  .mobile-toggle.open span:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+  }
+
+  /* Mobile menu contents wrapper */
+  .mobile-nav-menu {
+    display: none;
+    flex-direction: column;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--paper);
+    padding: 24px;
+    border-bottom: 1px solid var(--line-heavy);
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.18);
+    gap: 18px;
+    z-index: 99;
+  }
+  .mobile-nav-menu.open {
+    display: flex;
+  }
+  .mobile-nav-menu a.nav-link {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--ink);
+    padding: 8px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .mobile-nav-menu .mobile-actions-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 6px;
+  }
+  .mobile-theme-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--line);
+    font-size: 0.92rem;
+    color: var(--ink-soft);
+    font-weight: 500;
   }
 
   .hero {
@@ -353,7 +417,6 @@
     }
   }
 
-  /* Glassmorphic Accreditation Showcase Card on Hero */
   .hospital-glass-card {
     background: rgba(14, 48, 48, 0.70);
     backdrop-filter: blur(18px);
@@ -494,9 +557,7 @@
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
   }
-  .hero .kicker::before {
-    display: none;
-  }
+  .hero .kicker::before { display: none; }
   .hero h1 {
     font-size: clamp(2.4rem, 4.3vw, 3.8rem);
     line-height: 1.08;
@@ -633,7 +694,6 @@
     color: var(--gold);
   }
 
-  /* Realistic Physical Passbook Component with Stitch Marks */
   .passbook-card {
     background: var(--paper-2);
     border: 1px solid var(--line-heavy);
@@ -643,10 +703,7 @@
     box-shadow: var(--shadow-card);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
   }
-  .passbook-card:hover {
-    transform: translateY(-3px);
-  }
-  /* Sewn binding stitch effect on left margin */
+  .passbook-card:hover { transform: translateY(-3px); }
   .passbook-card::before {
     content: "";
     position: absolute;
@@ -698,9 +755,7 @@
     border-bottom: 1px dashed var(--line);
     font-size: 0.94rem;
   }
-  .pb-row span:first-child {
-    color: var(--ink-soft);
-  }
+  .pb-row span:first-child { color: var(--ink-soft); }
   .pb-row .num {
     font-family: var(--serif);
     font-variant-numeric: tabular-nums oldstyle-nums;
@@ -728,9 +783,7 @@
     font-weight: 700;
     line-height: 1;
   }
-  [data-theme="dark"] .pb-total .amt {
-    color: var(--gold-bright);
-  }
+  [data-theme="dark"] .pb-total .amt { color: var(--gold-bright); }
   .pb-stamp {
     position: absolute;
     bottom: 24px;
@@ -765,9 +818,7 @@
     display: grid;
     grid-template-columns: repeat(4, 1fr);
   }
-  .stat-item {
-    padding: 0 28px;
-  }
+  .stat-item { padding: 0 28px; }
   .stat-item:first-child { padding-left: 0; }
   .stat-item + .stat-item { border-left: 1px solid var(--line-heavy); }
   .stat-item .n {
@@ -779,9 +830,7 @@
     margin-bottom: 6px;
     letter-spacing: -0.02em;
   }
-  [data-theme="dark"] .stat-item .n {
-    color: var(--gold-bright);
-  }
+  [data-theme="dark"] .stat-item .n { color: var(--gold-bright); }
   .stat-item .l {
     color: var(--ink-soft);
     font-size: 0.9rem;
@@ -807,13 +856,8 @@
     background: var(--paper-2);
     overflow: hidden;
   }
-  .pillar {
-    padding: 40px 32px;
-    position: relative;
-  }
-  .pillar + .pillar {
-    border-left: 1px solid var(--line-heavy);
-  }
+  .pillar { padding: 40px 32px; position: relative; }
+  .pillar + .pillar { border-left: 1px solid var(--line-heavy); }
   .pillar .icon-wrap {
     width: 48px;
     height: 48px;
@@ -828,7 +872,7 @@
   .pillar .icon-wrap svg { width: 26px; height: 26px; stroke-width: 1.5; }
   .pillar h3 { font-size: 1.4rem; margin-bottom: 12px; }
   .pillar p { color: var(--ink-soft); font-size: 0.96rem; line-height: 1.65; margin-bottom: 18px; }
-  .pillar-list { list-style: none; font-size: 0.88rem; color: var(--ink-soft); space-y: 8px; }
+  .pillar-list { list-style: none; font-size: 0.88rem; color: var(--ink-soft); }
   .pillar-list li { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
   .pillar-list li::before {
     content: "✓";
@@ -851,9 +895,7 @@
     gap: 48px;
     align-items: center;
   }
-  .control-group {
-    margin-bottom: 26px;
-  }
+  .control-group { margin-bottom: 26px; }
   .control-label {
     display: flex;
     justify-content: space-between;
@@ -889,7 +931,6 @@
   .range-slider::-webkit-slider-thumb:hover { transform: scale(1.15); }
   [data-theme="dark"] .range-slider::-webkit-slider-thumb { background: var(--gold); }
 
-  /* Animated Simulated Ledger Output */
   .ledger-slip {
     background: var(--paper);
     border: 1px dashed var(--line-heavy);
@@ -954,114 +995,6 @@
     color: #0E1715;
   }
 
-  .service-dossier {
-    border-top: 1px solid var(--line-heavy);
-  }
-  .dossier-item {
-    border-bottom: 1px solid var(--line);
-    transition: background 0.2s;
-  }
-  .dossier-item:hover {
-    background: color-mix(in srgb, var(--paper-2) 60%, transparent);
-  }
-  .dossier-trigger {
-    width: 100%;
-    padding: 24px 0;
-    display: grid;
-    grid-template-columns: 1.2fr 2fr auto;
-    gap: 24px;
-    align-items: baseline;
-    text-align: left;
-  }
-  .dossier-trigger h3 { font-size: 1.2rem; }
-  .dossier-trigger p { color: var(--ink-soft); font-size: 0.95rem; line-height: 1.5; }
-  .dossier-badge {
-    font-family: var(--serif);
-    font-style: italic;
-    font-size: 0.85rem;
-    color: var(--gold);
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .dossier-detail {
-    display: none;
-    padding: 0 0 24px 0;
-    font-size: 0.92rem;
-    color: var(--ink-soft);
-  }
-  .dossier-detail.open { display: block; }
-  .dossier-grid-details {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
-    background: var(--paper-2);
-    padding: 20px;
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--line);
-  }
-  .detail-cell strong { display: block; font-size: 0.78rem; text-transform: uppercase; color: var(--ink-muted); margin-bottom: 4px; font-family: var(--mono); }
-
-  .quote-container {
-    max-width: 760px;
-    margin: 0 auto;
-    text-align: center;
-    position: relative;
-  }
-  .quote-box {
-    padding: 24px 0;
-  }
-  .quote-box q {
-    font-family: var(--serif);
-    font-size: clamp(1.4rem, 2.5vw, 1.85rem);
-    line-height: 1.4;
-    font-style: italic;
-    display: block;
-    color: var(--ink);
-  }
-  .quote-box .author {
-    margin-top: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 14px;
-  }
-  .author-avatar {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    background: var(--sage);
-    border: 1px solid var(--gold);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: var(--serif);
-    font-weight: 700;
-    color: var(--teal);
-  }
-  .author-info { text-align: left; }
-  .author-name { font-weight: 600; font-size: 0.95rem; color: var(--ink); }
-  .author-role { font-size: 0.8rem; color: var(--ink-muted); }
-  .quote-nav-dots {
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-    margin-top: 24px;
-  }
-  .quote-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: var(--line-heavy);
-    cursor: pointer;
-    transition: 0.2s;
-  }
-  .quote-dot.active {
-    background: var(--gold);
-    width: 28px;
-    border-radius: 5px;
-  }
-
   .faq-search-box {
     margin-bottom: 32px;
     position: relative;
@@ -1076,9 +1009,7 @@
     font-size: 0.98rem;
     transition: border-color 0.2s;
   }
-  .faq-search-box input:focus {
-    border-color: var(--gold);
-  }
+  .faq-search-box input:focus { border-color: var(--gold); }
   .faq-search-icon {
     position: absolute;
     left: 16px;
@@ -1244,9 +1175,7 @@
     align-items: center;
     gap: 8px;
   }
-  [data-theme="dark"] .form-section-title {
-    color: var(--gold-bright);
-  }
+  [data-theme="dark"] .form-section-title { color: var(--gold-bright); }
   .form-section-desc {
     font-size: 0.82rem;
     color: var(--ink-muted);
@@ -1269,9 +1198,7 @@
     display: none;
     font-weight: 500;
   }
-  .field-error-msg.show {
-    display: block;
-  }
+  .field-error-msg.show { display: block; }
   .calculated-box {
     background: var(--paper-2);
     border: 1px solid var(--line-heavy);
@@ -1285,19 +1212,7 @@
     font-weight: 700;
     color: var(--teal);
   }
-  [data-theme="dark"] .calculated-box .total-val {
-    color: var(--gold-bright);
-  }
-  .fee-notice-banner {
-    background: var(--gold-soft);
-    border: 1px solid var(--gold);
-    border-radius: var(--radius-sm);
-    padding: 12px 14px;
-    margin-top: 12px;
-    font-size: 0.85rem;
-    color: var(--ink);
-    line-height: 1.5;
-  }
+  [data-theme="dark"] .calculated-box .total-val { color: var(--gold-bright); }
   .form-actions-row {
     display: flex;
     justify-content: space-between;
@@ -1308,12 +1223,8 @@
     border-top: 1px solid var(--line-heavy);
   }
   @media (max-width: 540px) {
-    .form-actions-row {
-      flex-direction: column-reverse;
-    }
-    .form-actions-row button {
-      width: 100%;
-    }
+    .form-actions-row { flex-direction: column-reverse; }
+    .form-actions-row button { width: 100%; }
   }
   .btn-reset {
     padding: 12px 22px;
@@ -1390,22 +1301,31 @@
     .pillar + .pillar { border-left: none; border-top: 1px solid var(--line-heavy); }
     .foot-grid { grid-template-columns: 1fr 1fr; }
   }
+
+  /* Responsive Rules for Mobile Navigation & Title */
   @media (max-width: 768px) {
     nav.links { display: none; }
-    nav.links.mobile-active {
-      display: flex;
-      flex-direction: column;
-      position: absolute;
-      top: 100%;
-      left: 0;
-      right: 0;
-      background: var(--paper);
-      padding: 24px;
-      border-bottom: 1px solid var(--line-heavy);
-      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-    }
+    .desktop-actions { display: none; }
     .mobile-toggle { display: flex; }
-    .dossier-trigger { grid-template-columns: 1fr; gap: 8px; }
+    
+    .brand-title {
+      font-size: 0.96rem;
+      white-space: nowrap;
+    }
+    .brand-sub {
+      font-size: 0.65rem;
+      white-space: nowrap;
+    }
+    .brand {
+      gap: 9px;
+    }
+    .brand-logo-wrap {
+      width: 36px;
+      height: 36px;
+    }
+    .wrap {
+      padding: 0 16px;
+    }
     .foot-grid { grid-template-columns: 1fr; }
     .simulator-box { padding: 24px; }
     .passbook-card { padding: 24px 20px 24px 34px; }
@@ -1418,6 +1338,7 @@
 
 <header>
   <div class="wrap nav">
+    <!-- Brand Info (Strictly horizontal, no wrapping) -->
     <div class="brand">
       <div class="brand-logo-wrap">
         <img 
@@ -1427,38 +1348,66 @@
           class="brand-logo-img" 
         />
       </div>
-      <div>
-        <span>FMC Kumo Staff MPCS Ltd</span>
+      <div class="brand-text-wrap">
+        <span class="brand-title">FMC Kumo Staff MPCS </span>
         <span class="brand-sub">Cooperative Society • Est. 2026</span>
       </div>
     </div>
 
-    <nav class="links" id="mainNav">
+    <!-- Desktop Navigation Links -->
+    <nav class="links">
       <a href="#services" onclick="scrollToSection('services', event)">Services</a>
       <a href="#calculator" onclick="scrollToSection('calculator', event)">Loan Calculator</a>
       <a href="#faqs" onclick="scrollToSection('faqs', event)">FAQs</a>
-      <!-- <a href="/login?tenant=fmcksmcs" target="_top" style="color:var(--gold); font-weight:600;">Member Sign In</a> -->
     </nav>
 
+    <!-- Navigation Actions -->
     <div class="nav-actions">
-      <!-- Dark / Light Theme Toggle -->
-      <button class="theme-toggle" id="themeToggle" title="Toggle Light / Dark Mode" aria-label="Toggle Color Theme">
-        <div class="thumb">☀</div>
-      </button>
+      <!-- Desktop Only: Theme Toggle, Sign In, Join Society -->
+      <div class="desktop-actions">
+        <button class="theme-toggle" id="themeToggle" title="Toggle Light / Dark Mode" aria-label="Toggle Color Theme">
+          <div class="thumb">☀</div>
+        </button>
 
-      <a href="/login?tenant=fmcksmcs" target="_top" style="font-size:0.88rem; padding:9px 18px; border:1px solid var(--line-heavy); border-radius:var(--radius-sm); color:var(--ink); font-weight:600; text-decoration:none; display:inline-flex; align-items:center;">
-        Sign In
-      </a>
+        <a href="/login?tenant=fmcksmcs" target="_top" style="font-size:0.88rem; padding:9px 18px; border:1px solid var(--line-heavy); border-radius:var(--radius-sm); color:var(--ink); font-weight:600; text-decoration:none; display:inline-flex; align-items:center; white-space:nowrap;">
+          Sign In
+        </a>
 
-      <button class="nav-cta" onclick="openModal('applyModal')">
-        <span>Join Society</span>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-      </button>
+        <button class="nav-cta" onclick="openModal('applyModal')">
+          <span>Join Society</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+      </div>
 
+      <!-- Mobile 3-Line Hamburger Button -->
       <button class="mobile-toggle" id="mobileToggle" aria-label="Toggle Navigation Menu">
         <span></span>
         <span></span>
         <span></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile Drawer Menu (Hidden until 3-line button is clicked) -->
+  <div class="mobile-nav-menu" id="mobileNavMenu">
+    <a href="#services" class="nav-link" onclick="scrollToSection('services', event)">Services</a>
+    <a href="#calculator" class="nav-link" onclick="scrollToSection('calculator', event)">Loan Calculator</a>
+    <a href="#faqs" class="nav-link" onclick="scrollToSection('faqs', event)">FAQs</a>
+    
+    <div class="mobile-theme-row">
+      <span>Color Theme</span>
+      <button class="theme-toggle" id="themeToggleMobile" title="Toggle Theme" aria-label="Toggle Color Theme">
+        <div class="thumb">☀</div>
+      </button>
+    </div>
+
+    <div class="mobile-actions-stack">
+      <a href="/login?tenant=fmcksmcs" target="_top" style="text-align:center; padding:12px; border:1px solid var(--line-heavy); border-radius:var(--radius-sm); color:var(--ink); font-weight:600; text-decoration:none; display:block;">
+        Sign In
+      </a>
+      <button class="nav-cta" style="width:100%; justify-content:center; padding:12px;" onclick="closeMobileMenu(); openModal('applyModal');">
+        <span>Join Society</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
       </button>
     </div>
   </div>
@@ -1468,7 +1417,7 @@
   <section class="hero">
     <div class="wrap hero-grid">
       <div class="hero-content">
-        <div class="kicker">Federal Medical Centre Kumo Staff Multipurpose Cooperative Society Ltd</div>
+        <div class="kicker">Federal Medical Centre Kumo Staff Multipurpose Cooperative Society </div>
         <h1>Save. Invest.<br><em>Grow together.</em></h1>
         <p class="lede">
           A cooperative built by and for the dedicated healthcare, clinical, and administrative staff of FMC Kumo. Every contribution strengthens our shared capital, shielding colleagues from exorbitant commercial loans.
@@ -1603,7 +1552,6 @@
           <ul class="pillar-list">
             <li>Automatic salary checkoff</li>
             <li>Zero monthly maintenance charges</li>
-            
           </ul>
         </div>
 
@@ -1646,7 +1594,6 @@
 
       <div class="simulator-box">
         <div class="simulator-grid">
-          <!-- Controls -->
           <div>
             <div class="control-group">
               <div class="control-label">
@@ -1686,10 +1633,8 @@
                 <span>10% (Peak)</span>
               </div>
             </div>
-
           </div>
 
-          <!-- Live Ledger Output Slip -->
           <div>
             <div class="ledger-slip" id="ledgerSlip">
               <div class="slip-row">
@@ -1788,7 +1733,7 @@
         <p>Direct clarifications on cooperative policies, qualifying cycles, guarantor rules, and annual dividends.</p>
       </div>
 
-      <div style="max-w:760px; margin:0 auto;">
+      <div style="max-width:760px; margin:0 auto;">
         <div class="faq-search-box">
           <span class="faq-search-icon">🔍</span>
           <input type="text" id="faqSearchInput" placeholder="Search questions (e.g. loans, interest, registration, retirement)..." oninput="filterFaqs()">
@@ -1867,9 +1812,6 @@
           Federal Medical Centre, Kumo, Gombe State, Nigeria.<br>
           Serving the dedicated staff of FMC Kumo since inception.
         </p>
-        <span style="font-family:var(--mono); font-size:0.75rem; color:var(--ink-muted);">
-          
-        </span>
       </div>
 
       <div>
@@ -1903,6 +1845,7 @@
   </div>
 </footer>
 
+<!-- Membership Application Modal -->
 <div class="modal-backdrop" id="applyModal">
   <div class="modal-card modal-card-lg">
     <button class="modal-close" onclick="closeModal('applyModal')" aria-label="Close dialog">✕</button>
@@ -1915,7 +1858,6 @@
       </p>
 
       <form class="modal-form" id="fmckMemberForm" onsubmit="handleApplySubmit(event)" novalidate>
-        <!-- 1. APPLICANT INFORMATION -->
         <div class="form-section" style="margin-top:0; border-top:none; padding-top:0;">
           <div class="form-section-title">
             <span>1. Applicant Information</span>
@@ -2000,7 +1942,6 @@
           </div>
         </div>
 
-        <!-- 2. INITIAL CONTRIBUTION -->
         <div class="form-section">
           <div class="form-section-title">
             <span>2. Initial Contribution</span>
@@ -2018,7 +1959,6 @@
             <div class="field-error-msg" id="err-appContribution">Minimum initial contribution is ₦5,000. ₦1,500 entrance fee will be deducted from this amount.</div>
           </div>
 
-          <!-- Contribution Breakdown Box -->
           <div class="calculated-box" style="max-width:540px; margin-top:16px;">
             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e2e8f0; padding-bottom:8px; margin-bottom:12px;">
               <span style="font-family:var(--mono); font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--ink-muted); font-weight:600;">
@@ -2046,7 +1986,6 @@
           </div>
         </div>
 
-        <!-- 3. MONTHLY SAVING TARGET -->
         <div class="form-section">
           <div class="form-section-title">
             <span>3. Monthly Saving Target</span>
@@ -2065,7 +2004,6 @@
           </div>
         </div>
 
-        <!-- 4. REASON FOR JOINING -->
         <div class="form-section">
           <div class="form-section-title">
             <span>4. Reason for Joining <span class="req">*</span></span>
@@ -2080,7 +2018,6 @@
           </div>
         </div>
 
-        <!-- 5. ACTIONS: RESET & SUBMIT -->
         <div class="form-actions-row">
           <button type="button" class="btn-reset" onclick="handleApplyReset()">
             ↺ Reset / Clear Form
@@ -2092,9 +2029,7 @@
       </form>
     </div>
 
-    <!-- 6. SUBMISSION CONFIRMATION & PRINT SLIP -->
     <div class="slip-print-view" id="printSlipView" style="display:none; padding:32px 24px; border:2px dashed var(--line-heavy); border-radius:var(--radius-md); background:var(--paper-2);">
-      <!-- Confirmation Banner -->
       <div style="text-align:center; padding-bottom:20px; border-bottom:1px solid var(--line-heavy); margin-bottom:20px;">
         <div style="display:inline-flex; width:48px; height:48px; border-radius:50%; background:var(--teal); color:var(--gold); align-items:center; justify-content:center; font-size:24px; margin-bottom:12px;">
           ✓
@@ -2108,7 +2043,6 @@
         <div id="slipRefNumber" style="margin-top:12px; font-family:var(--mono); font-size:0.8rem; letter-spacing:0.05em; color:var(--gold); background:var(--paper); display:inline-block; padding:4px 12px; border-radius:var(--radius-sm); border:1px solid var(--line);"></div>
       </div>
 
-      <!-- Printable Acknowledgment Slip -->
       <div style="background:var(--paper); border:1px solid var(--line); border-radius:var(--radius-sm); padding:24px; font-family:var(--mono); font-size:0.85rem; line-height:1.7;">
         <div style="text-align:center; font-weight:700; margin-bottom:12px; font-family:var(--sans);">
           FEDERAL MEDICAL CENTRE KUMO STAFF MULTIPURPOSE COOPERATIVE SOCIETY LTD<br>
@@ -2180,6 +2114,24 @@
 </div>
 
 <script>
+  // Mobile Menu Controls
+  const mobileToggle = document.getElementById('mobileToggle');
+  const mobileNavMenu = document.getElementById('mobileNavMenu');
+
+  function toggleMobileMenu() {
+    mobileToggle.classList.toggle('open');
+    mobileNavMenu.classList.toggle('open');
+  }
+
+  function closeMobileMenu() {
+    if (mobileToggle) mobileToggle.classList.remove('open');
+    if (mobileNavMenu) mobileNavMenu.classList.remove('open');
+  }
+
+  if (mobileToggle) {
+    mobileToggle.addEventListener('click', toggleMobileMenu);
+  }
+
   // Smooth Section Navigation Handler
   function scrollToSection(sectionId, event) {
     if (event) {
@@ -2220,14 +2172,9 @@
       }
     }
 
-    // Dismiss mobile navigation menu if open
-    const mainNav = document.getElementById('mainNav');
-    if (mainNav) {
-      mainNav.classList.remove('mobile-active');
-    }
+    closeMobileMenu();
   }
 
-  // Intercept all internal anchor clicks for smooth scrolling
   document.addEventListener('click', function(e) {
     const anchor = e.target && e.target.closest ? e.target.closest('a[href^="#"]') : null;
     if (!anchor) return;
@@ -2236,8 +2183,9 @@
     scrollToSection(href, e);
   }, { capture: true });
 
-  // Theme Management (Preserves preference)
+  // Theme Management (Synced for both desktop and mobile toggle pills)
   const themeToggleBtn = document.getElementById('themeToggle');
+  const themeToggleMobile = document.getElementById('themeToggleMobile');
   const htmlRoot = document.documentElement;
 
   function initTheme() {
@@ -2260,26 +2208,17 @@
   }
 
   function updateThemeIcon(theme) {
-    if (themeToggleBtn) {
-      const thumb = themeToggleBtn.querySelector('.thumb');
-      if (thumb) thumb.textContent = theme === 'dark' ? '☾' : '☀';
-    }
+    [themeToggleBtn, themeToggleMobile].forEach(btn => {
+      if (btn) {
+        const thumb = btn.querySelector('.thumb');
+        if (thumb) thumb.textContent = theme === 'dark' ? '☾' : '☀';
+      }
+    });
   }
 
-  themeToggleBtn.addEventListener('click', toggleTheme);
+  if (themeToggleBtn) themeToggleBtn.addEventListener('click', toggleTheme);
+  if (themeToggleMobile) themeToggleMobile.addEventListener('click', toggleTheme);
   initTheme();
-
-  // Mobile Menu Toggle
-  const mobileToggle = document.getElementById('mobileToggle');
-  const mainNav = document.getElementById('mainNav');
-  mobileToggle.addEventListener('click', () => {
-    mainNav.classList.toggle('mobile-active');
-  });
-  mainNav.querySelectorAll('a').forEach(a => {
-    a.addEventListener('click', () => {
-      mainNav.classList.remove('mobile-active');
-    });
-  });
 
   // Modal Controllers
   function openModal(id) {
@@ -2325,7 +2264,6 @@
     simDivDisplay.textContent = (r * 100).toFixed(1) + '%';
 
     const totalDeposited = p * y * 12;
-    // Compound monthly annuity calculation
     const monthlyRate = r / 12;
     const months = y * 12;
     const fv = p * ((Math.pow(1 + monthlyRate, months) - 1) / monthlyRate);
@@ -2344,7 +2282,7 @@
   calculateSimulator();
 
   // Credit Calculator Engine
-  let currentCalcMode = 'personal'; // 'personal' | 'commodity' | 'emergency'
+  let currentCalcMode = 'personal';
   const loanAmtInput = document.getElementById('loanAmtInput');
   const loanTenureInput = document.getElementById('loanTenureInput');
   const loanAmtDisplay = document.getElementById('loanAmtDisplay');
@@ -2379,7 +2317,7 @@
     loanAmtDisplay.textContent = fmtNaira(amt);
     loanTenureDisplay.textContent = mos + ' Months';
 
-    let markupRate = 0.05; // 5% flat for regular
+    let markupRate = 0.05;
     if (currentCalcMode === 'commodity') markupRate = 0.065;
     if (currentCalcMode === 'emergency') markupRate = 0.02;
 
@@ -2424,7 +2362,6 @@
     });
   }
 
-  // ── FMCKSMCS Application Form Real-time Validation & Calculations ──
   function isFmckEmailValid(val) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(val || '').trim());
   }
@@ -2464,11 +2401,9 @@
     const entranceFee = 1500;
     const remaining = Math.max(0, contribVal - entranceFee);
 
-    // Displays
     document.getElementById('appContributionDisplay').textContent = fmtNaira(contribVal);
     document.getElementById('appRemainingContributionDisplay').textContent = fmtNaira(remaining);
 
-    // Validation
     const errContrib = document.getElementById('err-appContribution');
     if (contribVal > 0) {
       if (contribVal < 5000) {
@@ -2512,26 +2447,20 @@
     document.getElementById('applicationFormContainer').style.display = 'block';
   }
 
-  // Membership Form Submission
   async function handleApplySubmit(e) {
     e.preventDefault();
 
     const btnSubmit = document.getElementById('btnSubmitApp');
-    if (btnSubmit && btnSubmit.disabled) {
-      return; // Prevent duplicate submissions
-    }
+    if (btnSubmit && btnSubmit.disabled) return;
 
-    // Set loading state immediately
     if (btnSubmit) {
       btnSubmit.disabled = true;
       btnSubmit.innerHTML = '<span class="btn-spinner"></span><span>Submitting Application...</span>';
     }
 
-    // Ensure browser paints loading spinner
     await new Promise(r => setTimeout(r, 300));
 
     try {
-      // Validate all required fields
       const requiredFieldIds = [
         'appFullName', 'appIppis', 'appEmail', 'appPhone',
         'appDob', 'appGender', 'appDept', 'appUnit', 'appCadre',
@@ -2568,7 +2497,6 @@
         return;
       }
 
-      // Capture values
       const fullName = document.getElementById('appFullName').value.trim();
       const ippis = document.getElementById('appIppis').value.trim();
       const email = document.getElementById('appEmail').value.trim();
@@ -2660,7 +2588,6 @@
         console.warn('Backend sync failed, continuing to registration slip:', err);
       }
 
-      // Populate Official Registration Slip
       document.getElementById('slipRefNumber').textContent = 'REFERENCE NO: ' + refNumber;
       document.getElementById('slipName').textContent = fullName;
       document.getElementById('slipStaff').textContent = ippis;
@@ -2674,7 +2601,6 @@
       document.getElementById('slipTargetSaving').textContent = targetMonthly > 0 ? fmtNaira(targetMonthly) + ' / month' : 'Not specified';
       document.getElementById('slipDate').textContent = dateFormatted;
 
-      // Transition view
       document.getElementById('applicationFormContainer').style.display = 'none';
       document.getElementById('printSlipView').style.display = 'block';
     } finally {
@@ -2685,7 +2611,6 @@
     }
   }
 
-  // Secretariat Contact Form Submission
   function handleContactSubmit(e) {
     e.preventDefault();
     document.getElementById('contactSuccess').style.display = 'block';
