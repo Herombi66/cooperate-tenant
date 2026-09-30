@@ -42,19 +42,23 @@ services:
       APP_URL: ${APP_URL:-http://localhost}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost}
       CORS_ORIGINS: ${CORS_ORIGINS:-}
-      EMAIL_ENABLED: ${EMAIL_ENABLED:-false}
+      EMAIL_ENABLED: ${EMAIL_ENABLED:-true}
       EMAIL_DEBUG: ${EMAIL_DEBUG:-false}
-      EMAIL_HOST: ${EMAIL_HOST:-${SMTP_HOST:-}}
+      EMAIL_HOST: ${EMAIL_HOST:-${SMTP_HOST:-smtp.gmail.com}}
       EMAIL_PORT: ${EMAIL_PORT:-${SMTP_PORT:-587}}
       EMAIL_SECURE: ${EMAIL_SECURE:-${SMTP_SECURE:-false}}
-      EMAIL_USER: ${EMAIL_USER:-${SMTP_USER:-}}
-      EMAIL_PASS: ${EMAIL_PASS:-${SMTP_PASS:-}}
-      EMAIL_FROM: ${EMAIL_FROM:-${SMTP_FROM:-IMAN MCS <noreply@imanmcs.org>}}
-      SMTP_HOST: ${SMTP_HOST:-${EMAIL_HOST:-}}
+      EMAIL_USER: ${EMAIL_USER:-${SMTP_USER:-fmcksmcs@gmail.com}}
+      EMAIL_PASS: ${EMAIL_PASS:-${SMTP_PASSWORD:-${SMTP_PASS:-}}}
+      EMAIL_FROM: ${EMAIL_FROM:-${SMTP_FROM:-fmcksmcs@gmail.com}}
+      SMTP_HOST: ${SMTP_HOST:-${EMAIL_HOST:-smtp.gmail.com}}
       SMTP_PORT: ${SMTP_PORT:-${EMAIL_PORT:-587}}
       SMTP_SECURE: ${SMTP_SECURE:-${EMAIL_SECURE:-false}}
-      SMTP_USER: ${SMTP_USER:-${EMAIL_USER:-}}
-      SMTP_PASS: ${SMTP_PASS:-${EMAIL_PASS:-}}
+      SMTP_USER: ${SMTP_USER:-${EMAIL_USER:-fmcksmcs@gmail.com}}
+      SMTP_PASS: ${SMTP_PASS:-${SMTP_PASSWORD:-${EMAIL_PASS:-}}}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-${SMTP_PASS:-${EMAIL_PASS:-}}}
+      SMTP_FROM: ${SMTP_FROM:-${EMAIL_FROM:-fmcksmcs@gmail.com}}
+      SMTP_FROM_NAME: ${SMTP_FROM_NAME:-${EMAIL_FROM_NAME:-FMCK SMCS}}
+      EMAIL_FROM_NAME: ${EMAIL_FROM_NAME:-${SMTP_FROM_NAME:-FMCK SMCS}}
       BREVO_API_KEY: ${BREVO_API_KEY:-}
     volumes:
       - backend_uploads:/app/uploads

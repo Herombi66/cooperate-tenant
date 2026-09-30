@@ -31,12 +31,15 @@ class EmailService {
           port: config.smtp.port,
           secure: config.smtp.secure,
           auth: config.smtp.auth,
+          tls: {
+            rejectUnauthorized: false
+          },
           pool: true,
           maxConnections: 5,
           maxMessages: 100,
-          connectionTimeout: config.smtp.connectionTimeout || 5000,
-          greetingTimeout: config.smtp.greetingTimeout || 5000,
-          socketTimeout: config.smtp.socketTimeout || 5000
+          connectionTimeout: config.smtp.connectionTimeout || 10000,
+          greetingTimeout: config.smtp.greetingTimeout || 10000,
+          socketTimeout: config.smtp.socketTimeout || 10000
         });
 
         // Verify connection with timeout
@@ -103,9 +106,9 @@ class EmailService {
     }
 
     // 2. Try Fallback: SMTP
-    if (!result && this.isSmtpConnected) {
+    if (!result && (this.isSmtpConnected || this.transporter)) {
       try {
-        console.log(`📧 [EmailService] Attempting SMTP fallback for ${template}...`);
+        console.log(`📧 [EmailService] Attempting SMTP fallback for ${template || subject}...`);
         
         // Load template if needed
         let html = null;
@@ -117,20 +120,25 @@ class EmailService {
           }
         }
 
+        const senderName = config.from?.name || process.env.SMTP_FROM_NAME || 'FMCK SMCS';
+        const senderAddress = config.from?.address || config.from?.email || process.env.SMTP_FROM || 'fmcksmcs@gmail.com';
+        const formattedFrom = senderName ? `"${senderName}" <${senderAddress}>` : senderAddress;
+
         const mailOptions = {
-          from: config.from,
+          from: formattedFrom,
           to,
           subject,
           text: text || 'Please view this email in a HTML compatible client.',
           html: html,
           attachments,
-          replyTo: replyTo,
+          replyTo: replyTo || senderAddress,
           headers: headers
         };
 
         const info = await this.transporter.sendMail(mailOptions);
         result = { success: true, messageId: info.messageId, provider: 'smtp' };
         providerUsed = 'smtp';
+        this.isSmtpConnected = true;
         console.log(`✅ [EmailService] Sent via SMTP to ${to}`);
       } catch (smtpError) {
         console.error('❌ [EmailService] SMTP failed:', smtpError.message);
@@ -179,9 +187,38 @@ class EmailService {
       const compiledTemplate = handlebars.compile(templateContent);
       return compiledTemplate(context);
     } catch (error) {
-      console.warn(`⚠️ [EmailService] Template '${templateName}' not found:`, error.message);
-      return null;
+      console.warn(`⚠️ [EmailService] Template '${templateName}' not found or error:`, error.message);
+      return this.generateFallbackHtml(templateName, context);
     }
+  }
+
+  generateFallbackHtml(templateName, context = {}) {
+    const orgName = context.cooperative_name || config.from?.name || 'FMCK SMCS';
+    const fields = Object.entries(context)
+      .filter(([k, v]) => v && typeof v !== 'object' && !['current_year', 'support_email', 'support_phone'].includes(k))
+      .map(([k, v]) => `<tr><td style="padding:10px;font-weight:bold;color:#475569;border-bottom:1px solid #f1f5f9;text-transform:capitalize;">${k.replace(/_/g, ' ')}:</td><td style="padding:10px;color:#0f172a;border-bottom:1px solid #f1f5f9;word-break:break-all;">${v}</td></tr>`)
+      .join('');
+
+    return `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background: #ffffff;">
+        <div style="border-bottom: 2px solid #0F3D3D; padding-bottom: 12px; margin-bottom: 20px;">
+          <h2 style="color: #0F3D3D; margin: 0 0 4px 0;">${orgName}</h2>
+          <p style="color: #64748b; margin: 0; font-size: 14px;">Notification: ${templateName.replace(/_/g, ' ').toUpperCase()}</p>
+        </div>
+        <table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px;">
+          ${fields}
+        </table>
+        ${context.login_url || context.login_link ? `
+          <div style="margin: 24px 0; text-align: center;">
+            <a href="${context.login_url || context.login_link}" style="background-color: #0F3D3D; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">Access Member Portal</a>
+          </div>
+        ` : ''}
+        <div style="border-top: 1px solid #e2e8f0; padding-top: 16px; margin-top: 24px; font-size: 12px; color: #94a3b8; text-align: center;">
+          <p style="margin: 0 0 4px 0;">© ${new Date().getFullYear()} ${orgName}. All rights reserved.</p>
+          <p style="margin: 0;">Support: ${config.support?.email || 'fmcksmcs@gmail.com'}</p>
+        </div>
+      </div>
+    `;
   }
 
   // ==================== SPECIFIC EMAIL METHODS ====================
@@ -189,24 +226,33 @@ class EmailService {
   // 1. WELCOME EMAIL
   async sendWelcomeEmail(member, password) {
     const { name, email, psn } = member;
+    const orgName = config.from?.name || 'FMCK SMCS';
     
     const context = {
+      recipient_name: name,
       member_name: name,
+      full_name: name,
+      member_id: psn,
       psn: psn,
+      member_email: email,
       email: email,
+      temporary_password: password,
       default_password: password,
+      password: password,
+      login_url: `${config.urls.memberPortal}/login`,
       login_link: `${config.urls.memberPortal}/login`,
-      support_email: config.support.email,
-      support_phone: config.support.phone,
+      cooperative_name: orgName,
+      support_email: config.support?.email || 'fmcksmcs@gmail.com',
+      support_phone: config.support?.phone || '+234 810 588 0201',
       current_year: new Date().getFullYear().toString()
     };
 
     const result = await this.sendEmail({
       to: email,
-      subject: 'Welcome to IMAN MCS - Membership Approved!',
+      subject: `Welcome to ${orgName} - Membership Approved!`,
       template: 'welcome',
       context: context,
-      replyTo: config.support.email,
+      replyTo: config.support?.email || 'fmcksmcs@gmail.com',
       tags: ['welcome', 'registration']
     });
 
