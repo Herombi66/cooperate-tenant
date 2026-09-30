@@ -18,43 +18,56 @@ class EmailService {
 
   async initialize() {
     if (!config.enabled) {
-      console.log('📧 [EmailService] Disabled via configuration.');
+      console.log('ℹ️ [EmailService] Disabled via configuration (EMAIL_ENABLED=false).');
       return;
     }
 
     // Initialize SMTP (Secondary/Fallback)
-    try {
-      this.transporter = nodemailer.createTransport({
-        host: config.smtp.host,
-        port: config.smtp.port,
-        secure: config.smtp.secure,
-        auth: config.smtp.auth,
-        pool: true,
-        maxConnections: 5,
-        maxMessages: 100,
-        connectionTimeout: config.smtp.connectionTimeout,
-        greetingTimeout: config.smtp.greetingTimeout,
-        socketTimeout: config.smtp.socketTimeout
-      });
+    if (config.smtp && config.smtp.enabled) {
+      try {
+        console.log(`📧 [EmailService] Connecting to SMTP: ${config.smtp.host}:${config.smtp.port}...`);
+        this.transporter = nodemailer.createTransport({
+          host: config.smtp.host,
+          port: config.smtp.port,
+          secure: config.smtp.secure,
+          auth: config.smtp.auth,
+          pool: true,
+          maxConnections: 5,
+          maxMessages: 100,
+          connectionTimeout: config.smtp.connectionTimeout || 5000,
+          greetingTimeout: config.smtp.greetingTimeout || 5000,
+          socketTimeout: config.smtp.socketTimeout || 5000
+        });
 
-      // Verify connection
-      await this.transporter.verify();
-      this.isSmtpConnected = true;
-      console.log(`✅ [EmailService] Connected to SMTP (Fallback): ${config.smtp.host}`);
-    } catch (error) {
-      console.error('❌ [EmailService] SMTP Connection failed:', error.message);
-      this.isSmtpConnected = false;
+        // Verify connection with timeout
+        await this.transporter.verify();
+        this.isSmtpConnected = true;
+        console.log(`✅ [EmailService] Connected to SMTP: ${config.smtp.host}`);
+      } catch (error) {
+        console.warn(`⚠️ [EmailService] SMTP Connection warning: ${error.message}`);
+        this.isSmtpConnected = false;
+      }
+    } else {
+      console.log('ℹ️ [EmailService] SMTP credentials not configured, skipping SMTP connection.');
     }
 
     // Test Brevo connection
-    if (config.brevo.enabled) {
-      const brevoTest = await brevoService.testConnection();
-      if (brevoTest.success) {
-        console.log(`✅ [EmailService] Brevo connected: ${brevoTest.account.email}`);
-        console.log(`💰 Brevo credits: ${brevoTest.account.credits}`);
-      } else {
-        console.error('❌ [EmailService] Brevo connection test failed:', brevoTest.error);
+    if (config.brevo && config.brevo.enabled) {
+      try {
+        const brevoTest = await brevoService.testConnection();
+        if (brevoTest && brevoTest.success) {
+          console.log(`✅ [EmailService] Brevo connected: ${brevoTest.account?.email || 'Active'}`);
+          if (brevoTest.account?.credits !== undefined) {
+            console.log(`💰 Brevo credits: ${brevoTest.account.credits}`);
+          }
+        } else {
+          console.warn(`⚠️ [EmailService] Brevo test notice: ${brevoTest?.error || 'Unavailable'}`);
+        }
+      } catch (brevoErr) {
+        console.warn(`⚠️ [EmailService] Brevo test error: ${brevoErr.message}`);
       }
+    } else {
+      console.log('ℹ️ [EmailService] Brevo API key not configured, skipping Brevo connection.');
     }
   }
 
@@ -63,6 +76,14 @@ class EmailService {
    * Strategy: Brevo API -> SMTP
    */
   async sendEmail({ to, subject, template, context, text, attachments = [], replyTo, headers, tags }) {
+    if (!config.enabled) {
+      return { success: true, skipped: true, message: 'Email disabled via configuration' };
+    }
+    if (!config.brevo.enabled && !this.isSmtpConnected) {
+      console.warn(`ℹ️ [EmailService] No email transport configured/connected. Skipping email "${subject}" to ${to}`);
+      return { success: true, skipped: true, message: 'No email transport configured' };
+    }
+
     const emailData = { to, subject, template, context, text, attachments, replyTo, headers, tags };
     let result = null;
     let providerUsed = null;

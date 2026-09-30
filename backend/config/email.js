@@ -6,7 +6,7 @@ module.exports = {
   // Primary Provider: Brevo
   brevo: {
     apiKey: process.env.BREVO_API_KEY,
-    enabled: process.env.EMAIL_PROVIDER_PRIMARY === 'brevo' || !!process.env.BREVO_API_KEY,
+    enabled: !!(process.env.BREVO_API_KEY && process.env.BREVO_API_KEY.trim() !== ''),
     
     // Sender Information
     senderName: process.env.BREVO_SENDER_NAME || 'IMAN MCS',
@@ -32,23 +32,27 @@ module.exports = {
 
   // Secondary/Fallback: SMTP (Zoho, AWS, etc.)
   smtp: {
-    host: process.env.SMTP_HOST || 'smtp.zoho.com',
-    port: parseInt(process.env.SMTP_PORT) || 587,
-    secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
+    host: process.env.SMTP_HOST || process.env.EMAIL_HOST || null,
+    port: parseInt(process.env.SMTP_PORT || process.env.EMAIL_PORT) || 587,
+    secure: (process.env.SMTP_SECURE || process.env.EMAIL_SECURE) === 'true', // true for 465, false for other ports
     auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
+      user: process.env.SMTP_USER || process.env.EMAIL_USER || null,
+      pass: process.env.SMTP_PASS || process.env.EMAIL_PASS || null,
     },
-    // DigitalOcean/Cloud specific timeouts
-    connectionTimeout: 10000,
+    // Only enabled if host and credentials are explicitly provided
+    enabled: !!(
+      (process.env.SMTP_HOST || process.env.EMAIL_HOST) &&
+      (process.env.SMTP_USER || process.env.EMAIL_USER)
+    ),
+    connectionTimeout: parseInt(process.env.SMTP_TIMEOUT) || 5000,
     greetingTimeout: 5000,
-    socketTimeout: 10000,
+    socketTimeout: 5000,
   },
   
   // Default Sender (for SMTP fallback)
   from: {
-    name: process.env.EMAIL_FROM_NAME || 'IMAN MCS',
-    email: process.env.EMAIL_FROM_EMAIL || 'noreply@imanmcs.com'
+    name: process.env.EMAIL_FROM_NAME || process.env.BREVO_SENDER_NAME || 'IMAN MCS',
+    email: process.env.EMAIL_FROM_EMAIL || process.env.BREVO_SENDER_EMAIL || 'noreply@imanmcs.com'
   },
   
   // Application URLs
@@ -67,8 +71,8 @@ module.exports = {
   // Template Directory (for fallback templates)
   templateDir: path.join(__dirname, '../templates'),
   
-  // Feature Flags
-  enabled: process.env.EMAIL_ENABLED !== 'false',
+  // Feature Flags - active only when EMAIL_ENABLED is explicitly true or 1
+  enabled: process.env.EMAIL_ENABLED === 'true' || process.env.EMAIL_ENABLED === '1',
   
   // Rate Limiting (Emails per second)
   rateLimit: parseInt(process.env.EMAIL_RATE_LIMIT) || 5,

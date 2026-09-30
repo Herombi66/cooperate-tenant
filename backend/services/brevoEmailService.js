@@ -13,8 +13,7 @@ class BrevoEmailService {
   }
 
   initialize() {
-    if (!config.brevo || !config.brevo.apiKey) {
-      console.log('❌ [BrevoService] API key not configured');
+    if (!config.brevo || !config.brevo.apiKey || !config.brevo.enabled) {
       return;
     }
 
