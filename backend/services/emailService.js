@@ -5,171 +5,91 @@ const fs = require('fs').promises;
 const path = require('path');
 const config = require('../config/email');
 const { EmailLog } = require('../models');
-const brevoService = require('./brevoEmailService');
 
 class EmailService {
   constructor() {
     this.transporter = null;
     this.isSmtpConnected = false;
+    this.createTransporter();
     if (process.env.NODE_ENV !== 'test') {
       this.initialize();
     }
   }
 
   createTransporter() {
-    if (!config.smtp || !config.smtp.enabled) return null;
     if (this.transporter) return this.transporter;
 
+    console.log(`📧 [EmailService] Initializing Gmail Nodemailer (${config.smtp.auth.user})...`);
     this.transporter = nodemailer.createTransport({
-      host: config.smtp.host,
-      port: config.smtp.port,
-      secure: config.smtp.secure,
-      auth: config.smtp.auth,
+      service: 'gmail',
+      auth: {
+        user: config.smtp.auth.user,
+        pass: config.smtp.auth.pass
+      },
       tls: {
         rejectUnauthorized: false
-      },
-      connectionTimeout: config.smtp.connectionTimeout || 15000,
-      greetingTimeout: 15000,
-      socketTimeout: 15000
+      }
     });
+
     return this.transporter;
   }
 
   async initialize() {
-    if (!config.enabled) {
-      console.log('ℹ️ [EmailService] Disabled via configuration (EMAIL_ENABLED=false).');
-      return;
-    }
-
-    // Initialize SMTP
-    if (config.smtp && config.smtp.enabled) {
-      try {
-        console.log(`📧 [EmailService] Connecting to SMTP: ${config.smtp.host}:${config.smtp.port} (secure: ${config.smtp.secure})...`);
-        this.createTransporter();
-
-        // Test connection with timeout
-        await this.transporter.verify();
-        this.isSmtpConnected = true;
-        console.log(`✅ [EmailService] Connected to SMTP: ${config.smtp.host}`);
-      } catch (error) {
-        console.warn(`⚠️ [EmailService] SMTP Connection warning: ${error.message} (will retry dynamically on send)`);
-        // Keep this.transporter intact so sendMail() can attempt to deliver
-      }
-    } else {
-      console.log('ℹ️ [EmailService] SMTP credentials not configured, skipping SMTP connection.');
-    }
-
-    // Test Brevo connection
-    if (config.brevo && config.brevo.enabled) {
-      try {
-        const brevoTest = await brevoService.testConnection();
-        if (brevoTest && brevoTest.success) {
-          console.log(`✅ [EmailService] Brevo connected: ${brevoTest.account?.email || 'Active'}`);
-          if (brevoTest.account?.credits !== undefined) {
-            console.log(`💰 Brevo credits: ${brevoTest.account.credits}`);
-          }
-        } else {
-          console.warn(`⚠️ [EmailService] Brevo test notice: ${brevoTest?.error || 'Unavailable'}`);
-        }
-      } catch (brevoErr) {
-        console.warn(`⚠️ [EmailService] Brevo test error: ${brevoErr.message}`);
-      }
-    } else {
-      console.log('ℹ️ [EmailService] Brevo API key not configured, skipping Brevo connection.');
+    try {
+      this.createTransporter();
+      await this.transporter.verify();
+      this.isSmtpConnected = true;
+      console.log(`✅ [EmailService] Gmail Nodemailer connected and verified (${config.smtp.auth.user})`);
+    } catch (error) {
+      console.warn(`⚠️ [EmailService] Gmail initial verification notice: ${error.message} (will connect on send)`);
     }
   }
 
   /**
-   * Send a single email with Failover Strategy
-   * Strategy: Brevo API -> SMTP
+   * Send a single email directly via Gmail Nodemailer
    */
   async sendEmail({ to, subject, template, context, text, attachments = [], replyTo, headers, tags }) {
-    if (!config.enabled) {
-      return { success: true, skipped: true, message: 'Email disabled via configuration' };
+    if (!this.transporter) {
+      this.createTransporter();
     }
-
-    const hasBrevo = config.brevo && config.brevo.enabled;
-    const hasSmtp = (config.smtp && config.smtp.enabled) || !!this.transporter;
-
-    if (!hasBrevo && !hasSmtp) {
-      console.warn(`ℹ️ [EmailService] No email transport configured. Skipping email "${subject}" to ${to}`);
-      return { success: true, skipped: true, message: 'No email transport configured' };
-    }
-
-    const emailData = { to, subject, template, context, text, attachments, replyTo, headers, tags };
-    let result = null;
-    let providerUsed = null;
-    let errorLog = [];
 
     // Pre-load HTML template or fallback
-    let html = emailData.html || null;
-    if (!html && template) {
+    let html = null;
+    if (template) {
       try {
         html = await this.loadTemplate(template, context);
       } catch (err) {
         console.warn(`⚠️ [EmailService] Template load failed: ${err.message}`);
       }
     }
-    const fullEmailData = { ...emailData, html };
 
-    // 1. Try Primary Provider: Brevo (HTTPS REST API - never blocked by VPS firewalls)
-    if (hasBrevo) {
-      try {
-        console.log(`📧 [EmailService] Attempting Brevo for ${template || subject}...`);
-        result = await brevoService.sendEmail(fullEmailData);
-        providerUsed = 'brevo';
-        console.log(`✅ [EmailService] Sent via Brevo to ${to}`);
-      } catch (brevoError) {
-        console.warn('⚠️ [EmailService] Brevo failed:', brevoError.message);
-        errorLog.push({ provider: 'brevo', error: brevoError.message });
-      }
-    }
+    const senderName = config.from?.name || 'FMCK SMCS';
+    const senderAddress = config.from?.address || config.smtp?.auth?.user || 'fmcksmcs@gmail.com';
+    const formattedFrom = `"${senderName}" <${senderAddress}>`;
 
-    // 2. Try Fallback: SMTP
-    if (!result && hasSmtp) {
-      try {
-        console.log(`📧 [EmailService] Sending via SMTP to ${to} (${config.smtp.host}:${config.smtp.port})...`);
-        if (!this.transporter) {
-          this.createTransporter();
-        }
+    const mailOptions = {
+      from: formattedFrom,
+      to,
+      subject,
+      text: text || 'Please view this email in a HTML compatible client.',
+      html: html,
+      attachments,
+      replyTo: replyTo || senderAddress,
+      headers: headers
+    };
 
-        const senderName = config.from?.name || process.env.SMTP_FROM_NAME || 'FMCK SMCS';
-        const senderAddress = config.from?.address || config.from?.email || process.env.SMTP_FROM || 'fmcksmcs@gmail.com';
-        const formattedFrom = senderName ? `"${senderName}" <${senderAddress}>` : senderAddress;
+    try {
+      console.log(`📧 [EmailService] Sending via Gmail to ${to}: "${subject}"...`);
+      const info = await this.transporter.sendMail(mailOptions);
+      console.log(`✅ [EmailService] Sent successfully via Gmail to ${to} (MessageId: ${info.messageId})`);
+      this.isSmtpConnected = true;
 
-        const mailOptions = {
-          from: formattedFrom,
-          to,
-          subject,
-          text: text || 'Please view this email in a HTML compatible client.',
-          html: html,
-          attachments,
-          replyTo: replyTo || senderAddress,
-          headers: headers
-        };
-
-        const info = await this.transporter.sendMail(mailOptions);
-        result = { success: true, messageId: info.messageId, provider: 'smtp' };
-        providerUsed = 'smtp';
-        this.isSmtpConnected = true;
-        console.log(`✅ [EmailService] Sent successfully via SMTP to ${to} (MessageId: ${info.messageId})`);
-      } catch (smtpError) {
-        console.error('❌ [EmailService] SMTP send error:', smtpError.message);
-        errorLog.push({ provider: 'smtp', error: smtpError.message });
-      }
-    }
-
-    // 3. Log Result
-    if (result && result.success) {
-      await this.logEmail(to, subject, template, 'sent', result.messageId, context, providerUsed);
-      return result;
-    } else {
-      // All providers failed
-      const failureMessage = errorLog.map(e => `${e.provider}: ${e.error}`).join(' | ');
-      console.error('❌ [EmailService] ALL PROVIDERS FAILED:', failureMessage);
-
-      await this.logEmail(to, subject, template, 'failed', null, context, failureMessage);
-      return { success: false, error: failureMessage };
+      await this.logEmail(to, subject, template, 'sent', info.messageId, context, null, 'gmail');
+      return { success: true, messageId: info.messageId, provider: 'gmail' };
+    } catch (error) {
+      console.error(`❌ [EmailService] Gmail send failed to ${to}:`, error.message);
+      await this.logEmail(to, subject, template, 'failed', null, context, error.message, 'gmail');
+      return { success: false, error: error.message };
     }
   }
 
