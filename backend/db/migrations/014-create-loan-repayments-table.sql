@@ -1,6 +1,6 @@
 -- Create loan_repayments table for tracking loan repayments
 CREATE TABLE IF NOT EXISTS loan_repayments (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  id SERIAL PRIMARY KEY,
   loan_id INTEGER NOT NULL,
   user_id INTEGER NOT NULL, -- Member who made the repayment
   repayment_amount DECIMAL(15, 2) NOT NULL,
@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS loan_repayments (
 );
 
 -- Create indexes for better performance
-CREATE INDEX idx_loan_repayments_loan_id ON loan_repayments(loan_id);
-CREATE INDEX idx_loan_repayments_user_id ON loan_repayments(user_id);
-CREATE INDEX idx_loan_repayments_status ON loan_repayments(status);
-CREATE INDEX idx_loan_repayments_date ON loan_repayments(repayment_date);
+CREATE INDEX IF NOT EXISTS idx_loan_repayments_loan_id ON loan_repayments(loan_id);
+CREATE INDEX IF NOT EXISTS idx_loan_repayments_user_id ON loan_repayments(user_id);
+CREATE INDEX IF NOT EXISTS idx_loan_repayments_status ON loan_repayments(status);
+CREATE INDEX IF NOT EXISTS idx_loan_repayments_date ON loan_repayments(repayment_date);

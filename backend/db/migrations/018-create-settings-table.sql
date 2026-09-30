@@ -16,7 +16,7 @@ INSERT INTO settings (key, category, value, description) VALUES
 ('registration_number', 'general', '"IMAN/COOP/2024/001"', 'Official registration number'),
 ('address', 'general', '"Gombe State, Nigeria"', 'Physical address of the cooperative'),
 ('contact_email', 'general', '"info@imancooperative.org"', 'Primary contact email address'),
-('contact_phone', 'general', '"'+234-xxx-xxx-xxxx'"', 'Primary contact phone number'),
+('contact_phone', 'general', '"+234-000-000-0000"', 'Primary contact phone number'),
 
 -- Contribution Settings
 ('minimum_savings', 'contributions', '1000', 'Minimum monthly savings amount (₦)'),
