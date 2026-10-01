@@ -7,9 +7,10 @@ import {
   Globe, Shield, Calendar, Layers, Bot, Upload,
   CheckCircle2, AlertCircle, Eye, EyeOff, Sparkles,
   TrendingUp, Briefcase, Key, Copy, Check, Users,
-  ArrowUpRight, Clock, HelpCircle, Landmark, Receipt, Tag
+  ArrowUpRight, Clock, HelpCircle, Landmark, Receipt, Tag,
+  Download, Trash2, BookOpen, FileCheck
 } from 'lucide-react';
-import { Settings as SystemSettings, EnabledModules, AISettings } from '../services/settingsService';
+import { Settings as SystemSettings, EnabledModules, AISettings, BylawInfo } from '../services/settingsService';
 import settingsService from '../services/settingsService';
 import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
@@ -20,7 +21,11 @@ export const SettingsPage: React.FC = () => {
   const isSuperAdmin = user?.role === 'super_admin';
   const [activeTab, setActiveTab] = useState('general');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const bylawFileInputRef = useRef<HTMLInputElement>(null);
   const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [bylawInfo, setBylawInfo] = useState<BylawInfo | null>(null);
+  const [uploadingBylaw, setUploadingBylaw] = useState(false);
+  const [deletingBylaw, setDeletingBylaw] = useState(false);
   const [showApiKey, setShowApiKey] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [selectedUpgradePlan, setSelectedUpgradePlan] = useState<string>('Growth Plan');
@@ -307,6 +312,18 @@ export const SettingsPage: React.FC = () => {
         console.warn('Could not load custom fields:', err);
       }
 
+      // Load Cooperative Bylaw
+      try {
+        const bylawRes = await settingsService.getBylaw();
+        if (bylawRes?.bylaw) {
+          setBylawInfo(bylawRes.bylaw);
+        } else {
+          setBylawInfo(null);
+        }
+      } catch (err) {
+        console.warn('Could not load bylaw:', err);
+      }
+
       setHasChanges(false);
     } catch (error: any) {
       console.error('Failed to load settings:', error);
@@ -314,6 +331,58 @@ export const SettingsPage: React.FC = () => {
       setOriginalSettings({ ...settings });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleBylawUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.toLowerCase().endsWith('.pdf') && file.type !== 'application/pdf') {
+      toast.error('Only PDF documents (.pdf) are allowed as cooperative bylaws.');
+      return;
+    }
+
+    if (file.size > 25 * 1024 * 1024) {
+      toast.error('File size exceeds the 25 MB limit.');
+      return;
+    }
+
+    try {
+      setUploadingBylaw(true);
+      const res = await settingsService.uploadBylaw(file);
+      if (res.success && res.bylaw) {
+        setBylawInfo(res.bylaw);
+        toast.success('Cooperative bylaw uploaded successfully! Members can now download it.');
+      } else {
+        toast.error(res.message || 'Failed to upload bylaw');
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Error uploading bylaw');
+    } finally {
+      setUploadingBylaw(false);
+      if (bylawFileInputRef.current) bylawFileInputRef.current.value = '';
+    }
+  };
+
+  const handleDeleteBylaw = async () => {
+    if (!confirm('Are you sure you want to delete the cooperative bylaw? Members will no longer be able to download it.')) {
+      return;
+    }
+
+    try {
+      setDeletingBylaw(true);
+      const res = await settingsService.deleteBylaw();
+      if (res.success) {
+        setBylawInfo(null);
+        toast.success('Cooperative bylaw removed successfully.');
+      } else {
+        toast.error(res.message || 'Failed to remove bylaw');
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Error deleting bylaw');
+    } finally {
+      setDeletingBylaw(false);
     }
   };
 
@@ -734,6 +803,128 @@ export const SettingsPage: React.FC = () => {
                       />
                     </div>
                   </div>
+                </div>
+              </div>
+
+              {/* Cooperative Bylaws (PDF Document) */}
+              <div className="space-y-2 md:col-span-2 p-5 bg-emerald-50/50 dark:bg-emerald-950/20 rounded-xl border border-emerald-200 dark:border-emerald-900/40">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                      <BookOpen className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                      Official Cooperative Bylaws (PDF)
+                    </label>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                      Upload the constitution and bylaws of the cooperative in PDF format. Registered members will be able to download this document from their dashboard.
+                    </p>
+                  </div>
+                  {bylawInfo && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300 self-start sm:self-auto shrink-0">
+                      <FileCheck className="w-3.5 h-3.5" />
+                      Active Bylaw Published
+                    </span>
+                  )}
+                </div>
+
+                <div className="pt-2">
+                  {bylawInfo ? (
+                    <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-emerald-200 dark:border-emerald-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-red-100 dark:bg-red-950/50 text-red-600 flex items-center justify-center shrink-0 font-bold text-xs uppercase tracking-wider">
+                          PDF
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate max-w-md">
+                            {bylawInfo.filename || 'Cooperative_Bylaws.pdf'}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            {Math.round(bylawInfo.size / 1024)} KB • Uploaded on {new Date(bylawInfo.uploaded_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        <a
+                          href={settingsService.getDownloadBylawUrl()}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition shadow-sm"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                          <span>Download PDF</span>
+                        </a>
+
+                        <input
+                          type="file"
+                          ref={bylawFileInputRef}
+                          onChange={handleBylawUpload}
+                          accept=".pdf,application/pdf"
+                          className="hidden"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => bylawFileInputRef.current?.click()}
+                          disabled={uploadingBylaw}
+                          className="px-3 py-1.5 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-medium flex items-center gap-1.5 transition"
+                        >
+                          {uploadingBylaw ? (
+                            <Loader className="w-3.5 h-3.5 animate-spin text-emerald-600" />
+                          ) : (
+                            <Upload className="w-3.5 h-3.5" />
+                          )}
+                          <span>{uploadingBylaw ? 'Uploading...' : 'Replace'}</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={handleDeleteBylaw}
+                          disabled={deletingBylaw}
+                          className="px-2.5 py-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg text-xs font-medium flex items-center gap-1 transition"
+                          title="Remove Bylaw"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>Delete</span>
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="border-2 border-dashed border-emerald-300 dark:border-emerald-800 rounded-lg p-6 bg-white/70 dark:bg-gray-800/50 text-center space-y-3">
+                      <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 mx-auto flex items-center justify-center">
+                        <BookOpen className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                          No cooperative bylaw has been uploaded yet
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          Upload your cooperative constitution or bye-law document (PDF, up to 25 MB)
+                        </p>
+                      </div>
+
+                      <div>
+                        <input
+                          type="file"
+                          ref={bylawFileInputRef}
+                          onChange={handleBylawUpload}
+                          accept=".pdf,application/pdf"
+                          className="hidden"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => bylawFileInputRef.current?.click()}
+                          disabled={uploadingBylaw}
+                          className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-sm transition"
+                        >
+                          {uploadingBylaw ? (
+                            <Loader className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Upload className="w-4 h-4" />
+                          )}
+                          <span>{uploadingBylaw ? 'Uploading PDF...' : 'Upload Bylaw (PDF)'}</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 

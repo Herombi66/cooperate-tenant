@@ -4,10 +4,12 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import {
   DollarSign, CreditCard, TrendingUp, Calendar,
   AlertTriangle, CheckCircle, Clock, Target, User, AlertCircle,
-  PiggyBank, Banknote, Trophy, Receipt, Eye, Heart, Plus, Info, ChevronDown, ChevronRight, MessageCircle, ExternalLink
+  PiggyBank, Banknote, Trophy, Receipt, Eye, Heart, Plus, Info, ChevronDown, ChevronRight, MessageCircle, ExternalLink,
+  FileText, Download
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { DashboardService } from '../services/dashboardService';
+import { settingsService, BylawInfo } from '../services/settingsService';
 import toast from 'react-hot-toast';
 import { useTenantTerminology } from '../utils/tenantTerminology';
 
@@ -120,12 +122,41 @@ export const MemberDashboard: React.FC = () => {
   const FMCK_WHATSAPP_INVITE_URL = 'https://chat.whatsapp.com/GEhZDvBUnqWC3GoScriAYH';
   const DEFAULT_WHATSAPP_INVITE_URL = 'https://chat.whatsapp.com/KLhdr510SRrIipgOkmzfjC';
 
+  const [bylaw, setBylaw] = useState<BylawInfo | null>(null);
+  const [downloadingBylaw, setDownloadingBylaw] = useState<boolean>(false);
+
   const whatsappInviteUrl = isFmck ? FMCK_WHATSAPP_INVITE_URL : DEFAULT_WHATSAPP_INVITE_URL;
   const healthCacheKey = `whatsapp_group_health_${isFmck ? 'fmck' : 'default'}`;
 
   useEffect(() => {
     fetchDashboardData();
+    fetchBylaw();
   }, []);
+
+  const fetchBylaw = async () => {
+    try {
+      const res = await settingsService.getBylaw();
+      if (res && res.success && res.bylaw) {
+        setBylaw(res.bylaw);
+      }
+    } catch (e) {
+      console.warn('Notice loading bylaw in dashboard:', e);
+    }
+  };
+
+  const handleDownloadBylaw = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!bylaw) return;
+    try {
+      setDownloadingBylaw(true);
+      await settingsService.downloadBylawFile(bylaw.filename);
+      toast.success('Bylaws download started');
+    } catch (err: any) {
+      toast.error('Failed to download bylaws');
+    } finally {
+      setDownloadingBylaw(false);
+    }
+  };
 
   useEffect(() => {
     let interval: number | null = null;
@@ -742,6 +773,59 @@ export const MemberDashboard: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Cooperative Bylaws Card */}
+      <motion.div className="mt-6" variants={cardVariants}>
+        <div className="bg-card text-card-foreground border border-border p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-xl bg-primary-100 dark:bg-primary-950/60 text-primary-600 dark:text-primary-400 flex items-center justify-center flex-shrink-0">
+                <FileText className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                  Official Cooperative Bylaws
+                </h3>
+                <p className="text-sm text-muted-foreground mt-0.5">
+                  {bylaw 
+                    ? `Official constitution and operating regulations (${bylaw.filename} • ${(bylaw.size / (1024 * 1024)).toFixed(2)} MB)` 
+                    : 'Review the official rules, member obligations, and governance constitution.'}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2.5 flex-shrink-0">
+              {bylaw ? (
+                <>
+                  <button
+                    onClick={handleDownloadBylaw}
+                    disabled={downloadingBylaw}
+                    className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm disabled:opacity-50"
+                  >
+                    <Download className={`w-4 h-4 ${downloadingBylaw ? 'animate-bounce' : ''}`} />
+                    {downloadingBylaw ? 'Downloading...' : 'Download Bylaws (PDF)'}
+                  </button>
+                  <button
+                    onClick={() => navigate('/bylaws')}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2.5 border border-border bg-card hover:bg-muted text-foreground text-sm font-medium rounded-lg transition-colors"
+                  >
+                    View Document
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => navigate('/bylaws')}
+                  className="inline-flex items-center gap-1.5 px-4 py-2.5 border border-border bg-card hover:bg-muted text-foreground text-sm font-medium rounded-lg transition-colors"
+                >
+                  View Bylaws Page
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </motion.div>
 
       {/* Loan Repayment Overview */}
       {memberData.activeLoan && (

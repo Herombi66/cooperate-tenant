@@ -6,7 +6,7 @@ echo "🚀 Starting Cooperative Multi-Tenant Application Backend"
 echo "=========================================================="
 
 # Ensure uploads directory exists
-mkdir -p /app/uploads
+mkdir -p /app/uploads /app/uploads/bylaws
 
 # Wait for Database and Run Migrations
 echo "⏳ Verifying database connection and applying migrations..."

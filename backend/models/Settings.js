@@ -53,7 +53,7 @@ const Settings = sequelize.define('Settings', {
 
 // Define valid categories and their default values
 Settings.CATEGORIES = {
-  general: ['cooperative_name', 'registration_number', 'address', 'contact_email', 'contact_phone', 'contact_website', 'support_phone', 'cooperative_logo', 'currency_code', 'currency_symbol', 'currency_name'],
+  general: ['cooperative_name', 'registration_number', 'address', 'contact_email', 'contact_phone', 'contact_website', 'support_phone', 'cooperative_logo', 'currency_code', 'currency_symbol', 'currency_name', 'cooperative_bylaw'],
   contributions: ['minimum_savings', 'minimum_target_savings', 'target_savings_min_period', 'allow_voluntary_savings', 'savings_withdrawal_lock_months', 'max_savings_withdrawal_percent', 'registration_fee', 'auto_deduct_registration_fee', 'monthly_admin_fee', 'auto_deduct_monthly_admin_fee'],
   loans: ['max_loan_amount', 'max_cash_loan', 'investment_loan_multiplier', 'default_repayment_period', 'min_membership_months_for_loan', 'loan_interest_rate', 'late_payment_fee', 'max_active_loans_per_member', 'require_guarantors', 'min_guarantors_count', 'agent_agreement_template', 'murabaha_contract_template'],
   investments: ['minimum_investment', 'investment_lock_period_months', 'expected_roi_percent', 'allow_early_liquidation', 'early_termination_penalty_percent'],

@@ -230,6 +230,81 @@ class SettingsService {
       throw new Error(error.response?.data?.message || 'Failed to reset settings');
     }
   }
+
+  async getBylaw(): Promise<{ success: boolean; bylaw: BylawInfo | null }> {
+    try {
+      const response = await api.get<{ success: boolean; bylaw: BylawInfo | null }>(`${this.apiUrl}/bylaw`);
+      return response.data;
+    } catch (error: any) {
+      console.error('Failed to get bylaw:', error);
+      return { success: false, bylaw: null };
+    }
+  }
+
+  async uploadBylaw(file: File): Promise<{ success: boolean; message: string; bylaw: BylawInfo }> {
+    try {
+      const formData = new FormData();
+      formData.append('bylaw', file);
+      const response = await api.post<{ success: boolean; message: string; bylaw: BylawInfo }>(
+        `${this.apiUrl}/bylaw`,
+        formData,
+        {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        }
+      );
+      return response.data;
+    } catch (error: any) {
+      console.error('Failed to upload bylaw:', error);
+      throw new Error(error.response?.data?.message || 'Failed to upload bylaw');
+    }
+  }
+
+  async deleteBylaw(): Promise<{ success: boolean; message: string }> {
+    try {
+      const response = await api.delete<{ success: boolean; message: string }>(`${this.apiUrl}/bylaw`);
+      return response.data;
+    } catch (error: any) {
+      console.error('Failed to delete bylaw:', error);
+      throw new Error(error.response?.data?.message || 'Failed to delete bylaw');
+    }
+  }
+
+  getDownloadBylawUrl(): string {
+    const token = localStorage.getItem('token');
+    const base = `${api.defaults.baseURL || '/api'}/settings/bylaw/download`;
+    return token ? `${base}?token=${encodeURIComponent(token)}` : base;
+  }
+
+  async downloadBylawFile(fallbackFilename?: string): Promise<void> {
+    try {
+      const response = await api.get(`${this.apiUrl}/bylaw/download`, {
+        responseType: 'blob'
+      });
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = fallbackFilename || 'Cooperative_Bylaws.pdf';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (error: any) {
+      console.error('Failed to download bylaw file:', error);
+      // Fallback: try opening with token in query param
+      window.open(this.getDownloadBylawUrl(), '_blank');
+    }
+  }
+}
+
+export interface BylawInfo {
+  url: string;
+  filename: string;
+  size: number;
+  mime_type: string;
+  uploaded_at: string;
+  uploaded_by: number;
+  uploaded_by_name?: string;
 }
 
 export const settingsService = new SettingsService();

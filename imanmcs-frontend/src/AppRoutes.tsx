@@ -61,6 +61,7 @@ import { AuditorExceptionsPage } from './pages/auditor/AuditorExceptionsPage';
 import { AuditorActivityLogsPage } from './pages/auditor/AuditorActivityLogsPage';
 import { AuditorNotesPage } from './pages/auditor/AuditorNotesPage';
 import { AuditorReportsPage } from './pages/auditor/AuditorReportsPage';
+import { BylawsPage } from './pages/BylawsPage';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, isLoading } = useAuth();
@@ -210,6 +211,17 @@ export const AppRoutes: React.FC = () => {
           </AppLayout>
         }
       />
+      <Route
+        path="/bylaws"
+        element={
+          <AppLayout>
+            <ProtectedRoute>
+              <BylawsPage />
+            </ProtectedRoute>
+          </AppLayout>
+        }
+      />
+      <Route path="/bylaw" element={<Navigate to="/bylaws" replace />} />
       <Route
         path="/withdrawals"
         element={

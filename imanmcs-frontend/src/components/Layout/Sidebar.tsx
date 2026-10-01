@@ -44,6 +44,7 @@ const navigationItems: Record<string, Array<{ name: string; href: string; icon: 
     { name: 'Expenses', href: '/expenses', icon: Receipt },
     { name: 'Profit Sharing', href: '/profit-sharing', icon: TrendingUp },
     { name: 'Reports', href: '/reports', icon: FileText },
+    { name: 'Cooperative Bylaws', href: '/bylaws', icon: FileText },
     { name: 'Withdrawals', href: '/withdrawals', icon: Percent },
     { name: 'Communication', href: '/communication', icon: MessageSquare },
     { name: 'Security Center', href: '/security-center', icon: ShieldAlert },
@@ -67,6 +68,7 @@ const navigationItems: Record<string, Array<{ name: string; href: string; icon: 
     { name: 'Expenses', href: '/expenses', icon: Receipt },
     { name: 'Profit Sharing', href: '/profit-sharing', icon: TrendingUp },
     { name: 'Reports', href: '/reports', icon: FileText },
+    { name: 'Cooperative Bylaws', href: '/bylaws', icon: FileText },
     { name: 'Withdrawals', href: '/withdrawals', icon: Percent },
     { name: 'Communication', href: '/communication', icon: MessageSquare },
     { name: 'Security Center', href: '/security-center', icon: ShieldAlert },
@@ -77,6 +79,7 @@ const navigationItems: Record<string, Array<{ name: string; href: string; icon: 
   member: [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
     { name: 'Profile', href: '/profile', icon: Users },
+    { name: 'Cooperative Bylaws', href: '/bylaws', icon: FileText },
     { name: 'My Contributions', href: '/my-contributions', icon: DollarSign },
     { name: 'My Loans', href: '/my-loans', icon: CreditCard },
     { name: 'My Guarantees', href: '/my-guarantees', icon: Shield },
@@ -98,6 +101,7 @@ const navigationItems: Record<string, Array<{ name: string; href: string; icon: 
     { name: 'Expenses', href: '/expenses', icon: Receipt },
     { name: 'Profit Sharing', href: '/profit-sharing', icon: TrendingUp },
     { name: 'Reports', href: '/reports', icon: FileText },
+    { name: 'Cooperative Bylaws', href: '/bylaws', icon: FileText },
     { name: 'Withdrawals', href: '/withdrawals', icon: Percent },
   ],
   chairman: [
@@ -107,6 +111,7 @@ const navigationItems: Record<string, Array<{ name: string; href: string; icon: 
     { name: 'Expenses', href: '/expenses', icon: Receipt },
     { name: 'Profit Sharing', href: '/profit-sharing', icon: TrendingUp },
     { name: 'Reports', href: '/reports', icon: FileText },
+    { name: 'Cooperative Bylaws', href: '/bylaws', icon: FileText },
     { name: 'Withdrawals', href: '/withdrawals', icon: Percent },
   ],
   secretary: [
@@ -115,6 +120,7 @@ const navigationItems: Record<string, Array<{ name: string; href: string; icon: 
     { name: 'Members', href: '/members', icon: Users },
     { name: 'Agreements', href: '/agreements', icon: CheckCircle },
     { name: 'Communication', href: '/communication', icon: MessageSquare },
+    { name: 'Cooperative Bylaws', href: '/bylaws', icon: FileText },
     { name: 'Document Designer', href: '/document-designer', icon: FileSignature },
     { name: 'Reports', href: '/reports', icon: FileText },
   ],
@@ -124,6 +130,7 @@ const navigationItems: Record<string, Array<{ name: string; href: string; icon: 
     { name: 'Members', href: '/members', icon: Users },
     { name: 'Agreements', href: '/agreements', icon: CheckCircle },
     { name: 'Communication', href: '/communication', icon: MessageSquare },
+    { name: 'Cooperative Bylaws', href: '/bylaws', icon: FileText },
     { name: 'Reports', href: '/reports', icon: FileText },
   ],
   financial_secretary: [
@@ -136,6 +143,7 @@ const navigationItems: Record<string, Array<{ name: string; href: string; icon: 
     { name: 'Expenses', href: '/expenses', icon: Receipt },
     { name: 'Profit Sharing', href: '/profit-sharing', icon: TrendingUp },
     { name: 'Reports', href: '/reports', icon: FileText },
+    { name: 'Cooperative Bylaws', href: '/bylaws', icon: FileText },
     { name: 'Withdrawals', href: '/withdrawals', icon: Percent },
     { name: 'Receipt Designer', href: '/receipt-designer', icon: Palette },
   ],
@@ -149,12 +157,14 @@ const navigationItems: Record<string, Array<{ name: string; href: string; icon: 
     { name: 'Profit Sharing', href: '/profit-sharing', icon: TrendingUp },
     { name: 'Withdrawals', href: '/withdrawals', icon: Percent },
     { name: 'Reports', href: '/reports', icon: FileText },
+    { name: 'Cooperative Bylaws', href: '/bylaws', icon: FileText },
   ],
   pro: [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
     { name: 'Members', href: '/members', icon: Users },
     { name: 'Member Applications', href: '/member-applications', icon: UserPlus },
     { name: 'Communication', href: '/communication', icon: MessageSquare },
+    { name: 'Cooperative Bylaws', href: '/bylaws', icon: FileText },
     { name: 'Reports', href: '/reports', icon: FileText },
   ],
   state_auditor: [
@@ -167,6 +177,7 @@ const navigationItems: Record<string, Array<{ name: string; href: string; icon: 
     { name: 'Profit Sharing', href: '/profit-sharing', icon: TrendingUp },
     { name: 'Withdrawals', href: '/withdrawals', icon: Percent },
     { name: 'Reports', href: '/reports', icon: FileText },
+    { name: 'Cooperative Bylaws', href: '/bylaws', icon: FileText },
   ],
 };
 

@@ -25,4 +25,11 @@ router.post('/logo', settingsController.uploadLogoMiddleware, settingsController
 // Reset all settings to defaults (admin only)
 router.post('/reset', settingsController.resetSettings);
 
+// Cooperative Bylaws routes
+const bylawController = require('../controllers/bylawController');
+router.get('/bylaw', bylawController.getBylaw);
+router.get('/bylaw/download', bylawController.downloadBylaw);
+router.post('/bylaw', bylawController.upload.single('bylaw'), bylawController.uploadBylaw);
+router.delete('/bylaw', bylawController.deleteBylaw);
+
 module.exports = router;
