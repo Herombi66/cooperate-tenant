@@ -377,6 +377,16 @@ export const Sidebar: React.FC = () => {
             </NavLink>
           ))}
         </nav>
+
+        {/* Developer Credit Footer */}
+        <div className={cn(
+          "px-3 py-2.5 border-t border-border/40 text-center transition-all duration-200",
+          isSidebarCollapsed ? "hidden md:hidden" : "block"
+        )}>
+          <p className="text-[11px] text-muted-foreground/80 tracking-wide">
+            Developed by <span className="font-semibold text-foreground">C&S Company</span>
+          </p>
+        </div>
       </div>
     </>
   );

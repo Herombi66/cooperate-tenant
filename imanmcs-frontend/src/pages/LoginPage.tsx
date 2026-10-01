@@ -208,10 +208,16 @@ export const LoginPage: React.FC = () => {
           <div className="mt-6 text-center">
             <Link
               to={homepageUrl}
-              className="text-sm text-primary-600 hover:text-primary-500"
+              className="text-sm text-primary-600 hover:text-primary-500 font-medium"
             >
               ← Back to Homepage
             </Link>
+          </div>
+
+          <div className="mt-8 pt-4 border-t border-gray-100 dark:border-gray-800 text-center">
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              Developed by <span className="font-semibold text-gray-700 dark:text-gray-200">C&S Company</span>
+            </p>
           </div>
         </motion.div>
       </motion.div>

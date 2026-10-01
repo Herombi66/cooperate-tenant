@@ -29,9 +29,17 @@ export const Footer: React.FC = () => {
               <span>Profit Sharing</span>
             </div>
           </div>
-          {build ? (
-            <p className="mt-3 text-[11px] text-muted-foreground">Build: {build}</p>
-          ) : null}
+          <div className="mt-4 pt-3 border-t border-border/50 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
+            <span className="text-[11px]">Secure Cooperative Management Platform</span>
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-medium">
+              Developed by <span className="font-semibold text-foreground tracking-wide">C&S Company</span>
+            </span>
+            {build ? (
+              <span className="text-[11px] font-mono text-muted-foreground">Build: {build}</span>
+            ) : (
+              <span className="hidden sm:inline-block"></span>
+            )}
+          </div>
         </div>
       </div>
     </footer>
