@@ -59,6 +59,8 @@ services:
       SMTP_FROM: ${SMTP_FROM:-${EMAIL_FROM:-fmcksmcs@gmail.com}}
       SMTP_FROM_NAME: ${SMTP_FROM_NAME:-${EMAIL_FROM_NAME:-FMCK SMCS}}
       EMAIL_FROM_NAME: ${EMAIL_FROM_NAME:-${SMTP_FROM_NAME:-FMCK SMCS}}
+      SUPPORT_EMAIL: ${SUPPORT_EMAIL:-fmcksmcs@gmail.com}
+      SUPPORT_PHONE: ${SUPPORT_PHONE:-+234 810 588 0201}
       BREVO_API_KEY: ${BREVO_API_KEY:-}
     volumes:
       - backend_uploads:/app/uploads
