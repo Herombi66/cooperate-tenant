@@ -50,7 +50,7 @@ const findRecipientUser = async ({ userId, memberId, psn }) => {
 const sendDirectMessage = async (req, res) => {
   try {
     const senderId = req.user.id;
-    if (!['admin', 'secretary', 'chairman', 'treasurer', 'super_admin'].includes(req.user.role)) {
+    if (!['admin', 'secretary', 'assistant_secretary', 'chairman', 'treasurer', 'super_admin'].includes(req.user.role)) {
       return res.status(403).json({ success: false, message: 'Only admins can send direct messages' });
     }
 
@@ -130,7 +130,7 @@ const getMessageHistory = async (req, res) => {
     } else if (scope === 'received') {
       where.recipient_id = req.user.id;
     } else if (scope === 'admin_all') {
-      if (!['admin', 'secretary', 'chairman', 'treasurer', 'super_admin'].includes(req.user.role)) {
+      if (!['admin', 'secretary', 'assistant_secretary', 'chairman', 'treasurer', 'super_admin'].includes(req.user.role)) {
         return res.status(403).json({ success: false, message: 'Not authorized to view all messages' });
       }
       if (user_id) {

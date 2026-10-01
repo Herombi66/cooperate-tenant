@@ -81,7 +81,7 @@ const getLoans = async (req, res) => {
     const whereClause = {};
     
     // Security: Non-admins can only see their own loans
-    const canViewAllLoans = ['admin', 'super_admin', 'chairman', 'secretary', 'treasurer'].includes(req.user.role);
+    const canViewAllLoans = ['admin', 'super_admin', 'chairman', 'secretary', 'assistant_secretary', 'treasurer'].includes(req.user.role);
     if (!canViewAllLoans) {
         whereClause.user_id = req.user.id;
     } else if (user_id) {
@@ -394,7 +394,7 @@ const createLoan = async (req, res) => {
     let targetUserPsn = req.user?.membershipApplication?.psn || null;
     
     // Allow admins to create loans for others
-    if (['admin', 'super_admin', 'secretary'].includes(req.user.role) && memberPsn) {
+    if (['admin', 'super_admin', 'secretary', 'assistant_secretary'].includes(req.user.role) && memberPsn) {
         const cleanMemberPsn = memberPsn.trim();
         // Find user directly via association to handle duplicate PSNs correctly
         // This ensures we find the User that is actually linked to a Membership with this PSN
@@ -852,7 +852,7 @@ const servePayslip = async (req, res) => {
         }
 
         // Security: Ensure admin or owner
-        const isAdmin = ['admin', 'super_admin', 'secretary', 'treasurer', 'chairman'].includes(req.user.role);
+        const isAdmin = ['admin', 'super_admin', 'secretary', 'assistant_secretary', 'treasurer', 'chairman'].includes(req.user.role);
         if (!isAdmin && req.user.id !== loan.user_id) {
             return res.status(403).json({ success: false, message: 'Unauthorized' });
         }
@@ -948,7 +948,7 @@ const updateLoan = async (req, res) => {
     if (!loan) return res.status(404).json({ success: false, message: 'Loan not found' });
 
     // Security Check
-    const canManageLoans = ['admin', 'super_admin', 'chairman', 'treasurer', 'secretary'].includes(req.user.role);
+    const canManageLoans = ['admin', 'super_admin', 'chairman', 'treasurer', 'secretary', 'assistant_secretary'].includes(req.user.role);
     
     if (!canManageLoans) {
         if (loan.user_id !== req.user.id) {
@@ -1293,7 +1293,7 @@ const getGuaranteeRequests = async (req, res) => {
 
 const getGuaranteeSummary = async (req, res) => {
     try {
-        const allowedRoles = ['admin', 'super_admin', 'treasurer', 'chairman', 'secretary'];
+        const allowedRoles = ['admin', 'super_admin', 'treasurer', 'chairman', 'secretary', 'assistant_secretary'];
         if (!allowedRoles.includes(req.user.role)) {
             return res.status(403).json({ success: false, message: 'Access denied. Only admins can view guarantee summary.' });
         }
@@ -1417,7 +1417,7 @@ const getAgreements = async (req, res) => {
 const getAllAgreements = async (req, res) => {
     try {
         // Role check
-        const allowedRoles = ['admin', 'super_admin', 'treasurer', 'chairman', 'secretary'];
+        const allowedRoles = ['admin', 'super_admin', 'treasurer', 'chairman', 'secretary', 'assistant_secretary'];
         if (!allowedRoles.includes(req.user.role)) {
             return res.status(403).json({ success: false, message: 'Access denied. Insufficient privileges.' });
         }
@@ -1907,7 +1907,7 @@ const serveEducationalDocument = async (req, res) => {
         }
 
         // Security check: Admin or owner
-        const isAdmin = ['admin', 'super_admin', 'secretary', 'treasurer', 'chairman'].includes(req.user.role);
+        const isAdmin = ['admin', 'super_admin', 'secretary', 'assistant_secretary', 'treasurer', 'chairman'].includes(req.user.role);
         if (!isAdmin && req.user.id !== doc.user_id) {
              return res.status(403).json({ success: false, message: 'Unauthorized' });
         }

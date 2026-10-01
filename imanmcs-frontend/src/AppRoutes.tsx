@@ -94,15 +94,7 @@ const DashboardRouter: React.FC = () => {
     return <MemberDashboard />;
   }
 
-  if (user?.role === 'treasurer' || user?.role === 'financial_secretary') {
-    return <TreasurerDashboard />;
-  }
-
-  if (user?.role === 'chairman') {
-    return <ChairmanDashboard />;
-  }
-
-  // For admin or super_admin - use the original dashboard
+  // All administrative, leadership, and officer roles view the realtime cooperative statistics overview
   return <DashboardPage />;
 };
 

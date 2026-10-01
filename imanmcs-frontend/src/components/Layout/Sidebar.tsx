@@ -131,6 +131,7 @@ const navigationItems: Record<string, Array<{ name: string; href: string; icon: 
     { name: 'Agreements', href: '/agreements', icon: CheckCircle },
     { name: 'Communication', href: '/communication', icon: MessageSquare },
     { name: 'Cooperative Bylaws', href: '/bylaws', icon: FileText },
+    { name: 'Document Designer', href: '/document-designer', icon: FileSignature },
     { name: 'Reports', href: '/reports', icon: FileText },
   ],
   financial_secretary: [

@@ -80,7 +80,7 @@ const applyForLoan = async (userId, body, uploadedFiles, reqUser, req) => {
 
   let targetUserId = userId;
 
-  if (['admin', 'super_admin', 'secretary'].includes(reqUser.role) && memberPsn) {
+  if (['admin', 'super_admin', 'secretary', 'assistant_secretary'].includes(reqUser.role) && memberPsn) {
     const cleanMemberPsn = memberPsn.trim();
     const user = await User.findOne({
       include: [{

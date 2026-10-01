@@ -16,7 +16,7 @@ const sendBroadcast = async (req, res) => {
       whereClause.status = 'active';
       whereClause.role = 'member';
     } else if (target_group === 'admins') {
-      whereClause.role = { [Op.in]: ['admin', 'super_admin', 'secretary', 'treasurer', 'chairman'] };
+      whereClause.role = { [Op.in]: ['admin', 'super_admin', 'secretary', 'assistant_secretary', 'treasurer', 'chairman'] };
     } else if (target_group === 'all') {
       // No filter, all users
     } else {

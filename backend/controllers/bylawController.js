@@ -42,7 +42,7 @@ const upload = multer({
   }
 });
 
-const allowedAdminRoles = ['admin', 'super_admin', 'chairman', 'president', 'treasurer', 'secretary'];
+const allowedAdminRoles = ['admin', 'super_admin', 'chairman', 'president', 'treasurer', 'secretary', 'assistant_secretary'];
 
 /**
  * Upload or replace cooperative bylaw PDF

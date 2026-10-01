@@ -236,7 +236,7 @@ const createContribution = async (req, res) => {
 
     const requesterRole = String(req.user?.role || '').toLowerCase().trim();
     const isMemberRequester = requesterRole === 'member';
-    const isPrivilegedRequester = ['admin', 'super_admin', 'treasurer', 'chairman', 'secretary', 'manager', 'operator'].includes(requesterRole);
+    const isPrivilegedRequester = ['admin', 'super_admin', 'treasurer', 'chairman', 'secretary', 'assistant_secretary', 'manager', 'operator'].includes(requesterRole);
 
     if (!isMemberRequester && !isPrivilegedRequester) {
       return res.status(403).json({ success: false, message: 'Access denied.' });
@@ -294,7 +294,7 @@ const createContribution = async (req, res) => {
     }
 
     // RBAC: Prevent executive roles from receiving contributions
-    const RESTRICTED_ROLES = ['chairman', 'treasurer', 'secretary'];
+    const RESTRICTED_ROLES = ['chairman', 'treasurer', 'secretary', 'assistant_secretary'];
     if (RESTRICTED_ROLES.includes(user.role)) {
       return res.status(403).json({
         success: false,
@@ -694,7 +694,7 @@ const createContributionByPsn = async (req, res) => {
     }
 
     // RBAC: Prevent executive roles from receiving contributions
-    const RESTRICTED_ROLES = ['chairman', 'treasurer', 'secretary'];
+    const RESTRICTED_ROLES = ['chairman', 'treasurer', 'secretary', 'assistant_secretary'];
     if (RESTRICTED_ROLES.includes(user.role)) {
       return res.status(403).json({
         success: false,
@@ -912,7 +912,7 @@ const bulkUploadContributions = async (req, res) => {
   const normalizeRole = (role) => String(role || '').toLowerCase().trim();
   const canUpload = (user) => {
     const role = normalizeRole(user?.role);
-    return ['admin', 'super_admin', 'chairman', 'treasurer', 'secretary', 'manager', 'operator'].includes(role);
+    return ['admin', 'super_admin', 'chairman', 'treasurer', 'secretary', 'assistant_secretary', 'manager', 'operator'].includes(role);
   };
 
   const isTransientDbError = (err) => {
@@ -1361,7 +1361,7 @@ const bulkUploadContributions = async (req, res) => {
           addError(rowNumber, recordKey, 'MEMBER_NOT_FOUND', `No active user account found for PSN '${String(psn).trim()}'.`, { suggestion: 'Ensure the member has an active account and is not disabled.' }, rawRecord);
           continue;
         }
-        const restricted = ['chairman', 'treasurer', 'secretary'];
+        const restricted = ['chairman', 'treasurer', 'secretary', 'assistant_secretary'];
         if (restricted.includes(String(member.role || '').toLowerCase())) {
           ineligibleMemberCount += 1;
           addError(rowNumber, recordKey, 'RESTRICTED_ROLE', `Skipped: ${member.role} accounts cannot receive contributions`, { suggestion: 'Use the regular member account PSN.' }, rawRecord);
@@ -1591,7 +1591,7 @@ async function processContributionForPsn(psn, totalAmount, month, year, paymentM
     }
 
     // RBAC: Prevent executive roles from receiving contributions
-    const RESTRICTED_ROLES = ['chairman', 'treasurer', 'secretary'];
+    const RESTRICTED_ROLES = ['chairman', 'treasurer', 'secretary', 'assistant_secretary'];
     if (RESTRICTED_ROLES.includes(user.role)) {
       return { success: false, error: `Skipped: ${user.role} accounts cannot receive contributions` };
     }
@@ -1740,7 +1740,7 @@ async function processTypedContribution(psn, type, amount, month, year, paymentM
     }
 
     // RBAC: Prevent executive roles from receiving contributions
-    const RESTRICTED_ROLES = ['chairman', 'treasurer', 'secretary'];
+    const RESTRICTED_ROLES = ['chairman', 'treasurer', 'secretary', 'assistant_secretary'];
     if (RESTRICTED_ROLES.includes(user.role)) {
       return { success: false, error: `Skipped: ${user.role} accounts cannot receive contributions` };
     }

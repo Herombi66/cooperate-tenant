@@ -2943,7 +2943,7 @@ const updateGroupSettings = async (req, res) => {
 const updateSeasonalProgramStatus = async (req, res) => {
   try {
     const { user } = req;
-    if (!user || !['admin', 'super_admin', 'treasurer', 'chairman', 'secretary'].includes(user.role)) {
+    if (!user || !['admin', 'super_admin', 'treasurer', 'chairman', 'secretary', 'assistant_secretary'].includes(user.role)) {
       return res.status(403).json({
         success: false,
         message: 'Insufficient permissions to update seasonal program status'

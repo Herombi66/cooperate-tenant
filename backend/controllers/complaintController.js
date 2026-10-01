@@ -72,7 +72,7 @@ exports.createComplaint = async (req, res) => {
         try {
             const admins = await User.findAll({ 
                 where: { 
-                    role: { [Op.in]: ['admin', 'secretary', 'chairman'] } 
+                    role: { [Op.in]: ['admin', 'secretary', 'assistant_secretary', 'chairman'] } 
                 },
                 attributes: ['id'],
                 include: [{
@@ -122,7 +122,7 @@ exports.getComplaints = async (req, res) => {
         const where = {};
         
         // If not admin/secretary, can only see own complaints
-        if (!['admin', 'secretary', 'chairman'].includes(req.user.role)) {
+        if (!['admin', 'secretary', 'assistant_secretary', 'chairman'].includes(req.user.role)) {
             where.user_id = req.user.id;
         }
 
@@ -221,7 +221,7 @@ exports.getComplaintById = async (req, res) => {
         }
 
         // Access control
-        if (!['admin', 'secretary', 'chairman'].includes(req.user.role) && complaint.user_id !== req.user.id) {
+        if (!['admin', 'secretary', 'assistant_secretary', 'chairman'].includes(req.user.role) && complaint.user_id !== req.user.id) {
             return res.status(403).json({ message: 'Access denied' });
         }
 
@@ -258,7 +258,7 @@ exports.updateComplaint = async (req, res) => {
         }
 
         // Only admins can update status/assign/resolve
-        if (!['admin', 'secretary', 'chairman'].includes(req.user.role)) {
+        if (!['admin', 'secretary', 'assistant_secretary', 'chairman'].includes(req.user.role)) {
             return res.status(403).json({ message: 'Only admins can update complaint status' });
         }
 
@@ -305,7 +305,7 @@ exports.bulkAction = async (req, res) => {
     try {
         const { ids, action, data } = req.body;
         
-        if (!['admin', 'secretary', 'chairman'].includes(req.user.role)) {
+        if (!['admin', 'secretary', 'assistant_secretary', 'chairman'].includes(req.user.role)) {
             return res.status(403).json({ message: 'Access denied' });
         }
 
@@ -341,7 +341,7 @@ exports.bulkAction = async (req, res) => {
 
 exports.getStats = async (req, res) => {
     try {
-        if (!['admin', 'secretary', 'chairman'].includes(req.user.role)) {
+        if (!['admin', 'secretary', 'assistant_secretary', 'chairman'].includes(req.user.role)) {
             return res.status(403).json({ message: 'Access denied' });
         }
 

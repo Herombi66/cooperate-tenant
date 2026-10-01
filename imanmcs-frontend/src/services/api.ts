@@ -27,7 +27,7 @@ api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
         (method === 'put' && (url.startsWith('/auth/change-password') || url.startsWith('/auth/profile'))) ||
         (method === 'patch' && url.startsWith('/auth/profile'));
 
-      if (role === 'secretary' && isWrite && !isAllowedWrite) {
+      if ((role === 'secretary' || role === 'assistant_secretary') && isWrite && !isAllowedWrite) {
         return Promise.reject(new Error(tSystemStatic('viewOnlyWriteDisabled')));
       }
     } catch {}

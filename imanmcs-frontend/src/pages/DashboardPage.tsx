@@ -12,21 +12,18 @@ export const DashboardPage: React.FC = () => {
 
   const renderDashboard = () => {
     switch (user.role) {
+      case 'member':
+        return <MemberDashboard />;
       case 'admin':
       case 'super_admin':
+      case 'chairman':
       case 'secretary':
       case 'assistant_secretary':
+      case 'treasurer':
+      case 'financial_secretary':
       case 'auditor':
       case 'state_auditor':
       case 'pro':
-        return <AdminDashboard />;
-      case 'member':
-        return <MemberDashboard />;
-      case 'treasurer':
-      case 'financial_secretary':
-        return <TreasurerDashboard />;
-      case 'chairman':
-        return <ChairmanDashboard />;
       default:
         return <AdminDashboard />;
     }

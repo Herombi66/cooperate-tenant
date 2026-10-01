@@ -149,7 +149,7 @@ const getGuaranteeRequests = async (req, res) => {
 
 const getGuaranteeSummary = async (req, res) => {
     try {
-        const allowedRoles = ['admin', 'super_admin', 'treasurer', 'chairman', 'secretary'];
+        const allowedRoles = ['admin', 'super_admin', 'treasurer', 'chairman', 'secretary', 'assistant_secretary'];
         if (!allowedRoles.includes(req.user.role)) {
             return res.status(403).json({ success: false, message: 'Access denied. Only admins can view guarantee summary.' });
         }

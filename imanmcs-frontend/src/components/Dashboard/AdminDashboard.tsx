@@ -349,14 +349,25 @@ export const AdminDashboard: React.FC = () => {
             <div className="font-medium">Manage Expenses</div>
             <div className="text-sm text-gray-500">Track cooperative expenses</div>
           </button>
-          <button
-            onClick={() => navigate('/settings')}
-            className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left transition-colors"
-          >
-            <Settings className="w-6 h-6 text-primary-500 mb-2" />
-            <div className="font-medium">System Settings</div>
-            <div className="text-sm text-gray-500">Configure system parameters</div>
-          </button>
+          {['admin', 'super_admin'].includes(user?.role || '') ? (
+            <button
+              onClick={() => navigate('/settings')}
+              className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left transition-colors"
+            >
+              <Settings className="w-6 h-6 text-primary-500 mb-2" />
+              <div className="font-medium">System Settings</div>
+              <div className="text-sm text-gray-500">Configure system parameters</div>
+            </button>
+          ) : (
+            <button
+              onClick={() => navigate('/bylaws')}
+              className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left transition-colors"
+            >
+              <FileText className="w-6 h-6 text-primary-500 mb-2" />
+              <div className="font-medium">Cooperative Bylaws</div>
+              <div className="text-sm text-gray-500">View & download official bylaws</div>
+            </button>
+          )}
         </div>
       </div>
 

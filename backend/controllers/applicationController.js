@@ -439,7 +439,7 @@ const checkDuplicateApplication = async (req, res) => {
 const getApplications = async (req, res) => {
   try {
     // Role check
-    const allowedRoles = ['admin', 'super_admin', 'treasurer', 'chairman', 'secretary'];
+    const allowedRoles = ['admin', 'super_admin', 'treasurer', 'chairman', 'secretary', 'assistant_secretary'];
     if (!allowedRoles.includes(req.user.role)) {
       return res.status(403).json({
         success: false,

@@ -101,7 +101,7 @@ const authenticateToken = async (req, res, next) => {
       }
     }
 
-    if (user.role === 'secretary') {
+    if (user.role === 'secretary' || user.role === 'assistant_secretary') {
       const method = (req.method || '').toUpperCase();
       const isReadMethod = method === 'GET' || method === 'HEAD' || method === 'OPTIONS';
       const isAllowedWrite =
@@ -112,7 +112,7 @@ const authenticateToken = async (req, res, next) => {
       if (!isReadMethod && !isAllowedWrite) {
         return res.status(403).json({
           success: false,
-          message: 'Access denied. Secretary role is view-only.'
+          message: 'Access denied. Secretarial role is view-only.'
         });
       }
 

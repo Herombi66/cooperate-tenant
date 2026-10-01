@@ -763,7 +763,7 @@ const getMemberStatementReport = async (req, res) => {
 
     // Verify permission: member can view their own, staff can view any
     const currentUser = req.user;
-    const allowedStaff = ['admin', 'super_admin', 'chairman', 'secretary', 'treasurer', 'state_auditor'];
+    const allowedStaff = ['admin', 'super_admin', 'chairman', 'secretary', 'assistant_secretary', 'treasurer', 'state_auditor'];
     const isStaff = allowedStaff.includes(currentUser?.role);
     const isSelf = currentUser?.id === user.id || currentUser?.membershipApplication?.psn === user.membershipApplication?.psn;
 

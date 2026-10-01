@@ -15,12 +15,12 @@ const normalizeRole = (role) => String(role || '').toLowerCase().trim();
 
 const canView = (user) => {
   const role = normalizeRole(user?.role);
-  return ['admin', 'super_admin', 'chairman', 'treasurer', 'secretary', 'admin', 'manager', 'operator', 'viewer'].includes(role);
+  return ['admin', 'super_admin', 'chairman', 'treasurer', 'secretary', 'assistant_secretary', 'admin', 'manager', 'operator', 'viewer'].includes(role);
 };
 
 const canUpload = (user) => {
   const role = normalizeRole(user?.role);
-  return ['admin', 'super_admin', 'chairman', 'treasurer', 'secretary', 'admin', 'manager', 'operator'].includes(role);
+  return ['admin', 'super_admin', 'chairman', 'treasurer', 'secretary', 'assistant_secretary', 'admin', 'manager', 'operator'].includes(role);
 };
 
 const canApprove = (user) => {

@@ -9,7 +9,7 @@ try {
 
 const requireStaff = (user) => {
   const role = String(user?.role || '').toLowerCase().trim();
-  const allowedRoles = ['admin', 'super_admin', 'chairman', 'treasurer', 'secretary', 'manager', 'operator', 'viewer', 'state_auditor'];
+  const allowedRoles = ['admin', 'super_admin', 'chairman', 'treasurer', 'secretary', 'assistant_secretary', 'manager', 'operator', 'viewer', 'state_auditor'];
   return allowedRoles.includes(role);
 };
 

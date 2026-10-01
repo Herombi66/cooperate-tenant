@@ -338,9 +338,23 @@ const calculateDisbursedStats = async (period = 'last_6_months', loanType = 'all
     return { total_disbursed: total, series };
 };
 
+const ALLOWED_STATS_ROLES = [
+  'admin',
+  'super_admin',
+  'chairman',
+  'president',
+  'secretary',
+  'assistant_secretary',
+  'treasurer',
+  'financial_secretary',
+  'auditor',
+  'state_auditor',
+  'pro'
+];
+
 const getAdminStats = async (req, res) => {
   try {
-    if (req.user.role !== 'admin' && req.user.role !== 'super_admin') {
+    if (!ALLOWED_STATS_ROLES.includes(req.user.role)) {
       return res.status(403).json({ success: false, message: 'Access denied.' });
     }
     const stats = await calculateSystemStats();
@@ -375,7 +389,7 @@ const getCurrentUserStats = async (req, res) => {
 
 const getChairmanStats = async (req, res) => {
   try {
-    if (!['chairman', 'secretary', 'admin', 'super_admin'].includes(req.user.role)) {
+    if (!['chairman', 'president', 'secretary', 'assistant_secretary', 'admin', 'super_admin'].includes(req.user.role)) {
       return res.status(403).json({ success: false, message: 'Access denied.' });
     }
     const stats = await calculateSystemStats();
@@ -388,7 +402,7 @@ const getChairmanStats = async (req, res) => {
 
 const getTreasurerStats = async (req, res) => {
   try {
-    if (!['treasurer', 'admin', 'super_admin'].includes(req.user.role)) {
+    if (!['treasurer', 'financial_secretary', 'admin', 'super_admin'].includes(req.user.role)) {
       return res.status(403).json({ success: false, message: 'Access denied.' });
     }
     const stats = await calculateSystemStats();
@@ -401,7 +415,7 @@ const getTreasurerStats = async (req, res) => {
 
 const getActivityLogs = async (req, res) => {
   try {
-    if (req.user.role !== 'admin' && req.user.role !== 'super_admin' && req.user.role !== 'state_auditor') {
+    if (!ALLOWED_STATS_ROLES.includes(req.user.role)) {
       return res.status(403).json({ success: false, message: 'Access denied.' });
     }
     const { page = 1, limit = 20, resource_type, resource_id, action, user_id } = req.query;
@@ -459,8 +473,8 @@ const getUnifiedDashboardData = async (req, res) => {
         role: userRole
     };
 
-    if (userRole === 'admin' || userRole === 'super_admin') {
-        // --- Admin Data ---
+    if (ALLOWED_STATS_ROLES.includes(userRole)) {
+        // --- Admin/Leadership Overview Data ---
         const stats = await calculateSystemStats();
         
         // Expenses

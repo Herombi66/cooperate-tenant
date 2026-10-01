@@ -1755,7 +1755,7 @@ const getMemberStatement = async (req, res) => {
     const requestedUserId = parseInt(id, 10);
     const currentUser = req.user;
 
-    const allowedStaff = ['admin', 'super_admin', 'chairman', 'secretary', 'treasurer', 'state_auditor'];
+    const allowedStaff = ['admin', 'super_admin', 'chairman', 'secretary', 'assistant_secretary', 'treasurer', 'state_auditor'];
     const isStaff = allowedStaff.includes(currentUser?.role);
     const isSelf = currentUser?.id === requestedUserId;
 
