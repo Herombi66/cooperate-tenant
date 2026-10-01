@@ -117,7 +117,11 @@ export const MemberDashboard: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [whatsAppHealth, setWhatsAppHealth] = useState<{ ok: boolean; checked_at: string } | null>(null);
 
-  const whatsappInviteUrl = 'https://chat.whatsapp.com/KLhdr510SRrIipgOkmzfjC';
+  const FMCK_WHATSAPP_INVITE_URL = 'https://chat.whatsapp.com/GEhZDvBUnqWC3GoScriAYH';
+  const DEFAULT_WHATSAPP_INVITE_URL = 'https://chat.whatsapp.com/KLhdr510SRrIipgOkmzfjC';
+
+  const whatsappInviteUrl = isFmck ? FMCK_WHATSAPP_INVITE_URL : DEFAULT_WHATSAPP_INVITE_URL;
+  const healthCacheKey = `whatsapp_group_health_${isFmck ? 'fmck' : 'default'}`;
 
   useEffect(() => {
     fetchDashboardData();
@@ -128,7 +132,7 @@ export const MemberDashboard: React.FC = () => {
 
     const readCachedHealth = (): { ok: boolean; checked_at: string } | null => {
       try {
-        const raw = localStorage.getItem('whatsapp_group_health');
+        const raw = localStorage.getItem(healthCacheKey);
         if (!raw) return null;
         const parsed = JSON.parse(raw) as { ok?: boolean; checked_at?: string; expires_at?: number };
         if (!parsed || typeof parsed.ok !== 'boolean' || typeof parsed.checked_at !== 'string') return null;
@@ -142,7 +146,7 @@ export const MemberDashboard: React.FC = () => {
     const writeCachedHealth = (payload: { ok: boolean; checked_at: string }) => {
       try {
         localStorage.setItem(
-          'whatsapp_group_health',
+          healthCacheKey,
           JSON.stringify({ ...payload, expires_at: Date.now() + 6 * 60 * 60 * 1000 })
         );
       } catch {}
