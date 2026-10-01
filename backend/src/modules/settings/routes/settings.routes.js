@@ -37,10 +37,12 @@ const bylawController = require('../../../../controllers/bylawController');
 // Reset settings - admin only
 router.post('/reset', authenticateToken, authorizeRole(['admin', 'super_admin', 'chairman', 'president']), settingsController.resetSettings);
 
+const allowedBylawRoles = ['admin', 'super_admin', 'chairman', 'president', 'treasurer', 'secretary', 'assistant_secretary'];
+
 // Bylaw routes
 router.get('/bylaw', authenticateToken, bylawController.getBylaw);
 router.get('/bylaw/download', authenticateToken, bylawController.downloadBylaw);
-router.post('/bylaw', authenticateToken, authorizeRole(allowedAdminRoles), bylawController.upload.single('bylaw'), bylawController.uploadBylaw);
-router.delete('/bylaw', authenticateToken, authorizeRole(allowedAdminRoles), bylawController.deleteBylaw);
+router.post('/bylaw', authenticateToken, authorizeRole(allowedBylawRoles), bylawController.upload.single('bylaw'), bylawController.uploadBylaw);
+router.delete('/bylaw', authenticateToken, authorizeRole(allowedBylawRoles), bylawController.deleteBylaw);
 
 module.exports = router;

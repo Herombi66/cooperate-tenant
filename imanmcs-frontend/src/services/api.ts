@@ -25,7 +25,8 @@ api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
       const url = config.url || '';
       const isAllowedWrite =
         (method === 'put' && (url.startsWith('/auth/change-password') || url.startsWith('/auth/profile'))) ||
-        (method === 'patch' && url.startsWith('/auth/profile'));
+        (method === 'patch' && url.startsWith('/auth/profile')) ||
+        ((method === 'post' || method === 'delete') && url.includes('/settings/bylaw'));
 
       if ((role === 'secretary' || role === 'assistant_secretary') && isWrite && !isAllowedWrite) {
         return Promise.reject(new Error(tSystemStatic('viewOnlyWriteDisabled')));

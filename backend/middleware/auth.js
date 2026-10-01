@@ -107,7 +107,8 @@ const authenticateToken = async (req, res, next) => {
       const isAllowedWrite =
         (method === 'PUT' && (req.originalUrl || '').startsWith('/auth/change-password')) ||
         (method === 'PUT' && (req.originalUrl || '').startsWith('/auth/profile')) ||
-        (method === 'PATCH' && (req.originalUrl || '').startsWith('/auth/profile'));
+        (method === 'PATCH' && (req.originalUrl || '').startsWith('/auth/profile')) ||
+        ((method === 'POST' || method === 'DELETE') && (req.originalUrl || req.path || '').includes('/settings/bylaw'));
 
       if (!isReadMethod && !isAllowedWrite) {
         return res.status(403).json({

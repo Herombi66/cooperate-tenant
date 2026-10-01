@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { FileText, Download, ExternalLink, Calendar, HardDrive, User, RefreshCw, AlertCircle, ShieldCheck } from 'lucide-react';
+import React, { useEffect, useState, useRef } from 'react';
+import { FileText, Download, ExternalLink, Calendar, HardDrive, User, RefreshCw, AlertCircle, ShieldCheck, Upload, Trash2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTenant } from '../contexts/TenantContext';
 import { settingsService, BylawInfo } from '../services/settingsService';
@@ -12,8 +12,15 @@ export const BylawsPage: React.FC = () => {
   const [bylaw, setBylaw] = useState<BylawInfo | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [downloading, setDownloading] = useState<boolean>(false);
+  const [uploading, setUploading] = useState<boolean>(false);
+  const [deleting, setDeleting] = useState<boolean>(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isAdminRole = user && ['admin', 'super_admin', 'chairman', 'president', 'treasurer'].includes(user.role);
+  const canManageBylaws = !!(
+    user &&
+    ['admin', 'super_admin', 'chairman', 'president', 'treasurer', 'secretary', 'assistant_secretary'].includes(user.role)
+  );
 
   const fetchBylaw = async () => {
     try {
@@ -52,6 +59,64 @@ export const BylawsPage: React.FC = () => {
   const handleOpenInNewTab = () => {
     const url = settingsService.getDownloadBylawUrl();
     window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+      toast.error('Only PDF documents are allowed for cooperative bylaws');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
+    if (file.size > 25 * 1024 * 1024) {
+      toast.error('File size cannot exceed 25MB');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
+    try {
+      setUploading(true);
+      const res = await settingsService.uploadBylaw(file);
+      if (res.success) {
+        toast.success(res.message || 'Bylaws uploaded successfully');
+        if (res.bylaw) {
+          setBylaw(res.bylaw);
+        } else {
+          await fetchBylaw();
+        }
+      } else {
+        toast.error(res.message || 'Failed to upload bylaws');
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Error uploading bylaws document');
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleDeleteBylaw = async () => {
+    if (!window.confirm('Are you sure you want to remove the current cooperative bylaws? Members will no longer be able to view or download it until a new document is uploaded.')) {
+      return;
+    }
+
+    try {
+      setDeleting(true);
+      const res = await settingsService.deleteBylaw();
+      if (res.success) {
+        toast.success(res.message || 'Bylaws removed successfully');
+        setBylaw(null);
+      } else {
+        toast.error(res.message || 'Failed to delete bylaws');
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Error deleting bylaws');
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const formatFileSize = (bytes: number): string => {
@@ -147,6 +212,28 @@ export const BylawsPage: React.FC = () => {
                   <ExternalLink className="w-4 h-4" />
                   Open in New Tab
                 </button>
+                {canManageBylaws && (
+                  <>
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploading || deleting}
+                      className="inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-border bg-card hover:bg-muted text-foreground font-medium rounded-lg transition-colors disabled:opacity-50"
+                      title="Upload a new version to replace the existing bylaws"
+                    >
+                      <Upload className={`w-4 h-4 ${uploading ? 'animate-bounce' : ''}`} />
+                      {uploading ? 'Uploading...' : 'Replace'}
+                    </button>
+                    <button
+                      onClick={handleDeleteBylaw}
+                      disabled={uploading || deleting}
+                      className="inline-flex items-center justify-center gap-2 px-3.5 py-2.5 border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-950/40 font-medium rounded-lg transition-colors disabled:opacity-50"
+                      title="Remove current bylaws"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      {deleting ? 'Deleting...' : 'Delete'}
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -182,16 +269,37 @@ export const BylawsPage: React.FC = () => {
             The official cooperative bylaws and constitution have not yet been uploaded by the administration.
             Please check back later or contact management for further inquiries.
           </p>
-          {isAdminRole && (
-            <NavLink
-              to="/settings"
-              className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors shadow-sm"
-            >
-              Upload Bylaws in Settings
-            </NavLink>
+          {canManageBylaws && (
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors shadow-sm disabled:opacity-50"
+              >
+                <Upload className={`w-4 h-4 ${uploading ? 'animate-bounce' : ''}`} />
+                {uploading ? 'Uploading Bylaws...' : 'Upload Bylaw (PDF)'}
+              </button>
+              {isAdminRole && (
+                <NavLink
+                  to="/settings"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 border border-border bg-card hover:bg-muted text-foreground font-medium rounded-lg transition-colors"
+                >
+                  Manage in Settings
+                </NavLink>
+              )}
+            </div>
           )}
         </div>
       )}
+
+      {/* Hidden file input for uploading/replacing bylaws */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        accept=".pdf,application/pdf"
+        className="hidden"
+      />
     </div>
   );
 };

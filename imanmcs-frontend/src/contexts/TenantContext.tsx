@@ -226,6 +226,11 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         if (isFmck && typeof document !== 'undefined') {
           document.documentElement.style.setProperty('--fmck-primary', '#03490b');
           document.documentElement.style.setProperty('--fmck-secondary', '#5cd674');
+          document.title = 'FMCKSMCS | Federal Medical Centre Kumo Staff MPCS';
+          const iconLinks = document.querySelectorAll("link[rel*='icon'], link[rel='apple-touch-icon']");
+          iconLinks.forEach((el) => {
+            (el as HTMLLinkElement).href = '/fmck-logo.png';
+          });
         }
       } else {
         setError('Failed to load tenant configuration');
