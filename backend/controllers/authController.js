@@ -359,57 +359,85 @@ const updateProfile = async (req, res) => {
     }
 
     const application = user.membershipApplication;
-    if (!application) {
-      return res.status(404).json({
-        success: false,
-        message: 'Profile not found'
-      });
-    }
 
     // Handle profile image upload
-    let profileImagePath = application.profile_image;
+    let profileImagePath = application?.profile_image || user.metadata?.profile_image || null;
     if (req.file) {
-      // Generate unique filename
       const crypto = require('crypto');
-      const fileExtension = req.file.originalname.split('.').pop();
-      const uniqueFilename = `profile-${crypto.randomBytes(16).toString('hex')}.${fileExtension}`;
+      const ext = (req.file.originalname?.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '');
+      const uniqueFilename = `profile-${crypto.randomBytes(16).toString('hex')}.${ext || 'jpg'}`;
       profileImagePath = `/uploads/${uniqueFilename}`;
 
-      // Move file to uploads directory
       const fs = require('fs');
       const path = require('path');
-      const uploadPath = path.join(__dirname, '../uploads', uniqueFilename);
-
-      // Ensure uploads directory exists
       const uploadsDir = path.join(__dirname, '../uploads');
       if (!fs.existsSync(uploadsDir)) {
         fs.mkdirSync(uploadsDir, { recursive: true });
       }
 
-      // Write file
+      const uploadPath = path.join(uploadsDir, uniqueFilename);
       fs.writeFileSync(uploadPath, req.file.buffer);
-
       console.log('📸 Profile image uploaded:', profileImagePath);
     }
 
-    // Update membership application with new data
-    await application.update({
-      name: name || application.name,
-      email: email || application.email,
-      phone: phone || application.phone,
-      address: address || application.address,
-      date_of_birth: dateOfBirth || application.date_of_birth,
-      gender: gender || application.gender,
-      marital_status: maritalStatus || application.marital_status,
-      next_of_kin_name: nextOfKin || application.next_of_kin_name,
-      next_of_kin_phone: nextOfKinPhone || application.next_of_kin_phone,
-      facility_name: facilityName || application.facility_name,
-      position: position || application.position,
-      department: department || application.department,
-      years_of_experience: yearsOfExperience || application.years_of_experience,
-      employee_id: employeeId || application.employee_id,
-      monthly_income: monthlyIncome || application.monthly_income,
-      profile_image: profileImagePath
+    // Sanitize fields to prevent PostgreSQL syntax errors with empty strings
+    const sanitizedUpdate = {};
+    if (name !== undefined) sanitizedUpdate.name = String(name || '').trim();
+    if (email !== undefined) sanitizedUpdate.email = String(email || '').trim();
+    if (phone !== undefined) sanitizedUpdate.phone = String(phone || '').trim();
+    if (address !== undefined) sanitizedUpdate.address = address ? String(address).trim() : null;
+
+    if (dateOfBirth !== undefined) {
+      const cleanDate = String(dateOfBirth || '').trim();
+      sanitizedUpdate.date_of_birth = cleanDate ? cleanDate : null;
+    }
+
+    if (gender !== undefined) {
+      const cleanGender = String(gender || '').trim();
+      sanitizedUpdate.gender = ['Male', 'Female'].includes(cleanGender) ? cleanGender : null;
+    }
+
+    if (maritalStatus !== undefined) {
+      const cleanStatus = String(maritalStatus || '').trim();
+      sanitizedUpdate.marital_status = ['Single', 'Married', 'Divorced', 'Widowed'].includes(cleanStatus) ? cleanStatus : null;
+    }
+
+    if (nextOfKin !== undefined) sanitizedUpdate.next_of_kin_name = nextOfKin ? String(nextOfKin).trim() : null;
+    if (nextOfKinPhone !== undefined) sanitizedUpdate.next_of_kin_phone = nextOfKinPhone ? String(nextOfKinPhone).trim() : null;
+    if (facilityName !== undefined) sanitizedUpdate.facility_name = facilityName ? String(facilityName).trim() : null;
+    if (position !== undefined) sanitizedUpdate.position = position ? String(position).trim() : null;
+    if (department !== undefined) sanitizedUpdate.department = department ? String(department).trim() : null;
+
+    if (yearsOfExperience !== undefined) {
+      const parsedYears = parseInt(String(yearsOfExperience || '').replace(/[^0-9]/g, ''), 10);
+      sanitizedUpdate.years_of_experience = isNaN(parsedYears) ? null : parsedYears;
+    }
+
+    if (employeeId !== undefined) sanitizedUpdate.employee_id = employeeId ? String(employeeId).trim() : null;
+
+    if (monthlyIncome !== undefined) {
+      const parsedIncome = parseFloat(String(monthlyIncome || '').replace(/[^0-9.]/g, ''));
+      sanitizedUpdate.monthly_income = isNaN(parsedIncome) ? null : parsedIncome;
+    }
+
+    if (profileImagePath) {
+      sanitizedUpdate.profile_image = profileImagePath;
+    }
+
+    if (application) {
+      await application.update(sanitizedUpdate);
+    }
+
+    // Always sync metadata on User model
+    const currentMeta = user.metadata || {};
+    await user.update({
+      metadata: {
+        ...currentMeta,
+        name: sanitizedUpdate.name || currentMeta.name || application?.name,
+        email: sanitizedUpdate.email || currentMeta.email || application?.email,
+        phone: sanitizedUpdate.phone || currentMeta.phone || application?.phone,
+        profile_image: profileImagePath || currentMeta.profile_image || application?.profile_image
+      }
     });
 
     console.log('✅ Profile updated successfully for user:', user.id);

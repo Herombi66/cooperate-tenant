@@ -227,6 +227,11 @@ app.use('/uploads', (req, res, next) => {
 // API ROUTES
 // -----------------------------
 const apiRouter = express.Router();
+apiRouter.use('/uploads', (req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  express.static(path.join(__dirname, 'uploads'))(req, res, next);
+});
 apiRouter.get('/health', healthCheckHandler);
 apiRouter.use('/', indexRouter);
 apiRouter.use('/users', usersRouter);
