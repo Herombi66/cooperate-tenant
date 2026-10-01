@@ -438,53 +438,49 @@ export const MemberDashboard: React.FC = () => {
 
 
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        {/* Share Eligibility */}
-        <div className="bg-card text-card-foreground border border-border p-6 rounded-xl shadow-sm">
-          <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
-            <Target className="w-5 h-5 mr-2 text-primary-600 dark:text-primary-400" />
-            Share Eligibility
-          </h3>
-          <div className="space-y-4">
-            <div className="flex justify-between items-center p-3 bg-primary-50/50 dark:bg-primary-950/30 border border-primary-100 dark:border-primary-900/40 rounded-lg">
-              <span className="text-sm font-medium text-primary-900 dark:text-primary-200">Minimum Shares Required</span>
-              <span className="font-bold text-primary-900 dark:text-primary-200">{toCurrency(memberData.settings.minimum_shares || 20000)}</span>
-            </div>
-            <div className="flex justify-between items-center p-3 bg-primary-50 dark:bg-primary-950/40 border border-primary-100 dark:border-primary-900/40 rounded-lg">
-              <span className="text-sm font-medium text-primary-900 dark:text-primary-200">Maximum Shares Eligibility</span>
-              <span className="font-bold text-primary-900 dark:text-primary-200">{memberData.settings.maximum_shares_percent || 20}% of total</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Loan Eligibility */}
-        <div className="bg-card text-card-foreground border border-border p-6 rounded-xl shadow-sm">
-          <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
-            <CreditCard className="w-5 h-5 mr-2 text-primary-600 dark:text-primary-400" />
-            Loan Eligibility
-          </h3>
-          <div className={`grid grid-cols-1 md:grid-cols-3 ${isFmck ? 'lg:grid-cols-4' : ''} gap-4`}>
-            <div className="p-3 bg-primary-50/40 dark:bg-primary-950/30 rounded-lg border border-primary-100 dark:border-primary-900/40">
-              <div className="text-xs text-primary-700 dark:text-primary-300 font-semibold mb-1">Emergency Loan</div>
-              <div className="text-lg font-bold text-primary-900 dark:text-primary-100">{toCurrency(memberData.settings.emergency_loan_limit || 20000)}</div>
-            </div>
-            <div className="p-3 bg-primary-50/60 dark:bg-primary-950/40 rounded-lg border border-primary-100 dark:border-primary-900/40">
-              <div className="text-xs text-primary-700 dark:text-primary-300 font-semibold mb-1">Cash Loan</div>
-              <div className="text-lg font-bold text-primary-900 dark:text-primary-100">{toCurrency(memberData.settings.cash_loan_limit || 500000)}</div>
-            </div>
-            <div className="p-3 bg-primary-50/80 dark:bg-primary-950/50 rounded-lg border border-primary-100 dark:border-primary-900/40">
-              <div className="text-xs text-primary-700 dark:text-primary-300 font-semibold mb-1">{formatLoanType('venture')}</div>
-              <div className="text-lg font-bold text-primary-900 dark:text-primary-100">{toCurrency(memberData.settings.venture_loan_limit || memberData.settings.investment_loan_limit || 1000000)}</div>
-            </div>
-            {isFmck && (
-              <div className="p-3 bg-primary-100/50 dark:bg-primary-950/60 rounded-lg border border-primary-200 dark:border-primary-900/50">
-                <div className="text-xs text-primary-700 dark:text-primary-300 font-semibold mb-1">Educational Loan</div>
-                <div className="text-lg font-bold text-primary-900 dark:text-primary-100">{toCurrency(memberData.settings.educational_loan_limit || 500000)}</div>
+      {!isFmck && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          {/* Share Eligibility */}
+          <div className="bg-card text-card-foreground border border-border p-6 rounded-xl shadow-sm">
+            <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
+              <Target className="w-5 h-5 mr-2 text-primary-600 dark:text-primary-400" />
+              Share Eligibility
+            </h3>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center p-3 bg-primary-50/50 dark:bg-primary-950/30 border border-primary-100 dark:border-primary-900/40 rounded-lg">
+                <span className="text-sm font-medium text-primary-900 dark:text-primary-200">Minimum Shares Required</span>
+                <span className="font-bold text-primary-900 dark:text-primary-200">{toCurrency(memberData.settings.minimum_shares || 20000)}</span>
               </div>
-            )}
+              <div className="flex justify-between items-center p-3 bg-primary-50 dark:bg-primary-950/40 border border-primary-100 dark:border-primary-900/40 rounded-lg">
+                <span className="text-sm font-medium text-primary-900 dark:text-primary-200">Maximum Shares Eligibility</span>
+                <span className="font-bold text-primary-900 dark:text-primary-200">{memberData.settings.maximum_shares_percent || 20}% of total</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Loan Eligibility */}
+          <div className="bg-card text-card-foreground border border-border p-6 rounded-xl shadow-sm">
+            <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
+              <CreditCard className="w-5 h-5 mr-2 text-primary-600 dark:text-primary-400" />
+              Loan Eligibility
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="p-3 bg-primary-50/40 dark:bg-primary-950/30 rounded-lg border border-primary-100 dark:border-primary-900/40">
+                <div className="text-xs text-primary-700 dark:text-primary-300 font-semibold mb-1">Emergency Loan</div>
+                <div className="text-lg font-bold text-primary-900 dark:text-primary-100">{toCurrency(memberData.settings.emergency_loan_limit || 20000)}</div>
+              </div>
+              <div className="p-3 bg-primary-50/60 dark:bg-primary-950/40 rounded-lg border border-primary-100 dark:border-primary-900/40">
+                <div className="text-xs text-primary-700 dark:text-primary-300 font-semibold mb-1">Cash Loan</div>
+                <div className="text-lg font-bold text-primary-900 dark:text-primary-100">{toCurrency(memberData.settings.cash_loan_limit || 500000)}</div>
+              </div>
+              <div className="p-3 bg-primary-50/80 dark:bg-primary-950/50 rounded-lg border border-primary-100 dark:border-primary-900/40">
+                <div className="text-xs text-primary-700 dark:text-primary-300 font-semibold mb-1">{formatLoanType('venture')}</div>
+                <div className="text-lg font-bold text-primary-900 dark:text-primary-100">{toCurrency(memberData.settings.venture_loan_limit || memberData.settings.investment_loan_limit || 1000000)}</div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         {/* Savings Progress */}
@@ -645,71 +641,106 @@ export const MemberDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Layyah Applications */}
-        <div className="bg-card text-card-foreground border border-border p-6 rounded-xl shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-foreground flex items-center">
-              <Heart className="w-5 h-5 mr-2 text-primary-600 dark:text-primary-400" />
-              Layyah Applications
-            </h3>
-            <button className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 font-medium">
-              View All
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-            <div className="text-center p-3 bg-primary-50/50 dark:bg-primary-950/30 border border-primary-100 dark:border-primary-900/40 rounded-lg">
-              <div className="text-2xl font-bold text-primary-700 dark:text-primary-300">{memberData.layyahApplications}</div>
-              <div className="text-sm text-muted-foreground">My Applications</div>
+        {/* Layyah Applications (Non-FMCK) or WhatsApp Community Card (FMCK) */}
+        {!isFmck ? (
+          <div className="bg-card text-card-foreground border border-border p-6 rounded-xl shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-foreground flex items-center">
+                <Heart className="w-5 h-5 mr-2 text-primary-600 dark:text-primary-400" />
+                Layyah Applications
+              </h3>
+              <button className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 font-medium">
+                View All
+              </button>
             </div>
-            <div className="text-center p-3 bg-primary-50 dark:bg-primary-950/40 border border-primary-100 dark:border-primary-900/40 rounded-lg">
-              <div className="text-2xl font-bold text-primary-700 dark:text-primary-300">{memberData.activeLayyahGroups}</div>
-              <div className="text-sm text-muted-foreground">Active Groups</div>
-            </div>
-            <div className="text-center p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/40 rounded-lg">
-              <div className="text-2xl font-bold text-amber-700 dark:text-amber-400">{memberData.pendingInvitations}</div>
-              <div className="text-sm text-muted-foreground">Pending Invites</div>
-            </div>
-          </div>
 
-          <div className="flex space-x-3">
-            <button
-              className="flex-1 flex items-center justify-center space-x-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
-              type="button"
-              onClick={() => navigate('/my-layyah')}
-            >
-              <Plus className="w-4 h-4" />
-              <span>New Application</span>
-            </button>
-            <button
-              className="flex-1 flex items-center justify-center space-x-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 transition-colors"
-              type="button"
-              onClick={() => navigate('/browse-layyah')}
-            >
-              <Heart className="w-4 h-4" />
-              <span>Browse Groups</span>
-            </button>
-          </div>
-
-          <div className="mt-4">
-            <a
-              href={whatsappInviteUrl}
-              onClick={handleWhatsappInviteClick}
-              className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
-              aria-label="Join the cooperative WhatsApp group"
-              rel="noopener noreferrer"
-            >
-              <MessageCircle className="w-4 h-4" />
-              <span>Join WhatsApp Group</span>
-              <ExternalLink className="w-4 h-4 opacity-90" />
-            </a>
-            {whatsAppHealth && !whatsAppHealth.ok && (
-              <div className="mt-2 text-xs text-yellow-700 bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-2">
-                WhatsApp invite link may be unavailable. Last checked: {new Date(whatsAppHealth.checked_at).toLocaleString()}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              <div className="text-center p-3 bg-primary-50/50 dark:bg-primary-950/30 border border-primary-100 dark:border-primary-900/40 rounded-lg">
+                <div className="text-2xl font-bold text-primary-700 dark:text-primary-300">{memberData.layyahApplications}</div>
+                <div className="text-sm text-muted-foreground">My Applications</div>
               </div>
-            )}
+              <div className="text-center p-3 bg-primary-50 dark:bg-primary-950/40 border border-primary-100 dark:border-primary-900/40 rounded-lg">
+                <div className="text-2xl font-bold text-primary-700 dark:text-primary-300">{memberData.activeLayyahGroups}</div>
+                <div className="text-sm text-muted-foreground">Active Groups</div>
+              </div>
+              <div className="text-center p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/40 rounded-lg">
+                <div className="text-2xl font-bold text-amber-700 dark:text-amber-400">{memberData.pendingInvitations}</div>
+                <div className="text-sm text-muted-foreground">Pending Invites</div>
+              </div>
+            </div>
+
+            <div className="flex space-x-3">
+              <button
+                className="flex-1 flex items-center justify-center space-x-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                type="button"
+                onClick={() => navigate('/my-layyah')}
+              >
+                <Plus className="w-4 h-4" />
+                <span>New Application</span>
+              </button>
+              <button
+                className="flex-1 flex items-center justify-center space-x-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 transition-colors"
+                type="button"
+                onClick={() => navigate('/browse-layyah')}
+              >
+                <Heart className="w-4 h-4" />
+                <span>Browse Groups</span>
+              </button>
+            </div>
+
+            <div className="mt-4">
+              <a
+                href={whatsappInviteUrl}
+                onClick={handleWhatsappInviteClick}
+                className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                aria-label="Join the cooperative WhatsApp group"
+                rel="noopener noreferrer"
+              >
+                <MessageCircle className="w-4 h-4" />
+                <span>Join WhatsApp Group</span>
+                <ExternalLink className="w-4 h-4 opacity-90" />
+              </a>
+              {whatsAppHealth && !whatsAppHealth.ok && (
+                <div className="mt-2 text-xs text-yellow-700 bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-2">
+                  WhatsApp invite link may be unavailable. Last checked: {new Date(whatsAppHealth.checked_at).toLocaleString()}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="bg-card text-card-foreground border border-border p-6 rounded-xl shadow-sm flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-foreground flex items-center">
+                  <MessageCircle className="w-5 h-5 mr-2 text-primary-600 dark:text-primary-400" />
+                  Official Community Group
+                </h3>
+              </div>
+              <p className="text-sm text-muted-foreground mb-4">
+                Join our official WhatsApp group for members of Federal Medical Centre Kumo Staff MPCS to receive announcements, updates, and community support.
+              </p>
+            </div>
+
+            <div className="mt-4">
+              <a
+                href={whatsappInviteUrl}
+                onClick={handleWhatsappInviteClick}
+                className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium shadow-sm"
+                aria-label="Join the cooperative WhatsApp group"
+                rel="noopener noreferrer"
+              >
+                <MessageCircle className="w-5 h-5" />
+                <span>Join WhatsApp Group</span>
+                <ExternalLink className="w-4 h-4 opacity-90" />
+              </a>
+              {whatsAppHealth && !whatsAppHealth.ok && (
+                <div className="mt-2 text-xs text-yellow-700 bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-2">
+                  WhatsApp invite link may be unavailable. Last checked: {new Date(whatsAppHealth.checked_at).toLocaleString()}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Loan Repayment Overview */}
