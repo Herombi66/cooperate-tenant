@@ -1,22 +1,27 @@
 {
-  "name": "IMAN MCS - Cooperative Banking System",
-  "short_name": "IMAN MCS",
-  "description": "Integrated Management and Cooperative System for IMAN Cooperative Society",
-  "theme_color": "#0f766e",
+  "name": "Federal Medical Centre Kumo Staff MPCS (FMCKSMCS)",
+  "short_name": "FMCKSMCS",
+  "description": "Federal Medical Centre Kumo Staff Multi-Purpose Cooperative Society Ltd",
+  "theme_color": "#03490b",
   "background_color": "#ffffff",
   "display": "standalone",
   "scope": "/",
   "start_url": "/",
   "icons": [
     {
-      "src": "/favicon.ico",
+      "src": "/favicon-48x48.png",
       "sizes": "48x48",
-      "type": "image/x-icon"
+      "type": "image/png"
     },
     {
-      "src": "/favicon.ico",
-      "sizes": "64x64",
-      "type": "image/x-icon"
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
     }
   ]
 }

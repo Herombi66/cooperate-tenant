@@ -227,10 +227,33 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           document.documentElement.style.setProperty('--fmck-primary', '#03490b');
           document.documentElement.style.setProperty('--fmck-secondary', '#5cd674');
           document.title = 'FMCKSMCS | Federal Medical Centre Kumo Staff MPCS';
-          const iconLinks = document.querySelectorAll("link[rel*='icon'], link[rel='apple-touch-icon']");
-          iconLinks.forEach((el) => {
-            (el as HTMLLinkElement).href = '/fmck-logo.png';
-          });
+          
+          try {
+            const head = document.head || document.getElementsByTagName('head')[0];
+            if (head) {
+              const existing = document.querySelectorAll("link[rel*='icon'], link[rel='apple-touch-icon']");
+              existing.forEach((el) => el.parentNode?.removeChild(el));
+
+              const ts = Date.now();
+              const icons = [
+                { rel: 'icon', type: 'image/png', sizes: '32x32', href: `/favicon-32x32.png?v=${ts}` },
+                { rel: 'icon', type: 'image/png', sizes: '16x16', href: `/favicon-16x16.png?v=${ts}` },
+                { rel: 'shortcut icon', type: 'image/x-icon', href: `/favicon.ico?v=${ts}` },
+                { rel: 'apple-touch-icon', sizes: '180x180', href: `/apple-touch-icon.png?v=${ts}` }
+              ];
+
+              icons.forEach((item) => {
+                const link = document.createElement('link');
+                link.rel = item.rel;
+                if (item.type) link.type = item.type;
+                if (item.sizes) link.setAttribute('sizes', item.sizes);
+                link.href = item.href;
+                head.appendChild(link);
+              });
+            }
+          } catch (e) {
+            console.error('Error updating favicon:', e);
+          }
         }
       } else {
         setError('Failed to load tenant configuration');
