@@ -40,6 +40,14 @@ async function repairDatabase() {
       ON CONFLICT (id) DO NOTHING;
     `);
 
+    try {
+      await sequelize.query(`
+        UPDATE tenants
+        SET domain = 'www.fmcksmcs.com'
+        WHERE id = 'fmcksmcs' AND (domain IS NULL OR domain = '');
+      `);
+    } catch (e) {}
+
     await sequelize.query(`
       CREATE TABLE IF NOT EXISTS platform_admins (
         id SERIAL PRIMARY KEY,
@@ -233,6 +241,16 @@ async function repairDatabase() {
       `);
     } catch (e) {}
 
+    // Clean up any initial_application contribution rows so member net balances start at zero
+    try {
+      await sequelize.query(`
+        DELETE FROM contributions WHERE payment_method = 'initial_application';
+      `);
+      log('✅ Cleaned up any legacy initial_application contribution records (net balance starts at ₦0.00).');
+    } catch (e) {
+      log('ℹ️ Notice during initial_application cleanup: ' + e.message);
+    }
+
     // Ensure settings table has tenant_id and relaxed unique constraint
     try {
       await sequelize.query(`
@@ -269,10 +287,42 @@ async function repairDatabase() {
     } catch (e) {}
 
     // Ensure tenant_id on all transactional tables
-    const tenantTables = ['contributions', 'loans', 'expenses', 'profit_sharing', 'loan_repayments', 'activity_logs', 'notifications', 'settings', 'layyah_applications', 'animal_acquisition_requests', 'contribution_withdrawals', 'complaints', 'direct_messages', 'receipt_records', 'system_backups', 'upload_batches'];
+    const tenantTables = [
+      'users',
+      'membership_applications',
+      'contributions',
+      'loans',
+      'expenses',
+      'profit_sharing',
+      'loan_repayments',
+      'activity_logs',
+      'notifications',
+      'settings',
+      'layyah_applications',
+      'animal_acquisition_requests',
+      'contribution_withdrawals',
+      'complaints',
+      'direct_messages',
+      'receipt_records',
+      'system_backups',
+      'upload_batches',
+      'broadcast_messages',
+      'contribution_increase_requests',
+      'loan_liquidations',
+      'loan_agreements',
+      'upload_record_errors',
+      'educational_documents',
+      'email_logs',
+      'custom_fields',
+      'roles',
+      'permissions',
+      'role_permissions',
+      'user_roles'
+    ];
     for (const tbl of tenantTables) {
       try {
         await sequelize.query(`ALTER TABLE "${tbl}" ADD COLUMN IF NOT EXISTS tenant_id VARCHAR(100) DEFAULT 'default';`);
+        await sequelize.query(`CREATE INDEX IF NOT EXISTS "idx_${tbl}_tenant_id" ON "${tbl}"(tenant_id);`);
       } catch (e) {
         // Table may not exist yet, safe to ignore
       }

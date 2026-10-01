@@ -32,7 +32,7 @@ async function seedDefaults() {
       fmckTenant = await Tenant.create({
         id: 'fmcksmcs',
         name: 'Federal Medical Centre Kumo Staff MPCS Ltd',
-        domain: null,
+        domain: 'www.fmcksmcs.com',
         subdomain: 'fmcksmcs',
         cooperative_type: 'conventional',
         theme: {
@@ -50,6 +50,9 @@ async function seedDefaults() {
         status: 'active'
       });
       console.log('✅ Created FMCKSMCS tenant');
+    } else if (!fmckTenant.domain) {
+      await fmckTenant.update({ domain: 'www.fmcksmcs.com' });
+      console.log('✅ Set FMCKSMCS tenant domain to www.fmcksmcs.com');
     }
 
     const defaultPasswordHash = await bcrypt.hash('admin123', 10);

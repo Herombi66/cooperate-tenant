@@ -32,8 +32,11 @@ const sendBroadcast = async (req, res) => {
       return res.status(404).json({ success: false, message: 'No recipients found for this group' });
     }
 
+    const tenantId = req.tenantId || req.user?.tenant_id || 'default';
+
     // Create Broadcast Record
     const broadcast = await BroadcastMessage.create({
+      tenant_id: tenantId,
       sender_id: senderId,
       subject,
       message,
@@ -43,6 +46,7 @@ const sendBroadcast = async (req, res) => {
 
     // Create Notifications (Bulk Create for performance)
     const notificationsData = recipients.map(user => ({
+      tenant_id: tenantId,
       user_id: user.id,
       type: 'broadcast',
       title: subject,

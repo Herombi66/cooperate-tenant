@@ -5,150 +5,91 @@ const fs = require('fs').promises;
 const path = require('path');
 const config = require('../config/email');
 const { EmailLog } = require('../models');
-const brevoService = require('./brevoEmailService');
 
 class EmailService {
   constructor() {
     this.transporter = null;
     this.isSmtpConnected = false;
+    this.createTransporter();
     if (process.env.NODE_ENV !== 'test') {
       this.initialize();
     }
   }
 
+  createTransporter() {
+    if (this.transporter) return this.transporter;
+
+    console.log(`📧 [EmailService] Initializing Gmail Nodemailer (${config.smtp.auth.user})...`);
+    this.transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: config.smtp.auth.user,
+        pass: config.smtp.auth.pass
+      },
+      tls: {
+        rejectUnauthorized: false
+      }
+    });
+
+    return this.transporter;
+  }
+
   async initialize() {
-    if (!config.enabled) {
-      console.log('ℹ️ [EmailService] Disabled via configuration (EMAIL_ENABLED=false).');
-      return;
-    }
-
-    // Initialize SMTP (Secondary/Fallback)
-    if (config.smtp && config.smtp.enabled) {
-      try {
-        console.log(`📧 [EmailService] Connecting to SMTP: ${config.smtp.host}:${config.smtp.port}...`);
-        this.transporter = nodemailer.createTransport({
-          host: config.smtp.host,
-          port: config.smtp.port,
-          secure: config.smtp.secure,
-          auth: config.smtp.auth,
-          pool: true,
-          maxConnections: 5,
-          maxMessages: 100,
-          connectionTimeout: config.smtp.connectionTimeout || 5000,
-          greetingTimeout: config.smtp.greetingTimeout || 5000,
-          socketTimeout: config.smtp.socketTimeout || 5000
-        });
-
-        // Verify connection with timeout
-        await this.transporter.verify();
-        this.isSmtpConnected = true;
-        console.log(`✅ [EmailService] Connected to SMTP: ${config.smtp.host}`);
-      } catch (error) {
-        console.warn(`⚠️ [EmailService] SMTP Connection warning: ${error.message}`);
-        this.isSmtpConnected = false;
-      }
-    } else {
-      console.log('ℹ️ [EmailService] SMTP credentials not configured, skipping SMTP connection.');
-    }
-
-    // Test Brevo connection
-    if (config.brevo && config.brevo.enabled) {
-      try {
-        const brevoTest = await brevoService.testConnection();
-        if (brevoTest && brevoTest.success) {
-          console.log(`✅ [EmailService] Brevo connected: ${brevoTest.account?.email || 'Active'}`);
-          if (brevoTest.account?.credits !== undefined) {
-            console.log(`💰 Brevo credits: ${brevoTest.account.credits}`);
-          }
-        } else {
-          console.warn(`⚠️ [EmailService] Brevo test notice: ${brevoTest?.error || 'Unavailable'}`);
-        }
-      } catch (brevoErr) {
-        console.warn(`⚠️ [EmailService] Brevo test error: ${brevoErr.message}`);
-      }
-    } else {
-      console.log('ℹ️ [EmailService] Brevo API key not configured, skipping Brevo connection.');
+    try {
+      this.createTransporter();
+      await this.transporter.verify();
+      this.isSmtpConnected = true;
+      console.log(`✅ [EmailService] Gmail Nodemailer connected and verified (${config.smtp.auth.user})`);
+    } catch (error) {
+      console.warn(`⚠️ [EmailService] Gmail initial verification notice: ${error.message} (will connect on send)`);
     }
   }
 
   /**
-   * Send a single email with Failover Strategy
-   * Strategy: Brevo API -> SMTP
+   * Send a single email directly via Gmail Nodemailer
    */
   async sendEmail({ to, subject, template, context, text, attachments = [], replyTo, headers, tags }) {
-    if (!config.enabled) {
-      return { success: true, skipped: true, message: 'Email disabled via configuration' };
-    }
-    if (!config.brevo.enabled && !this.isSmtpConnected) {
-      console.warn(`ℹ️ [EmailService] No email transport configured/connected. Skipping email "${subject}" to ${to}`);
-      return { success: true, skipped: true, message: 'No email transport configured' };
+    if (!this.transporter) {
+      this.createTransporter();
     }
 
-    const emailData = { to, subject, template, context, text, attachments, replyTo, headers, tags };
-    let result = null;
-    let providerUsed = null;
-    let errorLog = [];
-
-    // 1. Try Primary Provider: Brevo
-    if (config.brevo.enabled) {
+    // Pre-load HTML template or fallback
+    let html = null;
+    if (template) {
       try {
-        console.log(`📧 [EmailService] Attempting Brevo for ${template}...`);
-        result = await brevoService.sendEmail(emailData);
-        providerUsed = 'brevo';
-        console.log(`✅ [EmailService] Sent via Brevo to ${to}`);
-      } catch (brevoError) {
-        console.warn('⚠️ [EmailService] Brevo failed:', brevoError.message);
-        errorLog.push({ provider: 'brevo', error: brevoError.message });
+        html = await this.loadTemplate(template, context);
+      } catch (err) {
+        console.warn(`⚠️ [EmailService] Template load failed: ${err.message}`);
       }
     }
 
-    // 2. Try Fallback: SMTP
-    if (!result && this.isSmtpConnected) {
-      try {
-        console.log(`📧 [EmailService] Attempting SMTP fallback for ${template}...`);
-        
-        // Load template if needed
-        let html = null;
-        if (template) {
-          try {
-            html = await this.loadTemplate(template, context);
-          } catch (err) {
-            console.warn(`⚠️ [EmailService] Template load failed: ${err.message}`);
-          }
-        }
+    const senderName = config.from?.name || 'FMCK SMCS';
+    const senderAddress = config.from?.address || config.smtp?.auth?.user || 'fmcksmcs@gmail.com';
+    const formattedFrom = `"${senderName}" <${senderAddress}>`;
 
-        const mailOptions = {
-          from: config.from,
-          to,
-          subject,
-          text: text || 'Please view this email in a HTML compatible client.',
-          html: html,
-          attachments,
-          replyTo: replyTo,
-          headers: headers
-        };
+    const mailOptions = {
+      from: formattedFrom,
+      to,
+      subject,
+      text: text || 'Please view this email in a HTML compatible client.',
+      html: html,
+      attachments,
+      replyTo: replyTo || senderAddress,
+      headers: headers
+    };
 
-        const info = await this.transporter.sendMail(mailOptions);
-        result = { success: true, messageId: info.messageId, provider: 'smtp' };
-        providerUsed = 'smtp';
-        console.log(`✅ [EmailService] Sent via SMTP to ${to}`);
-      } catch (smtpError) {
-        console.error('❌ [EmailService] SMTP failed:', smtpError.message);
-        errorLog.push({ provider: 'smtp', error: smtpError.message });
-      }
-    }
+    try {
+      console.log(`📧 [EmailService] Sending via Gmail to ${to}: "${subject}"...`);
+      const info = await this.transporter.sendMail(mailOptions);
+      console.log(`✅ [EmailService] Sent successfully via Gmail to ${to} (MessageId: ${info.messageId})`);
+      this.isSmtpConnected = true;
 
-    // 3. Log Result
-    if (result && result.success) {
-      await this.logEmail(to, subject, template, 'sent', result.messageId, context, providerUsed);
-      return result;
-    } else {
-      // All providers failed
-      const failureMessage = errorLog.map(e => `${e.provider}: ${e.error}`).join(' | ');
-      console.error('❌ [EmailService] ALL PROVIDERS FAILED:', failureMessage);
-
-      await this.logEmail(to, subject, template, 'failed', null, context, failureMessage);
-      return { success: false, error: failureMessage };
+      await this.logEmail(to, subject, template, 'sent', info.messageId, context, null, 'gmail');
+      return { success: true, messageId: info.messageId, provider: 'gmail' };
+    } catch (error) {
+      console.error(`❌ [EmailService] Gmail send failed to ${to}:`, error.message);
+      await this.logEmail(to, subject, template, 'failed', null, context, error.message, 'gmail');
+      return { success: false, error: error.message };
     }
   }
 
@@ -179,9 +120,38 @@ class EmailService {
       const compiledTemplate = handlebars.compile(templateContent);
       return compiledTemplate(context);
     } catch (error) {
-      console.warn(`⚠️ [EmailService] Template '${templateName}' not found:`, error.message);
-      return null;
+      console.warn(`⚠️ [EmailService] Template '${templateName}' not found or error:`, error.message);
+      return this.generateFallbackHtml(templateName, context);
     }
+  }
+
+  generateFallbackHtml(templateName, context = {}) {
+    const orgName = context.cooperative_name || config.from?.name || 'FMCK SMCS';
+    const fields = Object.entries(context)
+      .filter(([k, v]) => v && typeof v !== 'object' && !['current_year', 'support_email', 'support_phone'].includes(k))
+      .map(([k, v]) => `<tr><td style="padding:10px;font-weight:bold;color:#475569;border-bottom:1px solid #f1f5f9;text-transform:capitalize;">${k.replace(/_/g, ' ')}:</td><td style="padding:10px;color:#0f172a;border-bottom:1px solid #f1f5f9;word-break:break-all;">${v}</td></tr>`)
+      .join('');
+
+    return `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background: #ffffff;">
+        <div style="border-bottom: 2px solid #0F3D3D; padding-bottom: 12px; margin-bottom: 20px;">
+          <h2 style="color: #0F3D3D; margin: 0 0 4px 0;">${orgName}</h2>
+          <p style="color: #64748b; margin: 0; font-size: 14px;">Notification: ${templateName.replace(/_/g, ' ').toUpperCase()}</p>
+        </div>
+        <table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px;">
+          ${fields}
+        </table>
+        ${context.login_url || context.login_link ? `
+          <div style="margin: 24px 0; text-align: center;">
+            <a href="${context.login_url || context.login_link}" style="background-color: #0F3D3D; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">Access Member Portal</a>
+          </div>
+        ` : ''}
+        <div style="border-top: 1px solid #e2e8f0; padding-top: 16px; margin-top: 24px; font-size: 12px; color: #94a3b8; text-align: center;">
+          <p style="margin: 0 0 4px 0;">© ${new Date().getFullYear()} ${orgName}. All rights reserved.</p>
+          <p style="margin: 0;">Support: ${config.support?.email || 'fmcksmcs@gmail.com'}</p>
+        </div>
+      </div>
+    `;
   }
 
   // ==================== SPECIFIC EMAIL METHODS ====================
@@ -189,24 +159,33 @@ class EmailService {
   // 1. WELCOME EMAIL
   async sendWelcomeEmail(member, password) {
     const { name, email, psn } = member;
+    const orgName = config.from?.name || 'FMCK SMCS';
     
     const context = {
+      recipient_name: name,
       member_name: name,
+      full_name: name,
+      member_id: psn,
       psn: psn,
+      member_email: email,
       email: email,
+      temporary_password: password,
       default_password: password,
+      password: password,
+      login_url: `${config.urls.memberPortal}/login`,
       login_link: `${config.urls.memberPortal}/login`,
-      support_email: config.support.email,
-      support_phone: config.support.phone,
+      cooperative_name: orgName,
+      support_email: config.support?.email || 'fmcksmcs@gmail.com',
+      support_phone: config.support?.phone || '+234 810 588 0201',
       current_year: new Date().getFullYear().toString()
     };
 
     const result = await this.sendEmail({
       to: email,
-      subject: 'Welcome to IMAN MCS - Membership Approved!',
+      subject: `Welcome to ${orgName} - Membership Approved!`,
       template: 'welcome',
       context: context,
-      replyTo: config.support.email,
+      replyTo: config.support?.email || 'fmcksmcs@gmail.com',
       tags: ['welcome', 'registration']
     });
 

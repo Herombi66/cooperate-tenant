@@ -114,9 +114,11 @@ const isAllowedOrigin = (origin) => {
     if (lowerHost === '209.38.106.28') return true;
     if (lowerHost === 'imanmcs.com' || lowerHost === 'www.imanmcs.com') return true;
     if (lowerHost.endsWith('.imanmcs.com')) return true;
+    if (lowerHost === 'fmcksmcs.com' || lowerHost === 'www.fmcksmcs.com') return true;
+    if (lowerHost.endsWith('.fmcksmcs.com') || lowerHost.includes('fmcksmcs')) return true;
     if (lowerHost.endsWith('.duckdns.org') && lowerHost.includes('imanmcs')) return true;
-    if (lowerHost.endsWith('.vercel.app') && lowerHost.includes('imanmcs')) return true;
-    return false;
+    if (lowerHost.endsWith('.vercel.app')) return true;
+    return true; // Allow tenant custom domains
   } catch {
     return false;
   }

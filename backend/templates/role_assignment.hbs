@@ -1,0 +1,28 @@
+<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 28px; border: 1px solid #e2e8f0; border-radius: 12px; background: #ffffff;"> 
+    <div style="border-bottom: 2px solid #0F3D3D; padding-bottom: 14px; margin-bottom: 20px;">
+        <h2 style="color: #0F3D3D; margin: 0 0 6px 0;">{{#if cooperative_name}}{{cooperative_name}}{{else}}FMCK SMCS{{/if}}</h2> 
+        <p style="color: #64748b; margin: 0; font-size: 14px;">Official Role Assignment Notification</p> 
+    </div>
+    
+    <p style="font-size: 15px; color: #1e293b; line-height: 1.6;">Hello <strong>{{full_name}}</strong>,</p> 
+    
+    <p style="font-size: 15px; color: #334155; line-height: 1.6;">You have been officially assigned the administrative role of <strong>{{role}}</strong> on {{creation_date}}.</p> 
+    
+    <div style="background: #f8fafc; padding: 18px; border-left: 4px solid #0F3D3D; border-radius: 6px; margin: 24px 0;"> 
+        <h3 style="margin-top: 0; color: #0F3D3D; font-size: 16px;">Assigned Account Credentials:</h3> 
+        <p style="margin: 6px 0; color: #334155;"><strong>Role:</strong> {{role}}</p> 
+        <p style="margin: 6px 0; color: #334155;"><strong>Username:</strong> {{username}}</p> 
+        <p style="margin: 6px 0; color: #334155;"><strong>Temporary Password:</strong> <code style="background: #e2e8f0; padding: 3px 8px; border-radius: 4px; font-weight: bold; color: #0f172a;">{{password}}</code></p> 
+    </div> 
+    
+    <div style="text-align: center; margin: 28px 0;">
+        <a href="{{login_link}}" style="display: inline-block; background: #0F3D3D; color: #ffffff; padding: 12px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px;">Access Management Portal</a> 
+    </div>
+    
+    <p style="font-size: 13px; color: #64748b; line-height: 1.5;">If you have any questions, reach out to <a href="mailto:{{support_email}}" style="color: #0F3D3D; font-weight: 500;">{{support_email}}</a>.</p> 
+    
+    <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0 16px 0;"> 
+    <p style="font-size: 12px; color: #94a3b8; text-align: center; margin: 0;"> 
+        © {{#if current_year}}{{current_year}}{{else}}2026{{/if}} {{#if cooperative_name}}{{cooperative_name}}{{else}}FMCK SMCS{{/if}}. All rights reserved. 
+    </p> 
+</div>

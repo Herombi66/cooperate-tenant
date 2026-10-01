@@ -348,31 +348,8 @@ const createMember = async (req, res) => {
     // Create user account linked to the application
     const { user, generatedPassword } = await createMemberAccount(application.id, password);
 
-    // Record initial approved contribution in member financials
-    if (user && finalContribution > 0) {
-      try {
-        const Contribution = require('../models/Contribution');
-        const now = new Date();
-        await Contribution.create({
-          tenant_id: tenantId,
-          user_id: user.id,
-          savings: isFmck ? remainingContribution : (parseFloat(savings) || 0),
-          investment: isFmck ? 0 : (parseFloat(investment) || 0),
-          total_amount: finalContribution,
-          payment_method: 'initial_application',
-          contribution_date: now,
-          month: now.getMonth() + 1,
-          year: now.getFullYear(),
-          status: 'approved',
-          approved_by: req.user?.id || null,
-          approval_date: now,
-          notes: isFmck
-            ? `Initial contribution of ₦${finalContribution} (₦${entranceFee} entrance fee deducted, ₦${remainingContribution} credited to savings) from approved application #${application.id}`
-            : `Initial contribution from approved application #${application.id}`
-        });
-      } catch (contribErr) {
-        console.warn('Failed to record initial contribution for created member:', contribErr.message);
-      }
+    if (user) {
+      console.log(`ℹ️ Member ${user.id} created with intended monthly contribution ₦${finalContribution}. Starting balance remains ₦0.00 until recorded in Contributions Management.`);
     }
 
     // Log activity

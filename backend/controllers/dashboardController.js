@@ -1,14 +1,26 @@
 const { User, MembershipApplication, Contribution, Loan, Expense, ActivityLog, LoanRepayment, Settings } = require('../models');
 const { Op } = require('sequelize');
 
-const WHATSAPP_GROUP_INVITE_URL = 'https://chat.whatsapp.com/KLhdr510SRrIipgOkmzfjC';
-const WHATSAPP_GROUP_HEALTH_TTL_MS = Number(process.env.WHATSAPP_GROUP_HEALTH_TTL_MS || 6 * 60 * 60 * 1000);
-let whatsappGroupHealthCache = null;
+const FMCK_WHATSAPP_GROUP_INVITE_URL = 'https://chat.whatsapp.com/GEhZDvBUnqWC3GoScriAYH';
+const DEFAULT_WHATSAPP_GROUP_INVITE_URL = 'https://chat.whatsapp.com/KLhdr510SRrIipgOkmzfjC';
 
-const checkWhatsappGroupInviteHealth = async () => {
+const getWhatsappInviteUrlForTenant = (tenantId) => {
+  const tid = String(tenantId || '').toLowerCase();
+  if (tid === 'fmcksmcs' || tid === 'fmck') {
+    return FMCK_WHATSAPP_GROUP_INVITE_URL;
+  }
+  return DEFAULT_WHATSAPP_GROUP_INVITE_URL;
+};
+
+const WHATSAPP_GROUP_HEALTH_TTL_MS = Number(process.env.WHATSAPP_GROUP_HEALTH_TTL_MS || 6 * 60 * 60 * 1000);
+const whatsappGroupHealthCacheMap = new Map();
+
+const checkWhatsappGroupInviteHealth = async (inviteUrl) => {
+  const targetUrl = inviteUrl || DEFAULT_WHATSAPP_GROUP_INVITE_URL;
   const now = Date.now();
-  if (whatsappGroupHealthCache && whatsappGroupHealthCache.expires_at > now) {
-    return whatsappGroupHealthCache;
+  const cached = whatsappGroupHealthCacheMap.get(targetUrl);
+  if (cached && cached.expires_at > now) {
+    return cached;
   }
 
   const controller = new AbortController();
@@ -19,9 +31,9 @@ const checkWhatsappGroupInviteHealth = async () => {
   try {
     let response;
     try {
-      response = await fetch(WHATSAPP_GROUP_INVITE_URL, { method: 'HEAD', redirect: 'follow', signal: controller.signal });
+      response = await fetch(targetUrl, { method: 'HEAD', redirect: 'follow', signal: controller.signal });
     } catch {
-      response = await fetch(WHATSAPP_GROUP_INVITE_URL, { method: 'GET', redirect: 'follow', signal: controller.signal });
+      response = await fetch(targetUrl, { method: 'GET', redirect: 'follow', signal: controller.signal });
     }
     status = response?.status ?? null;
     ok = Boolean(response && response.status >= 200 && response.status < 400);
@@ -32,15 +44,16 @@ const checkWhatsappGroupInviteHealth = async () => {
     clearTimeout(timeout);
   }
 
-  whatsappGroupHealthCache = {
-    url: WHATSAPP_GROUP_INVITE_URL,
+  const result = {
+    url: targetUrl,
     ok,
     status,
     checked_at: new Date().toISOString(),
     expires_at: now + WHATSAPP_GROUP_HEALTH_TTL_MS
   };
+  whatsappGroupHealthCacheMap.set(targetUrl, result);
 
-  return whatsappGroupHealthCache;
+  return result;
 };
 
 // Helper to calculate system-wide stats (for Admin, Chairman, Treasurer)
@@ -560,6 +573,9 @@ const getUnifiedDashboardData = async (req, res) => {
 
 const trackWhatsappGroupInviteClick = async (req, res) => {
   try {
+    const tenantId = req.tenantId || req.user?.tenant_id || req.headers['x-tenant-id'] || 'default';
+    const inviteUrl = getWhatsappInviteUrlForTenant(tenantId);
+
     await ActivityLog.logActivity(
       req.user,
       'whatsapp_group_invite_click',
@@ -567,7 +583,7 @@ const trackWhatsappGroupInviteClick = async (req, res) => {
       null,
       'Member clicked WhatsApp group invite link',
       {
-        url: WHATSAPP_GROUP_INVITE_URL,
+        url: inviteUrl,
         source: req.body?.source || 'member_dashboard',
         ts: new Date().toISOString()
       },
@@ -583,7 +599,9 @@ const trackWhatsappGroupInviteClick = async (req, res) => {
 
 const getWhatsappGroupInviteHealth = async (req, res) => {
   try {
-    const health = await checkWhatsappGroupInviteHealth();
+    const tenantId = req.tenantId || req.user?.tenant_id || req.headers['x-tenant-id'] || 'default';
+    const inviteUrl = getWhatsappInviteUrlForTenant(tenantId);
+    const health = await checkWhatsappGroupInviteHealth(inviteUrl);
     res.json({ success: true, data: { url: health.url, ok: health.ok, status: health.status, checked_at: health.checked_at } });
   } catch (error) {
     console.error('Get WhatsApp group invite health error:', error);

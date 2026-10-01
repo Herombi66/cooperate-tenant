@@ -9,6 +9,7 @@ import api from '../services/api';
 import toast from 'react-hot-toast';
 import { Application } from '../types';
 import { useTenantTerminology } from '../utils/tenantTerminology';
+import { FMC_DEPARTMENTS } from '../components/FmcksApplicationForm';
 
 interface StatsState {
   total: number;
@@ -56,7 +57,7 @@ export const MemberApplicationsPage: React.FC = () => {
     this_month: 0
   });
 
-  const departmentList = [
+  const departmentList = isFmck ? FMC_DEPARTMENTS : [
     'Clinical Services',
     'Nursing',
     'Pharmacy',
@@ -210,7 +211,7 @@ export const MemberApplicationsPage: React.FC = () => {
   // Actions
   const handleApprove = async (application: Application) => {
     const refNo = getAppRefNo(application);
-    const confirmMsg = `Approve membership application for ${application.name} (${refNo})?\n\nThis will:\n• Approve the application\n• Create their cooperative member account\n• Record initial approved contribution (₦${getAppContribution(application).toLocaleString()})\n• Send a welcome notification with credentials`;
+    const confirmMsg = `Approve membership application for ${application.name} (${refNo})?\n\nThis will:\n• Approve the application\n• Create their cooperative member account (Net Balance starts at ₦0.00)\n• Set planned monthly contribution to ₦${getAppContribution(application).toLocaleString()}\n• Send a welcome notification with credentials`;
 
     if (!window.confirm(confirmMsg)) return;
 
@@ -1016,7 +1017,7 @@ export const MemberApplicationsPage: React.FC = () => {
                     <span className="text-base font-bold text-emerald-700">
                       ₦{getAppRemainingContribution(selectedApplication).toLocaleString()}
                     </span>
-                    <span className="text-[10px] text-emerald-600 block mt-0.5">Credited to member savings</span>
+                    <span className="text-[10px] text-emerald-600 block mt-0.5">Intended monthly saving (Balance starts at ₦0.00)</span>
                   </div>
                 </div>
                 <div className="mt-3 text-xs text-gray-600 flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-emerald-100">

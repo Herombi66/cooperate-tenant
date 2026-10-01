@@ -366,11 +366,35 @@ button,.btn,.tab,.q,.x,.burger{touch-action:manipulation;-webkit-tap-highlight-c
           <div class="g2">
             <div><label for="appGender">Gender <span class="r">*</span></label><select id="appGender" required onchange="validateFieldRealtime('appGender')"><option value="">Select gender</option><option value="Male">Male</option><option value="Female">Female</option></select><div class="err" id="err-appGender">Select your gender.</div></div>
             <div><label for="appDept">Department <span class="r">*</span></label><select id="appDept" required onchange="validateFieldRealtime('appDept')">
-              <option value="">Select directorate</option><option value="Clinical Services">Clinical Services (Doctors)</option><option value="Nursing Services">Nursing Services Directorate</option><option value="Pharmacy Directorate">Pharmacy Directorate</option><option value="Medical Laboratory">Medical Laboratory & Diagnostic Services</option><option value="General Administration">General Administration & Records</option><option value="Finance & Accounts">Finance & Accounts</option><option value="Works & Engineering">Works, Biomedical & Maintenance</option><option value="Health Information Management">Health Information Management (HIM)</option><option value="Nutrition & Dietetics">Nutrition & Dietetics</option><option value="Radiology & Radiography">Radiology & Radiography</option><option value="Other Hospital Directorate">Other Hospital Directorate</option></select><div class="err" id="err-appDept">Department is required.</div></div>
+              <option value="">Select department</option>
+              <option value="Admin Department">Admin Department</option>
+              <option value="Audit Department">Audit Department</option>
+              <option value="Community Medicine">Community Medicine</option>
+              <option value="Dental Department">Dental Department</option>
+              <option value="Engineering Department">Engineering Department</option>
+              <option value="ENT Department">ENT Department</option>
+              <option value="Finance and Accounts Department">Finance and Accounts Department</option>
+              <option value="HCS (Doctors)">HCS (Doctors)</option>
+              <option value="Health Information Management Department">Health Information Management Department</option>
+              <option value="ICT Unit">ICT Unit</option>
+              <option value="Information & Protocol Unit">Information & Protocol Unit</option>
+              <option value="Laboratory Services Department">Laboratory Services Department</option>
+              <option value="Legal Unit">Legal Unit</option>
+              <option value="Nursing Services Department">Nursing Services Department</option>
+              <option value="Nutrition & Dietetics (Catering) Unit">Nutrition & Dietetics (Catering) Unit</option>
+              <option value="Pharmacy Department">Pharmacy Department</option>
+              <option value="Physiotherapy Department">Physiotherapy Department</option>
+              <option value="Procurement Unit">Procurement Unit</option>
+              <option value="Radiology Department">Radiology Department</option>
+              <option value="Research, Planning & Statistics Unit">Research, Planning & Statistics Unit</option>
+              <option value="Social Welfare Unit">Social Welfare Unit</option>
+              <option value="Store Unit">Store Unit</option>
+            </select><div class="err" id="err-appDept">Department is required.</div></div>
           </div>
           <div class="g2">
-            <div><label for="appUnit">Unit / section <span class="r">*</span></label><input type="text" id="appUnit" placeholder="e.g. ICU, Internal Audit" required oninput="validateFieldRealtime('appUnit')"><div class="err" id="err-appUnit">Unit or section is required.</div></div>
-            <div><label for="appCadre">Cadre / designation <span class="r">*</span></label><input type="text" id="appCadre" placeholder="e.g. Nursing Officer II" required oninput="validateFieldRealtime('appCadre')"><div class="err" id="err-appCadre">Cadre or designation is required.</div></div>
+            <div><label for="appUnit">Unit / section <span class="r">*</span></label><input type="text" id="appUnit" placeholder="e.g. ICU, Special Care Baby Unit, Internal Audit" required oninput="validateFieldRealtime('appUnit')"><div class="err" id="err-appUnit">Unit or section is required.</div></div>
+            <div><label for="appCadre">Cadre / designation <span class="r">*</span></label><input type="text" id="appCadre" placeholder="e.g. Senior Medical Officer, Nursing Officer II" required oninput="validateFieldRealtime('appCadre')"><div class="err" id="err-appCadre">Cadre or designation is required.</div></div>
+          </div>
           </div>
         </div>
         <div class="fs">

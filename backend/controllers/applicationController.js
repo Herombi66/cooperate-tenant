@@ -331,37 +331,7 @@ const submitApplication = async (req, res) => {
         console.log('🔧 [ADMIN CREATE MEMBER] User account created:', userAccount ? userAccount.id : 'null');
 
         if (userAccount) {
-          try {
-            const isFmck = application.tenant_id === 'fmcksmcs' || application.tenant_id === 'fmck' || (application.facility_name?.toLowerCase().includes('kumo') ?? false);
-            const appContribution = parseFloat(application.contribution) || ((parseFloat(application.savings) || 0) + (parseFloat(application.investment) || 0));
-            const entranceFee = isFmck ? 1500 : 0;
-            const remainingContribution = Math.max(0, appContribution - entranceFee);
-
-            if (appContribution > 0) {
-              const Contribution = require('../models/Contribution');
-              const now = new Date();
-              await Contribution.create({
-                tenant_id: application.tenant_id || 'default',
-                user_id: userAccount.id,
-                savings: isFmck ? remainingContribution : (parseFloat(application.savings) || 0),
-                investment: isFmck ? 0 : (parseFloat(application.investment) || 0),
-                total_amount: appContribution,
-                payment_method: 'initial_application',
-                contribution_date: now,
-                month: now.getMonth() + 1,
-                year: now.getFullYear(),
-                status: 'approved',
-                approved_by: req.user?.id || null,
-                approval_date: now,
-                notes: isFmck
-                  ? `Initial contribution of ₦${appContribution} (₦${entranceFee} entrance fee deducted, ₦${remainingContribution} credited to savings) from approved application #${application.id}`
-                  : `Initial contribution from approved application #${application.id}`
-              });
-              console.log(`✅ Recorded initial contribution of ₦${appContribution} for auto-approved member ${userAccount.id}`);
-            }
-          } catch (contribErr) {
-            console.warn('Failed to record initial contribution for auto-approved member:', contribErr.message);
-          }
+          console.log(`ℹ️ [ADMIN CREATE MEMBER] Member account created for user ${userAccount.id}. Pledged monthly contribution is ₦${application.contribution || 0}. Starting balance remains ₦0.00 until recorded in Contributions Management.`);
         }
 
       } catch (userCreationError) {
@@ -1011,43 +981,7 @@ const updateApplicationStatus = async (req, res) => {
           console.log('ℹ️ User account already exists for approved application:', memberUser.id);
         }
 
-        // Record initial approved contribution in member financials
-        const isFmck = application.tenant_id === 'fmcksmcs' || application.tenant_id === 'fmck' || (application.facility_name?.toLowerCase().includes('kumo') ?? false);
-        const appContribution = parseFloat(application.contribution) || ((parseFloat(application.savings) || 0) + (parseFloat(application.investment) || 0));
-        const entranceFee = isFmck ? 1500 : 0;
-        const remainingContribution = Math.max(0, appContribution - entranceFee);
-
-        if (memberUser && appContribution > 0) {
-          const Contribution = require('../models/Contribution');
-          const existingContribution = await Contribution.findOne({
-            where: {
-              user_id: memberUser.id,
-              notes: `Initial contribution from approved application #${application.id}`
-            }
-          });
-
-          if (!existingContribution) {
-            const now = new Date();
-            await Contribution.create({
-              tenant_id: application.tenant_id || 'default',
-              user_id: memberUser.id,
-              savings: isFmck ? remainingContribution : (parseFloat(application.savings) || 0),
-              investment: isFmck ? 0 : (parseFloat(application.investment) || 0),
-              total_amount: appContribution,
-              payment_method: 'initial_application',
-              contribution_date: now,
-              month: now.getMonth() + 1,
-              year: now.getFullYear(),
-              status: 'approved',
-              approved_by: req.user?.id || null,
-              approval_date: now,
-              notes: isFmck
-                ? `Initial contribution of ₦${appContribution} (₦${entranceFee} entrance fee deducted, ₦${remainingContribution} credited to savings) from approved application #${application.id}`
-                : `Initial contribution from approved application #${application.id}`
-            });
-            console.log(`✅ Initial contribution recorded for user ${memberUser.id}: ₦${appContribution}`);
-          }
-        }
+        console.log(`ℹ️ Application #${application.id} approved for user ${memberUser.id}. Pledged monthly contribution: ₦${application.contribution || 0}. Starting balance remains ₦0.00 until recorded in Contributions Management.`);
       } catch (userCreationError) {
         console.error('❌ Failed to create user account or initial contribution:', userCreationError);
         return res.status(500).json({

@@ -1,3 +1,4 @@
+const { Op } = require('sequelize');
 const tenantSettingsService = require('../modules/settings/services/tenant-settings.service');
 const { Tenant, User } = require('../../models');
 const tenantStorage = require('./tenant-storage');
@@ -10,11 +11,36 @@ const jwt = require('jsonwebtoken');
  */
 const tenantContext = async (req, res, next) => {
   try {
-    const hostname = req.hostname;
+    const rawHostname = req.hostname || '';
+    const hostname = rawHostname.toLowerCase();
+    const strippedHost = hostname.replace(/^www\./, '');
+    const withWwwHost = `www.${strippedHost}`;
     let tenant = null;
 
-    // 1. Try to find by Custom Domain (e.g., coop1.com)
-    tenant = await Tenant.findOne({ where: { domain: hostname, status: 'active' } });
+    // 1. Try to find by Custom Domain (e.g., fmcksmcs.com, www.fmcksmcs.com)
+    const possibleDomains = [
+      hostname,
+      strippedHost,
+      withWwwHost,
+      `http://${hostname}`,
+      `https://${hostname}`,
+      `http://${strippedHost}`,
+      `https://${strippedHost}`,
+      `http://${withWwwHost}`,
+      `https://${withWwwHost}`
+    ];
+
+    tenant = await Tenant.findOne({
+      where: {
+        domain: { [Op.in]: possibleDomains },
+        status: 'active'
+      }
+    });
+
+    // 1b. Fast fallback for FMCK custom domain
+    if (!tenant && (hostname.includes('fmcksmcs') || hostname.includes('fmck'))) {
+      tenant = await Tenant.findOne({ where: { id: 'fmcksmcs', status: 'active' } });
+    }
 
     // 2. Try to find by Subdomain if not found (e.g., coop1.imanmcs.com -> coop1)
     if (!tenant) {

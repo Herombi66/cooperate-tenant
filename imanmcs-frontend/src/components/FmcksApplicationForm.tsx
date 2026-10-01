@@ -51,21 +51,28 @@ const initialFormValues: FmcksFormData = {
 };
 
 export const FMC_DEPARTMENTS = [
-  'Clinical Services (Doctors / Medical Officers)',
-  'Nursing Services Directorate',
-  'Pharmacy Directorate',
-  'Medical Laboratory & Diagnostic Services',
-  'General Administration & HR Records',
-  'Finance, Accounts & Audit',
-  'Works, Biomedical & Physical Maintenance',
-  'Health Information Management (HIM)',
-  'Nutrition & Dietetics',
-  'Radiology & Radiography',
-  'Physiotherapy & Rehabilitation',
-  'Dental Services',
-  'Community Health / Public Health',
-  'Security & Safety Services',
-  'Other Hospital Directorate'
+  'Admin Department',
+  'Audit Department',
+  'Community Medicine',
+  'Dental Department',
+  'Engineering Department',
+  'ENT Department',
+  'Finance and Accounts Department',
+  'HCS (Doctors)',
+  'Health Information Management Department',
+  'ICT Unit',
+  'Information & Protocol Unit',
+  'Laboratory Services Department',
+  'Legal Unit',
+  'Nursing Services Department',
+  'Nutrition & Dietetics (Catering) Unit',
+  'Pharmacy Department',
+  'Physiotherapy Department',
+  'Procurement Unit',
+  'Radiology Department',
+  'Research, Planning & Statistics Unit',
+  'Social Welfare Unit',
+  'Store Unit'
 ];
 
 export const formatNaira = (val: number | string): string => {
@@ -735,7 +742,7 @@ export const FmcksApplicationForm: React.FC<{
                     : 'border-slate-300 focus:border-[#0F3D3D] focus:ring-2 focus:ring-[#0F3D3D]/15'
                 }`}
               >
-                <option value="">Select Hospital Directorate</option>
+                <option value="">Select Department</option>
                 {FMC_DEPARTMENTS.map(dept => (
                   <option key={dept} value={dept}>{dept}</option>
                 ))}

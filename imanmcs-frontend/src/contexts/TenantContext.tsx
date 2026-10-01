@@ -152,12 +152,17 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     try {
       const apiUrl = API_URL || 'http://localhost:3001';
       
+      // Check hostname for custom domain (e.g. www.fmcksmcs.com, fmcksmcs.com)
+      const currentHost = (typeof window !== 'undefined' ? window.location.hostname : '').toLowerCase();
+      
       // Check URL for tenant query param to support local preview
       const urlParams = new URLSearchParams(window.location.search);
       const tenantParam = overrideTenantId || urlParams.get('tenant');
       
       let targetTenantId = tenantParam;
-      if (targetTenantId) {
+      if (currentHost.includes('fmcksmcs') || currentHost.includes('fmck')) {
+        targetTenantId = 'fmcksmcs';
+      } else if (targetTenantId) {
         localStorage.setItem('previewTenantId', targetTenantId);
       } else {
         const storedTenantId = localStorage.getItem('previewTenantId');
