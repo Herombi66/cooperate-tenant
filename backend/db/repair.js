@@ -287,10 +287,42 @@ async function repairDatabase() {
     } catch (e) {}
 
     // Ensure tenant_id on all transactional tables
-    const tenantTables = ['contributions', 'loans', 'expenses', 'profit_sharing', 'loan_repayments', 'activity_logs', 'notifications', 'settings', 'layyah_applications', 'animal_acquisition_requests', 'contribution_withdrawals', 'complaints', 'direct_messages', 'receipt_records', 'system_backups', 'upload_batches'];
+    const tenantTables = [
+      'users',
+      'membership_applications',
+      'contributions',
+      'loans',
+      'expenses',
+      'profit_sharing',
+      'loan_repayments',
+      'activity_logs',
+      'notifications',
+      'settings',
+      'layyah_applications',
+      'animal_acquisition_requests',
+      'contribution_withdrawals',
+      'complaints',
+      'direct_messages',
+      'receipt_records',
+      'system_backups',
+      'upload_batches',
+      'broadcast_messages',
+      'contribution_increase_requests',
+      'loan_liquidations',
+      'loan_agreements',
+      'upload_record_errors',
+      'educational_documents',
+      'email_logs',
+      'custom_fields',
+      'roles',
+      'permissions',
+      'role_permissions',
+      'user_roles'
+    ];
     for (const tbl of tenantTables) {
       try {
         await sequelize.query(`ALTER TABLE "${tbl}" ADD COLUMN IF NOT EXISTS tenant_id VARCHAR(100) DEFAULT 'default';`);
+        await sequelize.query(`CREATE INDEX IF NOT EXISTS "idx_${tbl}_tenant_id" ON "${tbl}"(tenant_id);`);
       } catch (e) {
         // Table may not exist yet, safe to ignore
       }
