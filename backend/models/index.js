@@ -41,6 +41,7 @@ const PlatformAdmin = require('./PlatformAdmin');
 
 // RBAC Models
 const Role = require('./Role');
+const Module = require('./Module');
 const Permission = require('./Permission');
 const PermissionCategory = require('./PermissionCategory');
 const RolePermission = require('./RolePermission');
@@ -483,6 +484,41 @@ Permission.belongsTo(PermissionCategory, {
   as: 'category'
 });
 
+// Module & RolePermission associations
+Role.hasMany(RolePermission, {
+  foreignKey: 'role_id',
+  as: 'rolePermissions'
+});
+
+RolePermission.belongsTo(Role, {
+  foreignKey: 'role_id',
+  as: 'role'
+});
+
+Module.hasMany(RolePermission, {
+  foreignKey: 'module_id',
+  as: 'rolePermissions'
+});
+
+RolePermission.belongsTo(Module, {
+  foreignKey: 'module_id',
+  as: 'module'
+});
+
+Role.belongsToMany(Module, {
+  through: RolePermission,
+  foreignKey: 'role_id',
+  otherKey: 'module_id',
+  as: 'modules'
+});
+
+Module.belongsToMany(Role, {
+  through: RolePermission,
+  foreignKey: 'module_id',
+  otherKey: 'role_id',
+  as: 'roles'
+});
+
 // Audit Note associations
 AuditNote.belongsTo(User, {
   foreignKey: 'auditor_id',
@@ -590,6 +626,7 @@ const models = {
   CustomField,
   PlatformAdmin,
   Role,
+  Module,
   Permission,
   PermissionCategory,
   RolePermission,

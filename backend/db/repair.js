@@ -1159,6 +1159,38 @@ async function repairDatabase() {
     `);
     log('✅ Ensured document_templates, document_template_versions, and loan_agreements exist.');
 
+    // Ensure modules table and role_permissions columns exist for dynamic RBAC
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS modules (
+        id SERIAL PRIMARY KEY,
+        tenant_id VARCHAR(100) NOT NULL DEFAULT 'default',
+        key VARCHAR(100) NOT NULL UNIQUE,
+        name VARCHAR(100) NOT NULL,
+        description VARCHAR(255),
+        category VARCHAR(50) NOT NULL DEFAULT 'General',
+        route_path VARCHAR(100),
+        is_system BOOLEAN DEFAULT false,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_modules_key ON modules(key);`);
+    await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_modules_tenant_id ON modules(tenant_id);`);
+
+    await sequelize.query(`ALTER TABLE role_permissions ADD COLUMN IF NOT EXISTS module_id INTEGER REFERENCES modules(id) ON DELETE CASCADE;`);
+    await sequelize.query(`ALTER TABLE role_permissions ADD COLUMN IF NOT EXISTS module_key VARCHAR(100);`);
+    await sequelize.query(`ALTER TABLE role_permissions ADD COLUMN IF NOT EXISTS can_read BOOLEAN NOT NULL DEFAULT false;`);
+    await sequelize.query(`ALTER TABLE role_permissions ADD COLUMN IF NOT EXISTS can_write BOOLEAN NOT NULL DEFAULT false;`);
+    await sequelize.query(`ALTER TABLE role_permissions ADD COLUMN IF NOT EXISTS can_edit BOOLEAN NOT NULL DEFAULT false;`);
+    await sequelize.query(`ALTER TABLE role_permissions ADD COLUMN IF NOT EXISTS can_delete BOOLEAN NOT NULL DEFAULT false;`);
+    try {
+      await sequelize.query(`ALTER TABLE role_permissions ALTER COLUMN permission_id DROP NOT NULL;`);
+    } catch (e) {}
+    await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_role_permissions_role_id ON role_permissions(role_id);`);
+    await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_role_permissions_module_id ON role_permissions(module_id);`);
+    await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_role_permissions_module_key ON role_permissions(module_key);`);
+    log('✅ Ensured modules table and granular role_permissions columns exist.');
+
     log('✅ Database repair check completed.');
     return { success: true, logs };
   } catch (error) {

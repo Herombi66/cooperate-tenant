@@ -5,11 +5,36 @@ import {
   Settings, FileText, ChevronLeft, ChevronRight, Receipt, Upload, UserPlus, Heart, Shield, Bell, X, CheckCircle, Percent, MessageSquare, ShoppingCart, ShieldAlert, Palette, FileSignature
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { usePermissions } from '../../contexts/PermissionContext';
 import { useLayout } from '../../contexts/LayoutContext';
 import { useTenant } from '../../contexts/TenantContext';
 import { isFmckTenant } from '../../utils/tenantTerminology';
 import { API_URL } from '../../config';
 import { cn } from '../../lib/utils';
+
+const hrefToModuleKey: Record<string, string> = {
+  '/members': 'members',
+  '/member-applications': 'member_applications',
+  '/contributions': 'contributions',
+  '/withdrawals': 'savings',
+  '/loans': 'loans',
+  '/loan-applications': 'loan_applications',
+  '/loan-repayments': 'repayments',
+  '/admin-layyah': 'investments',
+  '/admin-animal-requests': 'investments',
+  '/expenses': 'expenses',
+  '/profit-sharing': 'profit_distribution',
+  '/reports': 'reports',
+  '/bylaws': 'documents',
+  '/agreements': 'documents',
+  '/receipt-designer': 'documents',
+  '/document-designer': 'documents',
+  '/communication': 'notifications',
+  '/security-center': 'audit',
+  '/settings': 'settings',
+  '/user-management': 'user_management',
+  '/roles': 'user_management'
+};
 
 const featureMap: Record<string, string> = {
   '/loans': 'loans',
@@ -194,10 +219,14 @@ export const Sidebar: React.FC = () => {
     ? (rawLogo.startsWith('http') || rawLogo.startsWith('/') ? rawLogo : `${API_URL}${rawLogo}`)
     : undefined;
 
+  const { canAccess, isAdmin } = usePermissions();
+
   const rawItems = user ? (navigationItems[user.role] || []) : [];
   const items = rawItems.filter(i => {
-    // Hide Roles & Permissions for FMCKSMCS tenant
-    if (isFmcksmcs && i.href === '/roles') return false;
+    // Roles & Permissions is available to admin & super_admin
+    if (i.href === '/roles') {
+      return user.role === 'admin' || user.role === 'super_admin';
+    }
 
     // Hide Withdrawals for FMCKSMCS tenant
     if (isFmcksmcs && i.href === '/withdrawals') return false;
@@ -208,6 +237,14 @@ export const Sidebar: React.FC = () => {
     // Feature flag overrides
     const requiredFeature = featureMap[i.href];
     if (requiredFeature && !hasFeature(requiredFeature)) return false;
+
+    // Dynamic RBAC Permission Check for Executive Roles
+    if (!isAdmin && user.role !== 'member') {
+      const modKey = hrefToModuleKey[i.href];
+      if (modKey && !canAccess(modKey)) {
+        return false;
+      }
+    }
     
     return true;
   });

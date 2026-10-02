@@ -4,7 +4,7 @@ import {
   Users, DollarSign, CreditCard, TrendingUp, AlertCircle, CheckCircle,
   FileText, Settings, Upload, Download, PlusCircle, Receipt,
   BarChart3, Calculator, UserPlus, FileSpreadsheet, Heart, Loader,
-  Activity, Eye, Filter, RefreshCw, ChevronLeft, ChevronRight
+  Activity, Eye, Filter, RefreshCw, ChevronLeft, ChevronRight, Shield
 } from 'lucide-react';
 import { StatsCard } from '../UI/StatsCard';
 import { RecentActivity } from '../UI/RecentActivity';
@@ -415,6 +415,16 @@ export const AdminDashboard: React.FC = () => {
               <Heart className="w-6 h-6 text-primary-500 mb-2" />
               <div className="font-medium">Layyah Management</div>
               <div className="text-sm text-gray-500">Manage commodity trading applications</div>
+            </button>
+          )}
+          {['admin', 'super_admin'].includes(user?.role || '') && (
+            <button
+              onClick={() => navigate('/roles')}
+              className="p-4 border border-primary-200 bg-primary-50/40 rounded-lg hover:bg-primary-50 text-left transition-colors"
+            >
+              <Shield className="w-6 h-6 text-primary-600 mb-2" />
+              <div className="font-medium text-gray-900">Roles & Permissions</div>
+              <div className="text-sm text-gray-500">Configure executive officer modules & access</div>
             </button>
           )}
         </div>

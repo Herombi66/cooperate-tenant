@@ -167,6 +167,14 @@ async function seedDefaults() {
       }, { skipTenant: true });
     }
 
+    // 6. Seed Modules and Executive RBAC Permissions
+    try {
+      const { seedModulesAndRBAC } = require('./seedModulesAndRBAC');
+      await seedModulesAndRBAC();
+    } catch (rbacErr) {
+      console.warn('⚠️ seedModulesAndRBAC notice:', rbacErr.message);
+    }
+
     console.log('🎉 Default tenants and admin credentials successfully verified!');
   } catch (err) {
     console.error('⚠️ seedDefaults warning:', err.message);

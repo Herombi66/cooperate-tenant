@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const { User, ActivityLog, MembershipApplication } = require('../models');
+const { User, Role, RolePermission, ActivityLog, MembershipApplication } = require('../models');
 
 const authenticateToken = async (req, res, next) => {
   try {
@@ -192,8 +192,28 @@ const requireAdmin = (req, res, next) => {
   next();
 };
 
+function getModuleFromUrl(pathname) {
+  const p = (pathname || '').toLowerCase();
+  if (p.startsWith('/members')) return 'members';
+  if (p.startsWith('/applications')) return 'member_applications';
+  if (p.startsWith('/contributions')) return 'contributions';
+  if (p.startsWith('/withdrawals')) return 'savings';
+  if (p.startsWith('/loans') || p.startsWith('/loan-applications')) return 'loans';
+  if (p.startsWith('/loan-repayments')) return 'repayments';
+  if (p.startsWith('/layyah')) return 'investments';
+  if (p.startsWith('/expenses')) return 'expenses';
+  if (p.startsWith('/profit-shares') || p.startsWith('/profit-sharing')) return 'profit_distribution';
+  if (p.startsWith('/reports')) return 'reports';
+  if (p.startsWith('/audit') || p.startsWith('/security')) return 'audit';
+  if (p.startsWith('/communication') || p.startsWith('/direct-messages') || p.startsWith('/notifications')) return 'notifications';
+  if (p.startsWith('/documents') || p.startsWith('/document-templates') || p.startsWith('/receipt-templates') || p.startsWith('/receipts') || p.startsWith('/agreements') || p.startsWith('/settings/bylaw')) return 'documents';
+  if (p.startsWith('/settings')) return 'settings';
+  if (p.startsWith('/users')) return 'user_management';
+  return null;
+}
+
 const authorizeRole = (roles) => {
-  return (req, res, next) => {
+  return async (req, res, next) => {
     if (!req.user) {
       return res.status(401).json({
         success: false,
@@ -201,8 +221,54 @@ const authorizeRole = (roles) => {
       });
     }
     
-    if (req.user.role === 'super_admin') {
+    // Super Admin and Admin always have full system access
+    if (req.user.role === 'super_admin' || req.user.role === 'admin') {
       return next();
+    }
+
+    const pathname = (req.baseUrl || req.path || req.originalUrl || '').split('?')[0];
+    const moduleKey = getModuleFromUrl(pathname);
+    const method = (req.method || '').toUpperCase();
+    const action = (method === 'GET' || method === 'HEAD' || method === 'OPTIONS') ? 'read'
+      : (method === 'POST') ? 'write'
+      : (method === 'DELETE') ? 'delete'
+      : 'edit';
+
+    // If route maps to a system module, check dynamic permissions in DB
+    if (moduleKey) {
+      try {
+        const userRoleRecord = await Role.findOne({
+          where: { name: req.user.role },
+          attributes: ['id', 'name']
+        });
+
+        if (userRoleRecord) {
+          const perm = await RolePermission.findOne({
+            where: {
+              role_id: userRoleRecord.id,
+              module_key: moduleKey
+            }
+          });
+
+          if (perm) {
+            const permCol = action === 'read' ? 'can_read'
+              : action === 'write' ? 'can_write'
+              : action === 'delete' ? 'can_delete'
+              : 'can_edit';
+
+            if (perm[permCol] === true) {
+              return next();
+            } else {
+              return res.status(403).json({
+                success: false,
+                message: `Access denied. Insufficient permissions for module '${moduleKey}' (${action.toUpperCase()}).`
+              });
+            }
+          }
+        }
+      } catch (err) {
+        // Fallback to static roles array if query fails
+      }
     }
     
     if (!roles.includes(req.user.role)) {

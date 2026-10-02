@@ -117,18 +117,10 @@ const WithdrawalsRouter: React.FC = () => {
 };
 
 const RolesRouter: React.FC = () => {
-  const { tenant } = useTenant();
-  const isFmcksmcs = tenant?.id?.toLowerCase() === 'fmcksmcs' || 
-    (typeof window !== 'undefined' && (
-      new URLSearchParams(window.location.search).get('tenant')?.toLowerCase() === 'fmcksmcs' || 
-      localStorage.getItem('previewTenantId')?.toLowerCase() === 'fmcksmcs'
-    )) ||
-    (tenant?.name?.toLowerCase().includes('kumo') ?? false);
-
-  if (isFmcksmcs) {
+  const { user } = useAuth();
+  if (user?.role !== 'admin' && user?.role !== 'super_admin') {
     return <Navigate to="/dashboard" replace />;
   }
-
   return <RolesPage />;
 };
 
