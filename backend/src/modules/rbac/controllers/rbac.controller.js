@@ -16,18 +16,25 @@ class RBACController {
   // 1. Get complete permission matrix
   async getMatrix(req, res) {
     try {
-      // Ensure seed has run so no roles or modules are missing
-      await seedModulesAndRBAC();
+      // Ensure seed has run only if no modules exist yet
+      const moduleCount = await Module.count({ skipTenant: true });
+      if (moduleCount === 0) {
+        await seedModulesAndRBAC();
+      }
 
       const roles = await Role.findAll({
+        skipTenant: true,
         order: [['id', 'ASC']]
       });
 
       const modules = await Module.findAll({
+        skipTenant: true,
         order: [['category', 'ASC'], ['name', 'ASC']]
       });
 
-      const rolePermissions = await RolePermission.findAll();
+      const rolePermissions = await RolePermission.findAll({
+        skipTenant: true
+      });
 
       // Build structured matrix map: roleId -> moduleId -> { can_read, can_write, can_edit, can_delete }
       const matrix = {};

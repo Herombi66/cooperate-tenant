@@ -118,7 +118,13 @@ const globalModels = [
   'ReceiptTemplateVersion',
   'ReceiptRecord',
   'DocumentTemplate',
-  'DocumentTemplateVersion'
+  'DocumentTemplateVersion',
+  'Module',
+  'Role',
+  'RolePermission',
+  'Permission',
+  'PermissionCategory',
+  'UserRole'
 ];
 
 function applyTenantFilter(options) {

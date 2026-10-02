@@ -211,19 +211,25 @@ async function seedModulesAndRBAC(targetRoleName = null) {
     // 1. Ensure Standard Modules exist
     const moduleMap = {};
     for (const mod of STANDARD_MODULES) {
-      const [record] = await Module.findOrCreate({
-        where: { key: mod.key },
-        defaults: {
-          ...mod,
-          is_system: true,
-          tenant_id: 'default'
+      let record = await Module.findOne({ where: { key: mod.key }, skipTenant: true });
+      if (!record) {
+        try {
+          record = await Module.create({
+            ...mod,
+            is_system: true,
+            tenant_id: 'default'
+          }, { skipTenant: true });
+        } catch (insertErr) {
+          record = await Module.findOne({ where: { key: mod.key }, skipTenant: true });
         }
-      });
-      moduleMap[mod.key] = record;
+      }
+      if (record) {
+        moduleMap[mod.key] = record;
+      }
     }
 
     // Also load any custom modules created by admin
-    const allModules = await Module.findAll();
+    const allModules = await Module.findAll({ skipTenant: true });
     allModules.forEach(m => {
       moduleMap[m.key] = m;
     });
@@ -231,17 +237,23 @@ async function seedModulesAndRBAC(targetRoleName = null) {
     // 2. Ensure Standard Roles exist
     const roleMap = {};
     for (const r of STANDARD_ROLES) {
-      const [record] = await Role.findOrCreate({
-        where: { name: r.name },
-        defaults: {
-          ...r,
-          tenant_id: 'default'
+      let record = await Role.findOne({ where: { name: r.name }, skipTenant: true });
+      if (!record) {
+        try {
+          record = await Role.create({
+            ...r,
+            tenant_id: 'default'
+          }, { skipTenant: true });
+        } catch (insertErr) {
+          record = await Role.findOne({ where: { name: r.name }, skipTenant: true });
         }
-      });
-      roleMap[r.name] = record;
+      }
+      if (record) {
+        roleMap[r.name] = record;
+      }
     }
 
-    const allRoles = await Role.findAll();
+    const allRoles = await Role.findAll({ skipTenant: true });
     allRoles.forEach(r => {
       roleMap[r.name] = r;
     });
@@ -268,24 +280,29 @@ async function seedModulesAndRBAC(targetRoleName = null) {
         }
 
         // Find or create role_permissions record
-        const existing = await RolePermission.findOne({
+        let existing = await RolePermission.findOne({
           where: {
             role_id: role.id,
             module_id: module.id
-          }
+          },
+          skipTenant: true
         });
 
         if (!existing) {
-          await RolePermission.create({
-            role_id: role.id,
-            module_id: module.id,
-            module_key: module.key,
-            tenant_id: role.tenant_id || 'default',
-            can_read: !!p.r,
-            can_write: !!p.w,
-            can_edit: !!p.e,
-            can_delete: !!p.d
-          });
+          try {
+            await RolePermission.create({
+              role_id: role.id,
+              module_id: module.id,
+              module_key: module.key,
+              tenant_id: role.tenant_id || 'default',
+              can_read: !!p.r,
+              can_write: !!p.w,
+              can_edit: !!p.e,
+              can_delete: !!p.d
+            }, { skipTenant: true });
+          } catch (e) {
+            // Already created concurrently
+          }
         } else if (targetRoleName) {
           // If explicitly resetting a specific role, update it to defaults
           await existing.update({
@@ -294,7 +311,7 @@ async function seedModulesAndRBAC(targetRoleName = null) {
             can_write: !!p.w,
             can_edit: !!p.e,
             can_delete: !!p.d
-          });
+          }, { skipTenant: true });
         }
       }
     }
@@ -303,7 +320,7 @@ async function seedModulesAndRBAC(targetRoleName = null) {
     return { success: true, modulesCount: allModules.length, rolesCount: allRoles.length };
   } catch (error) {
     console.error('❌ [RBAC Seeder] Failed:', error);
-    throw error;
+    return { success: false, error: error.message };
   }
 }
 
