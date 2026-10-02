@@ -286,13 +286,20 @@ class EmailService {
 
   // 3. ADMIN PASSWORD RESET
   async sendAdminPasswordResetEmail(member, newPassword, adminName = "System Administrator", tenantId = null) {
-    const { name, email } = member;
-    const tid = tenantId || member.tenant_id || member.tenantId || 'fmcksmcs';
+    const memberName = member.name || member.membershipApplication?.name || member.fullName || member.email || 'Member';
+    const memberEmail = member.email || member.membershipApplication?.email;
+    const tid = tenantId || member.tenant_id || member.membershipApplication?.tenant_id || 'fmcksmcs';
     const tenantInfo = this.resolveTenantInfo(tid);
     const portalLoginUrl = this.getPortalUrl('/login', tenantInfo.tenantId);
 
+    if (!memberEmail) {
+      console.error('❌ [EmailService] sendAdminPasswordResetEmail failed: no email found for member', member);
+      throw new Error('Member has no registered email address on profile');
+    }
+
     const context = {
-      full_name: name.toUpperCase(),
+      full_name: memberName.toUpperCase(),
+      recipient_name: memberName,
       admin_name: adminName,
       reset_time: new Date().toLocaleString('en-NG'),
       new_password: newPassword,
@@ -306,8 +313,8 @@ class EmailService {
     };
 
     const result = await this.sendEmail({
-      to: email,
-      subject: `🔐 ${tenantInfo.name} - Administrator Password Reset for ${name.split(' ')[0]}`,
+      to: memberEmail,
+      subject: `🔐 ${tenantInfo.name} - Administrator Password Reset for ${memberName.split(' ')[0]}`,
       template: 'admin_password_reset',
       context: context,
       replyTo: tenantInfo.supportEmail,
@@ -503,22 +510,30 @@ ${tenantInfo.supportEmail}
 
   // 8. PASSWORD RESET (User initiated or admin generated)
   async sendPasswordResetEmail(member, resetToken, tenantId = null) {
-    const { name, email } = member;
-    const firstName = (name || 'Member').split(' ')[0] || name;
-    const tid = tenantId || member.tenant_id || member.tenantId || 'fmcksmcs';
+    const memberName = member.name || member.membershipApplication?.name || member.fullName || member.email || 'Member';
+    const memberEmail = member.email || member.membershipApplication?.email;
+    const tid = tenantId || member.tenant_id || member.membershipApplication?.tenant_id || 'fmcksmcs';
     const tenantInfo = this.resolveTenantInfo(tid);
 
-    // If resetToken looks like a temporary raw password rather than a hash/token, link to /login
+    // If resetToken looks like a temporary raw password rather than a hash/token (e.g. 16 hex chars from admin reset)
     const isTempPassword = typeof resetToken === 'string' && resetToken.length <= 20 && !resetToken.includes('-');
-    const resetLink = isTempPassword 
-      ? this.getPortalUrl('/login', tenantInfo.tenantId)
-      : this.getPortalUrl(`/reset-password?token=${resetToken}&email=${encodeURIComponent(email)}`, tenantInfo.tenantId);
+    if (isTempPassword) {
+      return await this.sendAdminPasswordResetEmail(member, resetToken, "System Administrator", tid);
+    }
+
+    if (!memberEmail) {
+      console.error('❌ [EmailService] sendPasswordResetEmail failed: no email found for member', member);
+      throw new Error('Member has no registered email address on profile');
+    }
+
+    const firstName = (memberName || 'Member').split(' ')[0] || memberName;
+    const resetLink = this.getPortalUrl(`/reset-password?token=${resetToken}&email=${encodeURIComponent(memberEmail)}`, tenantInfo.tenantId);
 
     const context = {
       first_name: firstName.toUpperCase(),
-      email: email,
+      email: memberEmail,
       reset_link: resetLink,
-      expiry_time: isTempPassword ? 'immediate' : '1 hour',
+      expiry_time: '1 hour',
       cooperative_name: tenantInfo.name,
       tenant_id: tenantInfo.tenantId,
       support_email: tenantInfo.supportEmail,
@@ -529,7 +544,7 @@ ${tenantInfo.supportEmail}
     // If template exists, render it
     try {
       const result = await this.sendEmail({
-        to: email,
+        to: memberEmail,
         subject: `${tenantInfo.name} - Password Reset Request`,
         template: 'password_reset',
         context: context,

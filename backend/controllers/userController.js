@@ -641,19 +641,35 @@ const adminResetPassword = async (req, res) => {
       is_default_password: true
     });
 
-    // Send email
-    try {
-        const emailService = require('../services/emailService');
-        // Ensure we pass the structure expected by sendPasswordResetEmail
-        // It expects 'member' object which has 'membershipApplication' property
-        const targetTenantId = user.tenant_id || user.membershipApplication?.tenant_id || req.user?.tenant_id || 'fmcksmcs';
-        await emailService.sendPasswordResetEmail(user, newPassword, targetTenantId);
-    } catch (emailError) {
-        console.error('Failed to send password reset email:', emailError);
-        // We continue even if email fails, as we return the password to admin
-    }
+    // Resolve member's registered email and name
+    const appData = user.membershipApplication || (await MembershipApplication.findByPk(user.membership_application_id));
+    const memberEmail = appData?.email || user.email;
+    const memberName = appData?.name || user.name || 'Member';
+    const targetTenantId = user.tenant_id || appData?.tenant_id || req.user?.tenant_id || 'fmcksmcs';
 
-    console.log(`🔐 Admin reset password for user ${user.id} (${user.membershipApplication.email})`);
+    // Send email
+    let emailSent = false;
+    let emailErrorMsg = null;
+    try {
+      const emailService = require('../services/emailService');
+      const adminName = req.user?.membershipApplication?.name || req.user?.name || 'Administrator';
+      await emailService.sendAdminPasswordResetEmail(
+        {
+          name: memberName,
+          email: memberEmail,
+          psn: appData?.psn || user.id,
+          tenant_id: targetTenantId
+        },
+        newPassword,
+        adminName,
+        targetTenantId
+      );
+      emailSent = true;
+      console.log(`🔐 [ADMIN RESET] Sent password reset email for user ${user.id} to ${memberEmail}`);
+    } catch (emailError) {
+      emailErrorMsg = emailError?.message;
+      console.error(`❌ [ADMIN RESET] Failed to send password reset email to ${memberEmail}:`, emailError);
+    }
 
     // Log the activity
     try {
@@ -676,12 +692,15 @@ const adminResetPassword = async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Password reset successfully',
+      message: emailSent 
+        ? `Password reset successfully. Email sent to ${memberEmail}.`
+        : `Password reset successfully.`,
+      emailSent,
       newPassword: newPassword, // Return to admin
       user: {
         id: user.id,
-        email: user.membershipApplication.email,
-        name: user.membershipApplication.name
+        email: memberEmail,
+        name: memberName
       }
     });
 

@@ -703,18 +703,47 @@ const resetMemberPassword = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const member = await User.findByPk(id, {
+    // 1. Try finding by User primary key
+    let member = await User.findByPk(id, {
       include: [{
         model: require('../models/MembershipApplication'),
         as: 'membershipApplication',
-        required: true
+        required: false
       }]
     });
+
+    // 2. If not found, try finding by membership_application_id
+    if (!member) {
+      member = await User.findOne({
+        where: { membership_application_id: id },
+        include: [{
+          model: require('../models/MembershipApplication'),
+          as: 'membershipApplication',
+          required: false
+        }]
+      });
+    }
+
+    // 3. If still not found, check if id is a MembershipApplication and find/create user
+    if (!member) {
+      const MembershipApplication = require('../models/MembershipApplication');
+      const app = await MembershipApplication.findByPk(id);
+      if (app) {
+        member = await User.findOne({
+          where: { membership_application_id: app.id },
+          include: [{
+            model: MembershipApplication,
+            as: 'membershipApplication',
+            required: false
+          }]
+        });
+      }
+    }
 
     if (!member || member.deleted_at) {
       return res.status(404).json({
         success: false,
-        message: 'Member not found'
+        message: 'Member user account not found'
       });
     }
     
@@ -725,8 +754,20 @@ const resetMemberPassword = async (req, res) => {
       });
     }
 
-    // Generate new password
+    // Resolve member's registered email and name
+    const appData = member.membershipApplication || (await require('../models/MembershipApplication').findByPk(member.membership_application_id));
+    const memberEmail = appData?.email || member.email;
+    const memberName = appData?.name || member.name || 'Member';
+    const tenantId = member.tenant_id || appData?.tenant_id || req.user?.tenant_id || 'fmcksmcs';
 
+    if (!memberEmail) {
+      return res.status(400).json({
+        success: false,
+        message: `Member "${memberName}" does not have a registered email address on their profile.`
+      });
+    }
+
+    // Generate new password
     const newPassword = crypto.randomBytes(8).toString('hex');
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
@@ -737,12 +778,27 @@ const resetMemberPassword = async (req, res) => {
       is_default_password: true
     });
 
-    // Send password reset email
+    // Send admin password reset email to member's registered email
+    let emailSent = false;
+    let emailErrorMsg = null;
     try {
-      await emailService.sendPasswordResetEmail(member, newPassword, member.tenant_id || 'fmcksmcs');
+      const adminName = req.user?.membershipApplication?.name || req.user?.name || 'Administrator';
+      await emailService.sendAdminPasswordResetEmail(
+        {
+          name: memberName,
+          email: memberEmail,
+          psn: appData?.psn || member.id,
+          tenant_id: tenantId
+        },
+        newPassword,
+        adminName,
+        tenantId
+      );
+      emailSent = true;
+      console.log(`✅ [PASSWORD RESET] Sent new password to member's registered email: ${memberEmail}`);
     } catch (emailError) {
-      console.error('Failed to send password reset email:', emailError);
-      // Don't fail the password reset if email fails
+      emailErrorMsg = emailError?.message;
+      console.error(`❌ [PASSWORD RESET] Failed to send email to ${memberEmail}:`, emailError);
     }
 
     // Log activity
@@ -759,7 +815,7 @@ const resetMemberPassword = async (req, res) => {
           'RESET_PASSWORD',
           'MEMBER',
           member.id,
-          `Reset password for member: ${member.membershipApplication.name} (Email: ${member.membershipApplication.email})`,
+          `Reset password for member: ${memberName} (Email: ${memberEmail})`,
           null,
           req
         );
@@ -772,7 +828,7 @@ const resetMemberPassword = async (req, res) => {
           action: 'RESET_PASSWORD',
           resource_type: 'MEMBER',
           resource_id: member.id,
-          description: `Reset password for member: ${member.membershipApplication.name} (Email: ${member.membershipApplication.email})`,
+          description: `Reset password for member: ${memberName} (Email: ${memberEmail})`,
           ip_address: req.ip,
           user_agent: req.headers['user-agent']
         });
@@ -784,7 +840,11 @@ const resetMemberPassword = async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Password reset successfully. New password sent to member email.',
+      message: emailSent
+        ? `Password reset successfully. New password has been sent to ${memberEmail}.`
+        : `Password reset successfully. (Email notification status: ${emailErrorMsg || 'pending'}).`,
+      emailSent,
+      memberEmail,
       newPassword: newPassword
     });
 
