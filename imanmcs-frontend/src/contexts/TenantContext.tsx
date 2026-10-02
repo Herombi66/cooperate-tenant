@@ -1,11 +1,13 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import axios from 'axios';
 import { API_URL } from '../config';
+import { setGlobalCurrencySymbol } from '../utils/safe';
 
 interface TenantTheme {
   primaryColor?: string;
   secondaryColor?: string;
   logoUrl?: string;
+  customLogoUrl?: string;
   landingPage?: {
     heroTitle?: string;
     heroSubtitle?: string;
@@ -21,6 +23,7 @@ interface TenantConfig {
   cooperative_type: 'islamic' | 'conventional';
   theme: TenantTheme;
   features: Record<string, boolean>;
+  settings?: any;
 }
 
 interface TenantContextValue {
@@ -197,6 +200,26 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       
       if (response.data.success && response.data.data) {
         const config = response.data.data;
+
+        // Apply cooperative identity from settings if present
+        if (config.settings?.cooperative_name) {
+          config.name = config.settings.cooperative_name;
+        }
+        if (config.settings?.cooperative_logo) {
+          config.theme = config.theme || {};
+          config.theme.logoUrl = config.settings.cooperative_logo;
+          config.theme.customLogoUrl = config.settings.cooperative_logo;
+        }
+        if (config.settings?.currency_symbol) {
+          setGlobalCurrencySymbol(config.settings.currency_symbol);
+        }
+        if (config.settings?.enabled_modules && typeof config.settings.enabled_modules === 'object') {
+          config.features = {
+            ...(config.features || {}),
+            ...config.settings.enabled_modules
+          };
+        }
+
         const isFmck = (config.id?.toLowerCase() === 'fmcksmcs' || 
           config.id?.toLowerCase() === 'fmck' || 
           (config.name?.toLowerCase().includes('kumo') ?? false) || 
@@ -223,10 +246,15 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           document.documentElement.style.setProperty('--secondary', rgbToHslString(sec.r, sec.g, sec.b));
         }
 
-        if (isFmck && typeof document !== 'undefined') {
-          document.documentElement.style.setProperty('--fmck-primary', '#03490b');
-          document.documentElement.style.setProperty('--fmck-secondary', '#5cd674');
-          document.title = 'FMCKSMCS | Federal Medical Centre Kumo Staff MPCS';
+        if (typeof document !== 'undefined') {
+          if (isFmck) {
+            document.documentElement.style.setProperty('--fmck-primary', '#03490b');
+            document.documentElement.style.setProperty('--fmck-secondary', '#5cd674');
+            document.title = config.name ? `${config.name} | Staff MPCS` : 'FMCKSMCS | Federal Medical Centre Kumo Staff MPCS';
+          } else if (config.name) {
+            document.title = `${config.name} | Cooperative Management System`;
+          }
+        }
           
           try {
             const head = document.head || document.getElementsByTagName('head')[0];
@@ -254,10 +282,9 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           } catch (e) {
             console.error('Error updating favicon:', e);
           }
+        } else {
+          setError('Failed to load tenant configuration');
         }
-      } else {
-        setError('Failed to load tenant configuration');
-      }
     } catch (err: any) {
       console.error('Error fetching tenant config:', err);
       setError(err.message || 'Error fetching tenant config');
@@ -305,6 +332,17 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   const hasFeature = (featureName: string) => {
+    // 1. Direct check against tenant settings enabled_modules (dynamic cooperative settings)
+    if (tenant?.settings?.enabled_modules && tenant.settings.enabled_modules[featureName] !== undefined) {
+      return Boolean(tenant.settings.enabled_modules[featureName]);
+    }
+
+    // 2. Direct check against tenant features
+    if (tenant?.features && tenant.features[featureName] !== undefined) {
+      return Boolean(tenant.features[featureName]);
+    }
+
+    // 3. Fallback: if withdrawals has not been explicitly configured in settings, default FMCK to false
     if (featureName === 'withdrawals') {
       const tid = tenant?.id?.toLowerCase() || '';
       const tname = tenant?.name?.toLowerCase() || '';
@@ -313,8 +351,8 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         return false;
       }
     }
-    if (!tenant || !tenant.features) return true; // Default to true if not configured
-    return tenant.features[featureName] !== false; // Only disable if explicitly false
+
+    return true;
   };
 
   return (

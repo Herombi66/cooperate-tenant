@@ -44,12 +44,19 @@ const featureMap: Record<string, string> = {
   '/my-loans': 'loans',
   '/agreements': 'loans',
   '/my-guarantees': 'loans',
+  '/contributions': 'contributions',
+  '/my-contributions': 'contributions',
   '/admin-layyah': 'layyah',
   '/admin-animal-requests': 'layyah',
+  '/browse-layyah': 'layyah',
+  '/my-layyah': 'layyah',
+  '/my-layyah-groups': 'layyah',
   '/expenses': 'expenses',
   '/profit-sharing': 'profit_sharing',
   '/my-profit-share': 'profit_sharing',
-  '/withdrawals': 'withdrawals'
+  '/withdrawals': 'withdrawals',
+  '/receipt-designer': 'receipt_designer',
+  '/document-designer': 'document_designer'
 };
 
 const navigationItems: Record<string, Array<{ name: string; href: string; icon: any }>> = {

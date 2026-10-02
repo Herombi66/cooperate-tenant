@@ -14,10 +14,13 @@ import { Settings as SystemSettings, EnabledModules, AISettings, BylawInfo } fro
 import settingsService from '../services/settingsService';
 import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import { useTenant } from '../contexts/TenantContext';
+import { setGlobalCurrencySymbol } from '../utils/safe';
 import toast from 'react-hot-toast';
 
 export const SettingsPage: React.FC = () => {
   const { user } = useAuth();
+  const { tenant, refreshTenant } = useTenant();
   const isSuperAdmin = user?.role === 'super_admin';
   const [activeTab, setActiveTab] = useState('general');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -31,6 +34,8 @@ export const SettingsPage: React.FC = () => {
   const [selectedUpgradePlan, setSelectedUpgradePlan] = useState<string>('Growth Plan');
   const [copiedAccount, setCopiedAccount] = useState(false);
   const [billingComparisonCycle, setBillingComparisonCycle] = useState<'monthly' | 'annual'>('annual');
+  const [testingAi, setTestingAi] = useState(false);
+  const [aiTestResult, setAiTestResult] = useState<{ connected: boolean; message: string } | null>(null);
 
   const defaultEnabledModules: EnabledModules = {
     loans: true,
@@ -467,6 +472,17 @@ export const SettingsPage: React.FC = () => {
       toast.success('Cooperative settings saved successfully!');
       setOriginalSettings(JSON.parse(JSON.stringify(settings)));
       setHasChanges(false);
+
+      // Immediately propagate updated settings, currency symbol, and modules across the entire app
+      if (settings.currency_symbol) {
+        setGlobalCurrencySymbol(settings.currency_symbol);
+      }
+      try {
+        await refreshTenant(tenant?.id);
+        window.dispatchEvent(new CustomEvent('tenantChanged', { detail: tenant?.id }));
+      } catch (refreshErr) {
+        console.warn('Failed to refresh tenant after save:', refreshErr);
+      }
     } catch (error: any) {
       console.error('Save error:', error);
       toast.error(error?.message || 'Failed to save settings');
@@ -559,6 +575,31 @@ export const SettingsPage: React.FC = () => {
       }
     } catch (error) {
       toast.error('Failed to delete custom field');
+    }
+  };
+
+  const handleTestAiConnection = async () => {
+    try {
+      setTestingAi(true);
+      setAiTestResult(null);
+      const res = await api.post('/ai/test-connection', {
+        provider: settings.ai_settings?.provider,
+        model: settings.ai_settings?.model,
+        api_key: settings.ai_settings?.api_key
+      });
+      if (res.data?.success && res.data?.connected) {
+        setAiTestResult({ connected: true, message: res.data.message || 'Connected successfully!' });
+        toast.success(res.data.message || 'AI Connection verified successfully!');
+      } else {
+        setAiTestResult({ connected: false, message: res.data?.message || 'Connection failed.' });
+        toast.error(res.data?.message || 'AI Connection failed.');
+      }
+    } catch (err: any) {
+      const msg = err.response?.data?.message || err.message || 'Connection test failed';
+      setAiTestResult({ connected: false, message: msg });
+      toast.error(msg);
+    } finally {
+      setTestingAi(false);
     }
   };
 
@@ -2659,6 +2700,32 @@ export const SettingsPage: React.FC = () => {
                   >
                     {showApiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
+                </div>
+                <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+                  <button
+                    type="button"
+                    disabled={testingAi || !settings.ai_settings?.enabled}
+                    onClick={handleTestAiConnection}
+                    className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 rounded-lg text-xs font-semibold transition disabled:opacity-50"
+                  >
+                    {testingAi ? (
+                      <>
+                        <Loader className="w-3.5 h-3.5 animate-spin" />
+                        <span>Verifying AI Connection...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+                        <span>Test AI Connection</span>
+                      </>
+                    )}
+                  </button>
+                  {aiTestResult && (
+                    <span className={`text-xs font-medium flex items-center gap-1.5 ${aiTestResult.connected ? 'text-emerald-600' : 'text-rose-600'}`}>
+                      {aiTestResult.connected ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+                      {aiTestResult.message}
+                    </span>
+                  )}
                 </div>
               </div>
 

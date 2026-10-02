@@ -8,36 +8,56 @@ export interface FormatNairaOptions {
   compact?: boolean;
 }
 
-/**
- * Standard Nigerian Naira currency formatter for FMCKSMCS and cooperative platform.
- * Formats numbers into consistent Nigerian Naira currency strings (e.g., ₦5,000, ₦1,250,000, ₦5,000.50).
- */
+let globalCurrencySymbol = '₦';
+
+export const setGlobalCurrencySymbol = (symbol?: string) => {
+  if (symbol && typeof symbol === 'string' && symbol.trim()) {
+    globalCurrencySymbol = symbol.trim();
+    try {
+      localStorage.setItem('tenant_currency_symbol', globalCurrencySymbol);
+    } catch {}
+  }
+};
+
+export const getGlobalCurrencySymbol = (): string => {
+  if (typeof window !== 'undefined') {
+    try {
+      const stored = localStorage.getItem('tenant_currency_symbol');
+      if (stored) return stored;
+    } catch {}
+  }
+  return globalCurrencySymbol;
+};
+
 export const formatNaira = (
   value: number | string | null | undefined,
-  options?: FormatNairaOptions
+  options?: FormatNairaOptions & { symbol?: string }
 ): string => {
-  if (value === null || value === undefined || value === '') return '₦0';
+  const sym = options?.symbol || getGlobalCurrencySymbol();
+  if (value === null || value === undefined || value === '') return `${sym}0`;
   const n = typeof value === 'string' ? Number(String(value).replace(/[^0-9.-]+/g, '')) : value;
   const amount = Number.isFinite(n as number) ? (n as number) : 0;
 
   if (options?.compact && Math.abs(amount) >= 1_000_000) {
-    return `₦${(amount / 1_000_000).toFixed(1)}M`;
+    return `${sym}${(amount / 1_000_000).toFixed(1)}M`;
   }
   if (options?.compact && Math.abs(amount) >= 1_000) {
-    return `₦${(amount / 1_000).toFixed(0)}K`;
+    return `${sym}${(amount / 1_000).toFixed(0)}K`;
   }
 
   const isWhole = Number.isInteger(amount);
   const minDecimals = options?.showDecimals ? 2 : (isWhole ? 0 : 2);
   const maxDecimals = options?.showDecimals ? 2 : 2;
 
-  const formattedNumber = Math.abs(amount).toLocaleString('en-NG', {
+  const formattedNumber = Math.abs(amount).toLocaleString('en-US', {
     minimumFractionDigits: minDecimals,
     maximumFractionDigits: maxDecimals,
   });
 
-  return amount < 0 ? `-₦${formattedNumber}` : `₦${formattedNumber}`;
+  return amount < 0 ? `-${sym}${formattedNumber}` : `${sym}${formattedNumber}`;
 };
+
+export const formatCurrency = formatNaira;
 
 export const toCurrency = (value: number | string | null | undefined, showDecimals?: boolean): string => {
   return formatNaira(value, { showDecimals });

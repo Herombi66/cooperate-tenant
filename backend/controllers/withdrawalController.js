@@ -22,6 +22,27 @@ const getEligibility = async (req, res) => {
 
     console.log(`Checking eligibility for user_id: ${user_id}`);
 
+    // 0. Check minimum membership months if configured
+    const lockMonths = parseInt(req.tenantSettings?.savings_withdrawal_lock_months ?? 6, 10);
+    if (lockMonths > 0) {
+      const membership = await MembershipApplication.findOne({
+        where: { user_id, status: 'approved' }
+      });
+      if (membership && membership.created_at) {
+        const joinDate = new Date(membership.created_at);
+        const monthsDiff = (new Date().getFullYear() - joinDate.getFullYear()) * 12 + (new Date().getMonth() - joinDate.getMonth());
+        if (monthsDiff < lockMonths) {
+          return res.json({
+            success: true,
+            eligible: false,
+            reason: `Minimum membership duration of ${lockMonths} months required before savings withdrawal (current: ${monthsDiff} months).`,
+            maxAmount: 0,
+            totalContributions: 0
+          });
+        }
+      }
+    }
+
     // 1. Check for active loans
     let activeLoan = null;
     try {
@@ -94,8 +115,9 @@ const getEligibility = async (req, res) => {
     const withdrawnVal = parseFloat(totalWithdrawals) || 0;
     const netBalance = grossVal - withdrawnVal;
 
-    // 6. Max Withdrawal Amount (30%)
-    const maxAmount = netBalance * 0.30;
+    // 6. Max Withdrawal Amount (configured %, default 70%)
+    const maxPercent = parseFloat(req.tenantSettings?.max_savings_withdrawal_percent ?? 70) / 100;
+    const maxAmount = netBalance * maxPercent;
 
     res.json({
       success: true,
@@ -128,6 +150,25 @@ const requestWithdrawal = async (req, res) => {
     const user_id = req.user.id;
     const { amount, reason } = req.body;
     const currentYear = new Date().getFullYear();
+
+    const lockMonths = parseInt(req.tenantSettings?.savings_withdrawal_lock_months ?? 6, 10);
+    if (lockMonths > 0) {
+      const membership = await MembershipApplication.findOne({
+        where: { user_id, status: 'approved' },
+        transaction: t
+      });
+      if (membership && membership.created_at) {
+        const joinDate = new Date(membership.created_at);
+        const monthsDiff = (new Date().getFullYear() - joinDate.getFullYear()) * 12 + (new Date().getMonth() - joinDate.getMonth());
+        if (monthsDiff < lockMonths) {
+          await t.rollback();
+          return res.status(400).json({
+            success: false,
+            message: `Minimum membership duration of ${lockMonths} months required before savings withdrawal.`
+          });
+        }
+      }
+    }
 
     // Re-validate eligibility within transaction
     // 1. Active Loan
@@ -173,26 +214,32 @@ const requestWithdrawal = async (req, res) => {
     const grossVal = parseFloat(totalGross) || 0;
     const withdrawnVal = parseFloat(totalWithdrawn) || 0;
     const netBalance = grossVal - withdrawnVal;
-    const maxAmount = parseFloat((netBalance * 0.30).toFixed(2));
+
+    const maxPercentVal = parseFloat(req.tenantSettings?.max_savings_withdrawal_percent ?? 70);
+    const maxPercent = maxPercentVal / 100;
+    const maxAmount = parseFloat((netBalance * maxPercent).toFixed(2));
     const requestedAmount = parseFloat(amount);
+    const curSymbol = req.tenantSettings?.currency_symbol || '₦';
 
     if (!Number.isFinite(requestedAmount) || requestedAmount <= 0) {
       await t.rollback();
       return res.status(400).json({ success: false, message: 'Invalid amount' });
     }
 
-    if (parseFloat(requestedAmount.toFixed(2)) !== maxAmount) {
+    if (requestedAmount > maxAmount) {
       await t.rollback();
       return res.status(400).json({ 
         success: false, 
-        message: `Withdrawal amount must be exactly 30% of your eligible contributions (₦${maxAmount.toFixed(2)}).`
+        message: `Withdrawal amount cannot exceed ${maxPercentVal}% of your eligible savings (${curSymbol}${maxAmount.toFixed(2)}).`
       });
     }
+
+    const approvedAmount = requestedAmount;
 
     // Create Request
     const withdrawal = await ContributionWithdrawal.create({
       user_id,
-      amount: maxAmount,
+      amount: approvedAmount,
       reason,
       year: currentYear,
       status: 'pending'
@@ -205,8 +252,8 @@ const requestWithdrawal = async (req, res) => {
       'request_withdrawal',
       'withdrawal',
       withdrawal.id,
-      `Member submitted withdrawal request for ₦${maxAmount.toFixed(2)} (${currentYear})`,
-      { year: currentYear, amount: maxAmount },
+      `Member submitted withdrawal request for ${curSymbol}${approvedAmount.toFixed(2)} (${currentYear})`,
+      { year: currentYear, amount: approvedAmount },
       req
     );
 

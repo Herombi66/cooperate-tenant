@@ -34,10 +34,19 @@ const emailService = process.env.NODE_ENV === 'test'
   : require('../services/emailService');
 
 // Helper: load registration and monthly admin fees from Settings with safe defaults
-async function getFeeConfig() {
+async function getFeeConfig(tenantSettings) {
+  if (tenantSettings) {
+    return {
+      registrationFee: tenantSettings.registration_fee ?? 2000,
+      monthlyAdminFee: tenantSettings.monthly_admin_fee ?? 1000,
+      minimumSavings: tenantSettings.minimum_savings ?? 1000,
+      minimumTargetSavings: tenantSettings.minimum_target_savings ?? 2000
+    };
+  }
   try {
     const rows = await Settings.findAll({
-      where: { key: { [Op.in]: ['registration_fee', 'monthly_admin_fee'] } }
+      where: { key: { [Op.in]: ['registration_fee', 'monthly_admin_fee', 'minimum_savings', 'minimum_target_savings'] } },
+      skipTenant: true
     });
     const map = {};
     for (const r of rows) {
@@ -50,17 +59,19 @@ async function getFeeConfig() {
       map[r.key] = isNaN(parsed) ? 0 : parsed;
     }
     return {
-      registrationFee: map.registration_fee ?? 1500,
-      monthlyAdminFee: map.monthly_admin_fee ?? 1000
+      registrationFee: map.registration_fee ?? 2000,
+      monthlyAdminFee: map.monthly_admin_fee ?? 1000,
+      minimumSavings: map.minimum_savings ?? 1000,
+      minimumTargetSavings: map.minimum_target_savings ?? 2000
     };
   } catch (e) {
-    return { registrationFee: 1500, monthlyAdminFee: 1000 };
+    return { registrationFee: 2000, monthlyAdminFee: 1000, minimumSavings: 1000, minimumTargetSavings: 2000 };
   }
 }
 
 // Helper: determine applicable fee for a user based on contribution history
-async function determineApplicableFee(userId, options = {}) {
-  const { registrationFee, monthlyAdminFee } = await getFeeConfig();
+async function determineApplicableFee(userId, options = {}, tenantSettings = null) {
+  const { registrationFee, monthlyAdminFee } = await getFeeConfig(tenantSettings);
   const month = options?.month;
   const year = options?.year;
   const transaction = options?.transaction;
@@ -316,6 +327,24 @@ const createContribution = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Contribution amounts cannot be negative' });
     }
 
+    const minSavings = parseFloat(req.tenantSettings?.minimum_savings ?? 1000);
+    const minTargetSavings = parseFloat(req.tenantSettings?.minimum_target_savings ?? 2000);
+    const curSymbol = req.tenantSettings?.currency_symbol || '₦';
+
+    if (savingsAmount > 0 && savingsAmount < minSavings) {
+      return res.status(400).json({
+        success: false,
+        message: `Monthly savings must be at least ${curSymbol}${minSavings.toLocaleString()}`
+      });
+    }
+
+    if (targetSavingAmount > 0 && targetSavingAmount < minTargetSavings) {
+      return res.status(400).json({
+        success: false,
+        message: `Target savings must be at least ${curSymbol}${minTargetSavings.toLocaleString()}`
+      });
+    }
+
     const totalAmount = savingsAmount + investmentAmount + targetSavingAmount;
     if (!Number.isFinite(totalAmount) || totalAmount <= 0) {
       return res.status(400).json({ success: false, message: 'Total amount must be greater than 0' });
@@ -331,11 +360,11 @@ const createContribution = async (req, res) => {
     }
 
   // Apply membership/admin fee
-  const fee = await determineApplicableFee(user_id, { month: monthInt, year: yearInt });
+  const fee = await determineApplicableFee(user_id, { month: monthInt, year: yearInt }, req.tenantSettings);
   if (fee.amount > 0 && totalAmount <= fee.amount) {
     return res.status(400).json({
       success: false,
-      message: `Contribution must exceed required ${fee.type.replace('_', ' ')} of ₦${fee.amount}`
+      message: `Contribution must exceed required ${fee.type.replace('_', ' ')} of ${curSymbol}${fee.amount}`
     });
   }
   const netTotal = Math.round((totalAmount - fee.amount) * 100) / 100;
@@ -751,11 +780,12 @@ const createContributionByPsn = async (req, res) => {
   }
 
   // Apply fee and compute net amount
-  const fee = await determineApplicableFee(user.id, { month: monthInt, year: yearInt });
+  const fee = await determineApplicableFee(user.id, { month: monthInt, year: yearInt }, req.tenantSettings);
   if (fee.amount > 0 && totalContributionAmount <= fee.amount) {
+    const curSymbol = req.tenantSettings?.currency_symbol || '₦';
     return res.status(400).json({
       success: false,
-      message: `Contribution must exceed required ${fee.type.replace('_', ' ')} of ₦${fee.amount}`
+      message: `Contribution must exceed required ${fee.type.replace('_', ' ')} of ${curSymbol}${fee.amount}`
     });
   }
   const netAmount = Math.round((totalContributionAmount - fee.amount) * 100) / 100;

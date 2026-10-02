@@ -100,15 +100,9 @@ const DashboardRouter: React.FC = () => {
 
 const WithdrawalsRouter: React.FC = () => {
   const { user } = useAuth();
-  const { tenant } = useTenant();
-  const isFmcksmcs = tenant?.id?.toLowerCase() === 'fmcksmcs' || 
-    (typeof window !== 'undefined' && (
-      new URLSearchParams(window.location.search).get('tenant')?.toLowerCase() === 'fmcksmcs' || 
-      localStorage.getItem('previewTenantId')?.toLowerCase() === 'fmcksmcs'
-    )) ||
-    (tenant?.name?.toLowerCase().includes('kumo') ?? false);
+  const { hasFeature } = useTenant();
 
-  if (isFmcksmcs) {
+  if (!hasFeature('withdrawals')) {
     return <Navigate to="/dashboard" replace />;
   }
 

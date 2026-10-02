@@ -3,21 +3,27 @@ const BaseLoanStrategy = require('./base-loan.strategy');
 class ConventionalLoanStrategy extends BaseLoanStrategy {
   validateLimits(loanType, amount, totalSavings, totalInvestment) {
     const totalContributions = totalSavings + totalInvestment;
+    const ts = this.tenantSettings || {};
+    const sym = ts.currency_symbol || '₦';
+    const multiplier = ts.investment_loan_multiplier ?? 3;
+    const maxLoanOverall = ts.max_loan_amount ?? 1000000;
 
-    // Conventional cooperatives generally have simpler limits (e.g., 200% of total savings)
-    const maxLoan = totalContributions * 2;
+    if (amount > maxLoanOverall) {
+      throw new Error(`Loan amount cannot exceed cooperative maximum limit of ${sym}${maxLoanOverall.toLocaleString()}`);
+    }
+
+    const maxLoan = totalContributions * multiplier;
     if (amount > maxLoan) {
-      throw new Error(`Loan amount cannot exceed 200% of total savings (₦${maxLoan.toLocaleString()})`);
+      throw new Error(`Loan amount cannot exceed ${multiplier}x of total savings (${sym}${maxLoan.toLocaleString()})`);
     }
   }
 
   calculateInterestRate(loanType, amount, tenure) {
-    // Conventional flat interest rates (e.g. 10% flat rate)
-    // Could be dynamic based on tenant settings, hardcoded to 10 for now.
-    const baseRate = this.tenantSettings?.base_interest_rate || 10;
+    const ts = this.tenantSettings || {};
+    const baseRate = ts.loan_interest_rate ?? ts.base_interest_rate ?? 5;
     
     if (loanType === 'emergency') {
-      return baseRate + 5; // Higher rate for emergency
+      return baseRate + 2;
     }
     return baseRate;
   }

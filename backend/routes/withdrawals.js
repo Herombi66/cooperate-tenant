@@ -4,9 +4,23 @@ const withdrawalController = require('../controllers/withdrawalController');
 const { authenticateToken, authorizeRole } = require('../middleware/auth');
 
 /**
- * Check if withdrawals are disabled for this tenant (FMCKSMCS)
+ * Check if withdrawals are disabled for this tenant in cooperative settings
  */
 const checkTenantWithdrawalAccess = (req, res, next) => {
+  // If explicitly configured in tenant settings, honor the setting
+  const enabledModules = req.tenantSettings?.enabled_modules;
+  if (enabledModules && enabledModules.withdrawals !== undefined) {
+    if (enabledModules.withdrawals === false) {
+      return res.status(403).json({
+        success: false,
+        code: 'MODULE_DISABLED',
+        message: 'Withdrawals module is currently disabled in this cooperative settings.'
+      });
+    }
+    return next();
+  }
+
+  // Fallback for FMCKSMCS default
   const tenantId = req.tenant?.id || req.headers['x-tenant-id'] || req.headers['X-Tenant-Id'] || req.user?.tenant_id || req.query?.tenant || '';
   const tenantName = (req.tenant?.name || '').toLowerCase();
   const normalizedId = String(tenantId).toLowerCase();
@@ -19,6 +33,7 @@ const checkTenantWithdrawalAccess = (req, res, next) => {
   if (isFmck) {
     return res.status(403).json({
       success: false,
+      code: 'MODULE_DISABLED',
       message: 'Withdrawals module is not available for this cooperative.'
     });
   }

@@ -25,10 +25,41 @@ class TenantController {
         return res.status(404).json({ success: false, message: 'Tenant not found' });
       }
 
-      // Merge tenant's theme with defaults to ensure all fields exist
+      const tenantSettings = req.tenantSettings || {};
+      const cooperativeName = tenantSettings.cooperative_name || tenant.name;
+      const logo = tenantSettings.cooperative_logo || tenant.theme?.customLogoUrl || tenant.theme?.logoUrl || DEFAULT_THEME.customLogoUrl;
+
+      // Merge tenant's theme with defaults and custom logo
       const theme = {
         ...DEFAULT_THEME,
-        ...(tenant.theme || {})
+        ...(tenant.theme || {}),
+        customLogoUrl: logo,
+        logoUrl: logo
+      };
+
+      // Merge features with enabled_modules from cooperative settings
+      const features = {
+        landing_page: true,
+        loans: true,
+        layyah: true,
+        expenses: true,
+        profit_sharing: true,
+        withdrawals: true,
+        contributions: true,
+        receipt_designer: true,
+        document_designer: true,
+        member_portal: true,
+        ...(tenant.features || {}),
+        ...(tenantSettings.enabled_modules || {})
+      };
+
+      // Create a safe sanitized copy of settings (mask API key)
+      const safeSettings = {
+        ...tenantSettings,
+        ai_settings: tenantSettings.ai_settings ? {
+          ...tenantSettings.ai_settings,
+          api_key: tenantSettings.ai_settings.api_key ? '••••••••' : ''
+        } : undefined
       };
 
       // We only return safe, public data here
@@ -36,17 +67,11 @@ class TenantController {
         success: true,
         data: {
           id: tenant.id,
-          name: tenant.name,
+          name: cooperativeName,
           cooperative_type: tenant.cooperative_type,
           theme,
-          features: tenant.features || {
-            landing_page: true,
-            loans: true,
- layyah: true,
-            expenses: true,
-            profit_sharing: true,
-            withdrawals: true
-          }
+          features,
+          settings: safeSettings
         }
       });
 

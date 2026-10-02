@@ -427,6 +427,11 @@ const createLoan = async (req, res) => {
         has_payslip: !!payslip_url
     });
 
+    const isGuarantorRequired = (req.tenantSettings?.require_guarantors !== false) && loanType !== 'emergency';
+    if (isGuarantorRequired && !guarantor_psn) {
+      return res.status(400).json({ success: false, message: 'A verified guarantor is required for this loan application.' });
+    }
+
     // Validate Grantor PSN if provided
     if (guarantor_psn) {
         const cleanPsn = normalizePsn(guarantor_psn);
@@ -541,45 +546,59 @@ const createLoan = async (req, res) => {
     ) || 0;
     const totalContributions = totalSavingsVal + totalInvestmentVal;
 
+    const ts = req.tenantSettings || {};
+    const sym = ts.currency_symbol || '₦';
+    const maxCashSetting = ts.max_cash_loan ?? 500000;
+    const maxLoanOverall = ts.max_loan_amount ?? 1000000;
+    const multiplier = ts.investment_loan_multiplier ?? 3;
+
+    if (amountNum > maxLoanOverall) {
+      return res.status(400).json({
+        success: false,
+        message: `Loan amount cannot exceed cooperative maximum limit of ${sym}${maxLoanOverall.toLocaleString()}`
+      });
+    }
+
     if (loanType === 'cash') {
-      const maxCash = Math.min(500000, totalContributions * 0.5 * 3);
+      const maxCash = Math.min(maxCashSetting, totalContributions * 0.5 * multiplier);
       if (amountNum > maxCash) {
-        return res.status(400).json({ success: false, message: `Cash loan cannot exceed max limit of ₦${maxCash.toLocaleString()}` });
+        return res.status(400).json({ success: false, message: `Cash loan cannot exceed max limit of ${sym}${maxCash.toLocaleString()}` });
       }
     } else if (loanType === 'venture') {
-      const maxVenture = Math.min(1000000, totalContributions * 0.3 * 10);
+      const maxVenture = Math.min(maxLoanOverall, totalContributions * 0.3 * (multiplier * 3.33));
       if (amountNum > maxVenture) {
-        return res.status(400).json({ success: false, message: `Venture loan cannot exceed max limit of ₦${maxVenture.toLocaleString()}` });
+        return res.status(400).json({ success: false, message: `Venture loan cannot exceed max limit of ${sym}${maxVenture.toLocaleString()}` });
       }
     } else if (loanType === 'emergency') {
       if (amountNum > 20000) {
-        return res.status(400).json({ success: false, message: `Emergency loan cannot exceed ₦20,000` });
+        return res.status(400).json({ success: false, message: `Emergency loan cannot exceed ${sym}20,000` });
       }
     } else if (loanType === 'educational') {
-      const maxEducationalLoan = totalInvestmentVal * 3;
+      const maxEducationalLoan = totalInvestmentVal * multiplier;
       if (amountNum > maxEducationalLoan) {
         return res.status(400).json({
           success: false,
-          message: `Educational loan cannot exceed 3x your total investment (₦${maxEducationalLoan.toLocaleString()})`,
+          message: `Educational loan cannot exceed ${multiplier}x your total investment (${sym}${maxEducationalLoan.toLocaleString()})`,
           max_amount: maxEducationalLoan,
           total_investment: totalInvestmentVal
         });
       }
     } else if (loanType === 'investment') {
-      const maxInvestmentLoan = totalInvestmentVal * 3;
+      const maxInvestmentLoan = totalInvestmentVal * multiplier;
       if (amountNum > maxInvestmentLoan) {
         return res.status(400).json({
           success: false,
-          message: `Investment loan cannot exceed 3x your total investment (₦${maxInvestmentLoan.toLocaleString()})`,
+          message: `Investment loan cannot exceed ${multiplier}x your total investment (${sym}${maxInvestmentLoan.toLocaleString()})`,
           max_amount: maxInvestmentLoan,
           total_investment: totalInvestmentVal
         });
       }
     }
 
-    // Check for active loans
+    // Check for active loans against configured max_active_loans_per_member
+    const maxActiveLoans = ts.max_active_loans_per_member ?? 2;
     const activeStatuses = ['pending', 'waiting_disbursement', 'approved', 'active', 'disbursed', 'defaulted', 'awaiting_admin_review'];
-    const activeLoan = await Loan.findOne({
+    const activeLoanCount = await Loan.count({
       where: {
         user_id: targetUserId,
         status: {
@@ -588,13 +607,13 @@ const createLoan = async (req, res) => {
       }
     });
 
-    if (activeLoan) {
-        console.warn(`⚠️ Blocked duplicate loan application for user ${targetUserId} (Has active loan #${activeLoan.id})`);
+    if (activeLoanCount >= maxActiveLoans) {
+        console.warn(`⚠️ Blocked loan application for user ${targetUserId} (Active count: ${activeLoanCount}, max allowed: ${maxActiveLoans})`);
         return res.status(400).json({
             success: false,
             message: targetUserId === req.user.id 
-                ? 'You cannot apply for a new loan while you have an active loan. Please complete or cancel your current loan first.'
-                : 'This member already has an active loan application or running loan.'
+                ? `You have reached the maximum allowed active loans (${maxActiveLoans}). Please complete or cancel existing loans first.`
+                : `This member already has ${activeLoanCount} active loans (cooperative limit is ${maxActiveLoans}).`
         });
     }
 
@@ -608,6 +627,15 @@ const createLoan = async (req, res) => {
         1,
         Math.floor((Date.now() - new Date(startedAt).getTime()) / (1000 * 60 * 60 * 24 * 30))
       );
+
+      // Verify minimum membership months if configured
+      const minMembershipMonths = ts.min_membership_months_for_loan ?? 6;
+      if (minMembershipMonths > 0 && months < minMembershipMonths && !['admin', 'super_admin'].includes(req.user.role)) {
+        return res.status(400).json({
+          success: false,
+          message: `Minimum membership duration of ${minMembershipMonths} months is required to apply for a loan (current: ${months} months).`
+        });
+      }
       const totalSavings = totalSavingsVal;
       const totalInvestment = totalInvestmentVal;
 

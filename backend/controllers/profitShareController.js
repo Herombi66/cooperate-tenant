@@ -291,28 +291,27 @@ const calculateProfitShares = async (req, res) => {
       });
     }
 
-    // Get profit sharing settings
-    const settings = await Settings.findOne();
-    const reserveFundPercentage = settings?.reserve_fund_percentage || 10;
-    const educationFundPercentage = settings?.education_fund_percentage || 5;
-    const committeeBonusPercentage = settings?.committee_bonus_percentage || 5;
-    const badDebtReservePercentage = settings?.bad_debt_reserve_percentage || 3.5;
-    const generalReservePercentage = settings?.general_reserve_percentage || 2.8;
+    // Get profit sharing settings from tenant configuration
+    const ts = req.tenantSettings || {};
+    const reserveFundPercentage = parseFloat(ts.reserve_fund_percentage ?? 10);
+    const educationFundPercentage = parseFloat(ts.education_fund_percentage ?? 5);
+    const committeeBonusPercentage = parseFloat(ts.committee_bonus_percentage ?? 5);
+    const badDebtReservePercentage = parseFloat(ts.bad_debt_reserve_percentage ?? 3.5);
+    const generalReservePercentage = parseFloat(ts.general_reserve_percentage ?? 2.8);
 
     // Calculate deductions
-    const reserveFundDeduction = totalProfitAmount * 0.10; // 10% net profit
-    const remainingAfterReserve = totalProfitAmount * 0.90; // 90% net profit
+    const reserveFundDeduction = totalProfitAmount * (reserveFundPercentage / 100);
+    const remainingAfterReserve = Math.max(0, totalProfitAmount - reserveFundDeduction);
     
-    // Percentages of 90% net profit
-    const educationFundDeduction = remainingAfterReserve * 0.055;
-    const committeeBonusDeduction = remainingAfterReserve * 0.05;
-    const badDebtReserveDeduction = remainingAfterReserve * 0.035;
-    const charityDeduction = remainingAfterReserve * 0.03;
-    const generalReserveDeduction = remainingAfterReserve * 0.02;
+    // Percentages of remaining profit
+    const educationFundDeduction = remainingAfterReserve * (educationFundPercentage / 100);
+    const committeeBonusDeduction = remainingAfterReserve * (committeeBonusPercentage / 100);
+    const badDebtReserveDeduction = remainingAfterReserve * (badDebtReservePercentage / 100);
+    const generalReserveDeduction = remainingAfterReserve * (generalReservePercentage / 100);
 
-    const totalDeductions = reserveFundDeduction + educationFundDeduction + committeeBonusDeduction + badDebtReserveDeduction + charityDeduction + generalReserveDeduction;
-    const netProfitForMembers = totalProfitAmount - totalDeductions;
-    const totalDeductionPercentage = (totalDeductions / totalProfitAmount) * 100;
+    const totalDeductions = reserveFundDeduction + educationFundDeduction + committeeBonusDeduction + badDebtReserveDeduction + generalReserveDeduction;
+    const netProfitForMembers = Math.max(0, totalProfitAmount - totalDeductions);
+    const totalDeductionPercentage = totalProfitAmount > 0 ? (totalDeductions / totalProfitAmount) * 100 : 0;
 
     // Check if existing profit shares exist for this period
     const existing = await ProfitShare.count({ where: { period } });
