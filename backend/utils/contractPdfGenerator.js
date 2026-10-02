@@ -115,11 +115,28 @@ const DEFAULT_WAKALA_TERMS = [
 /**
  * Resolve logo file path on disk
  */
-function resolveLogoPath() {
+function resolveLogoPath(customUrl = null) {
+  if (customUrl && typeof customUrl === 'string') {
+    const isFmck = customUrl.toLowerCase().includes('fmck');
+    if (isFmck) {
+      const fmckPaths = [
+        path.resolve(__dirname, '../public/fmck-logo.png'),
+        path.resolve(__dirname, '../../imanmcs-frontend/public/fmck-logo.png'),
+        path.resolve(__dirname, '../../imanmcs-frontend/dist/fmck-logo.png'),
+        path.resolve(__dirname, '../../imanmcs-project/public/fmck-logo.png')
+      ];
+      for (const p of fmckPaths) {
+        if (fs.existsSync(p)) return p;
+      }
+    }
+  }
+
   const possiblePaths = [
+    path.resolve(__dirname, '../public/logo.png'),
+    path.resolve(__dirname, '../public/fmck-logo.png'),
     path.resolve(__dirname, '../../imanmcs-project/public/logo.png'),
     path.resolve(__dirname, '../../imanmcs-project/src/assets/logo.png'),
-    path.resolve(__dirname, '../public/logo.png')
+    path.resolve(__dirname, '../../imanmcs-frontend/public/logo.png')
   ];
   for (const p of possiblePaths) {
     if (fs.existsSync(p)) return p;
@@ -269,7 +286,7 @@ async function generateContractPdf(templateConfig = {}, contractData = {}, optio
   // 1. OFFICIAL BRANDED HEADER
   // ==========================================
   if (sections.show_header) {
-    const logoPath = resolveLogoPath();
+    const logoPath = resolveLogoPath(logoConfig?.url);
     const hasLogo = sections.show_logo && logoPath && logoConfig.show_on_print;
     const logoW = Number(logoConfig.width) || 55;
     const logoH = Number(logoConfig.height) || 55;

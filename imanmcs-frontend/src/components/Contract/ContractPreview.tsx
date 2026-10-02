@@ -1,6 +1,8 @@
 import React from 'react';
 import { ShieldCheck, CheckCircle2, QrCode } from 'lucide-react';
 import { ContractLayoutConfig } from '../../services/documentTemplateService';
+import { useTenant } from '../../contexts/TenantContext';
+import { isFmckTenant, getMemberIdLabel } from '../../utils/tenantTerminology';
 
 interface ContractPreviewProps {
   layout: ContractLayoutConfig;
@@ -28,6 +30,9 @@ export const ContractPreview: React.FC<ContractPreviewProps> = ({
   layout,
   sampleData
 }) => {
+  const { tenant } = useTenant();
+  const isFmck = isFmckTenant(tenant);
+  const idLabel = getMemberIdLabel(tenant, 'full');
   const { colors, header, logo, sections, terms, stamp } = layout;
 
   const agreementRef = sampleData?.agreementRef || 'AG-00152';
@@ -100,7 +105,7 @@ export const ContractPreview: React.FC<ContractPreviewProps> = ({
                   style={{ width: logo.width || 60, height: logo.height || 60 }}
                 >
                   <img
-                    src={logo.url || '/logo.png'}
+                    src={logo.url || (isFmck ? '/fmck-logo.png' : '/logo.png')}
                     alt="Cooperative Logo"
                     className="max-h-full max-w-full object-contain"
                     onError={(e) => {
@@ -209,7 +214,7 @@ export const ContractPreview: React.FC<ContractPreviewProps> = ({
                 <span className="font-semibold">{borrowerName}</span>
               </div>
               <div>
-                <span className="text-gray-500">Member PSN: </span>
+                <span className="text-gray-500">{idLabel}: </span>
                 <span className="font-semibold">{borrowerPsn}</span>
               </div>
               <div>
@@ -241,7 +246,7 @@ export const ContractPreview: React.FC<ContractPreviewProps> = ({
                 <div className="space-y-1 text-gray-700">
                   <div className="flex justify-between">
                     <span className="text-gray-500">Financing Type:</span>
-                    <span className="font-semibold">Murabaha Asset Financing</span>
+                    <span className="font-semibold">{isFmck ? 'Staff Credit & Loan Facility' : 'Murabaha Asset Financing'}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-500">Repayment Tenure:</span>

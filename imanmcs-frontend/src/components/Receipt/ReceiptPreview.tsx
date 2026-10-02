@@ -1,6 +1,8 @@
 import React from 'react';
 import { ReceiptLayoutConfig } from '../../services/receiptTemplateService';
 import { ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { useTenant } from '../../contexts/TenantContext';
+import { isFmckTenant } from '../../utils/tenantTerminology';
 
 interface ReceiptPreviewProps {
   config: ReceiptLayoutConfig;
@@ -147,10 +149,28 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({
   previewMode = 'desktop',
   sampleData
 }) => {
+  const { tenant } = useTenant();
+  const isFmck = isFmckTenant(tenant);
   const isThermal = paperSize === 'thermal_80' || paperSize === 'thermal_58';
   const is58mm = paperSize === 'thermal_58';
 
-  const defaultData = {
+  const defaultData = isFmck ? {
+    receipt_number: 'FMCK-REC-2026-B8A29F',
+    issue_date: new Date().toISOString().slice(0, 10),
+    payment_method: 'Direct Bank Transfer / Payroll',
+    transaction_type: 'Monthly Thrift Contribution',
+    amount: 35000.00,
+    balance_after: 285000.00,
+    member: {
+      name: 'Malam Ibrahim M. Danjuma',
+      psn: 'FMCK/IPPIS/2024/0089',
+      facility: 'Federal Medical Centre Kumo, Gombe State'
+    },
+    items: [
+      { description: 'Monthly Savings Thrift (Thrift Fund)', amount: 30000.00 },
+      { description: 'Administrative & Welfare Levy', amount: 5000.00 }
+    ]
+  } : {
     receipt_number: 'IMAN-REC-2026-B8A29F',
     issue_date: new Date().toISOString().slice(0, 10),
     payment_method: 'Direct Bank Transfer',
@@ -293,7 +313,7 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({
                     }}
                   >
                     <img
-                      src="/logo.png"
+                      src={config.logo?.url || (isFmck ? '/fmck-logo.png' : '/logo.png')}
                       alt="Logo"
                       className="max-h-full max-w-full object-contain"
                       onError={(e) => {

@@ -35,6 +35,11 @@ const DocumentTemplate = sequelize.define('DocumentTemplate', {
     type: DataTypes.JSON,
     allowNull: false
   },
+  tenant_id: {
+    type: DataTypes.STRING(100),
+    allowNull: false,
+    defaultValue: 'default'
+  },
   created_by: {
     type: DataTypes.INTEGER,
     allowNull: true,
@@ -57,6 +62,7 @@ const DocumentTemplate = sequelize.define('DocumentTemplate', {
   createdAt: 'created_at',
   updatedAt: 'updated_at',
   indexes: [
+    { fields: ['tenant_id'] },
     { fields: ['type'] },
     { fields: ['is_active'] },
     { fields: ['is_default'] }

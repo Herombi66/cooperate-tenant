@@ -1,10 +1,11 @@
 const crypto = require('crypto');
 const { ReceiptTemplate, ReceiptTemplateVersion, ReceiptRecord, User, MembershipApplication, ActivityLog } = require('../models');
+const { sequelize } = require('../db/connection');
 const { generateReceiptPdf } = require('../utils/receiptGenerator');
 const { generateQRCodeDataURL } = require('../utils/qrHelper');
 
 /**
- * Built-in default layout configurations for 6 standard template types
+ * Built-in default layout configurations for 7 standard template types (Standard / IMAN)
  */
 const DEFAULT_TEMPLATES = [
   {
@@ -14,6 +15,7 @@ const DEFAULT_TEMPLATES = [
     is_active: true,
     is_default: true,
     version: 1,
+    tenant_id: 'default',
     layout_config: {
       theme: 'iman_emerald',
       colors: {
@@ -89,6 +91,7 @@ const DEFAULT_TEMPLATES = [
     is_active: true,
     is_default: false,
     version: 1,
+    tenant_id: 'default',
     layout_config: {
       theme: 'iman_emerald',
       colors: {
@@ -164,6 +167,7 @@ const DEFAULT_TEMPLATES = [
     is_active: true,
     is_default: false,
     version: 1,
+    tenant_id: 'default',
     layout_config: {
       theme: 'royal_navy',
       colors: {
@@ -239,6 +243,7 @@ const DEFAULT_TEMPLATES = [
     is_active: true,
     is_default: false,
     version: 1,
+    tenant_id: 'default',
     layout_config: {
       theme: 'modern_teal',
       colors: {
@@ -250,39 +255,39 @@ const DEFAULT_TEMPLATES = [
         accent: '#F0FDFA'
       },
       typography: {
-        font_family: 'Courier, monospace',
+        font_family: 'Inter, sans-serif',
         font_scale: 'compact',
         heading_weight: 'bold',
-        body_size: '9pt',
+        body_size: '8pt',
         text_align: 'center'
       },
       header: {
         org_name: 'IMAN COOPERATIVE SOCIETY',
-        tagline: 'Target & Voluntary Savings',
+        tagline: 'Savings & Instant Counter Transactions',
         registration_no: 'IMAN/COOP/2024/001',
-        address: 'Gombe State, Nigeria',
+        address: 'Gombe, Nigeria',
         phone: '+234 800 000 0000',
         email: 'info@imancooperative.org',
         website: 'www.imancooperative.org',
-        receipt_title: 'SAVINGS DEPOSIT SLIP'
+        receipt_title: 'SAVINGS DEPOSIT RECEIPT'
       },
       logo: {
         url: '/logo.png',
         position: 'center',
         width: 50,
         height: 50,
-        show_on_print: false
+        show_on_print: true
       },
       border_style: 'dashed',
       sections: {
-        show_logo: false,
+        show_logo: true,
         show_header: true,
         show_metadata: true,
         show_member_details: true,
         show_breakdown: true,
         show_summary: true,
         show_qr_code: true,
-        show_barcode: true,
+        show_barcode: false,
         show_signatures: false,
         show_stamp: true,
         show_notes: true,
@@ -294,26 +299,27 @@ const DEFAULT_TEMPLATES = [
         rotation: 0
       },
       stamp: {
-        text: 'IMAN COOP • TELLER VERIFIED',
+        text: 'IMAN COOPERATIVE • CASH COUNTER',
         color: '#0D9488',
         show_date: true
       },
       signature: {
-        title: 'Cashier / Teller',
+        title: 'Counter Teller',
         show_line: false
       },
       notes: {
-        text: 'Thank you for saving with IMAN MCS. Keep this slip safe.'
+        text: 'Immediate transaction slip. Please verify figures before leaving the cashier window.'
       }
     }
   },
   {
-    name: 'Investment & Murabaha Receipt',
+    name: 'Investment & Capital Allocation Receipt',
     type: 'investment',
     paper_size: 'A4',
     is_active: true,
     is_default: false,
     version: 1,
+    tenant_id: 'default',
     layout_config: {
       theme: 'executive_slate',
       colors: {
@@ -325,7 +331,7 @@ const DEFAULT_TEMPLATES = [
         accent: '#F8FAFC'
       },
       typography: {
-        font_family: 'Merriweather, serif',
+        font_family: 'Inter, sans-serif',
         font_scale: 'medium',
         heading_weight: 'bold',
         body_size: '10pt',
@@ -333,19 +339,19 @@ const DEFAULT_TEMPLATES = [
       },
       header: {
         org_name: 'IMAN MULTI-PURPOSE COOPERATIVE SOCIETY',
-        tagline: 'Ethical & Shari’ah Compliant Capital Investment',
+        tagline: 'Venture Capital, Commodity Shares & Asset Equity',
         registration_no: 'IMAN/COOP/2024/001',
         address: 'Gombe State, Nigeria',
         phone: '+234 800 000 0000',
-        email: 'investments@imancooperative.org',
+        email: 'investment@imancooperative.org',
         website: 'www.imancooperative.org',
-        receipt_title: 'INVESTMENT CERTIFICATE RECEIPT'
+        receipt_title: 'CAPITAL ALLOCATION RECEIPT'
       },
       logo: {
         url: '/logo.png',
         position: 'center',
-        width: 75,
-        height: 75,
+        width: 70,
+        height: 70,
         show_on_print: true
       },
       border_style: 'double',
@@ -389,6 +395,7 @@ const DEFAULT_TEMPLATES = [
     is_active: true,
     is_default: false,
     version: 1,
+    tenant_id: 'default',
     layout_config: {
       theme: 'iman_emerald',
       colors: {
@@ -464,6 +471,7 @@ const DEFAULT_TEMPLATES = [
     is_active: true,
     is_default: false,
     version: 1,
+    tenant_id: 'default',
     layout_config: {
       theme: 'iman_emerald',
       colors: {
@@ -534,38 +542,605 @@ const DEFAULT_TEMPLATES = [
   }
 ];
 
-let tablesEnsured = false;
-async function ensureTablesAndDefaultsExist() {
-  if (tablesEnsured) return;
-  try {
-    await ReceiptTemplate.sync();
-    await ReceiptTemplateVersion.sync();
-    await ReceiptRecord.sync();
-    tablesEnsured = true;
-  } catch (syncErr) {
-    console.warn('[ReceiptTemplateController] sync warning:', syncErr.message);
+/**
+ * Built-in default layout configurations for FMCKSMCS tenant
+ */
+const FMCK_DEFAULT_TEMPLATES = [
+  {
+    name: 'General Master Receipt',
+    type: 'default',
+    paper_size: 'A4',
+    is_active: true,
+    is_default: true,
+    version: 1,
+    tenant_id: 'fmcksmcs',
+    layout_config: {
+      theme: 'fmck_emerald',
+      colors: {
+        primary: '#03490b',
+        secondary: '#5cd674',
+        text: '#1F2937',
+        background: '#FFFFFF',
+        border: '#DCFCE7',
+        accent: '#F0FDF4'
+      },
+      typography: {
+        font_family: 'Inter, sans-serif',
+        font_scale: 'medium',
+        heading_weight: 'bold',
+        body_size: '10pt',
+        text_align: 'left'
+      },
+      header: {
+        org_name: 'Federal Medical Centre Kumo Staff MPCS Ltd',
+        tagline: 'Staff Multi-Purpose Cooperative Society Ltd',
+        registration_no: 'FMCK/MPCS/2024/001',
+        address: 'Federal Medical Centre Kumo, Gombe State, Nigeria',
+        phone: '+234 810 588 0201',
+        email: 'info@fmcksmcs.com',
+        website: 'www.fmcksmcs.com',
+        receipt_title: 'OFFICIAL RECEIPT'
+      },
+      logo: {
+        url: '/fmck-logo.png',
+        position: 'center',
+        width: 70,
+        height: 70,
+        show_on_print: true
+      },
+      border_style: 'solid',
+      sections: {
+        show_logo: true,
+        show_header: true,
+        show_metadata: true,
+        show_member_details: true,
+        show_breakdown: true,
+        show_summary: true,
+        show_qr_code: true,
+        show_barcode: true,
+        show_signatures: true,
+        show_stamp: true,
+        show_notes: true,
+        show_watermark: true
+      },
+      watermark: {
+        text: 'OFFICIAL RECEIPT',
+        opacity: 0.1,
+        rotation: -30
+      },
+      stamp: {
+        text: 'FMCK STAFF MPCS LTD • OFFICIAL VERIFIED SEAL',
+        color: '#03490b',
+        show_date: true
+      },
+      signature: {
+        title: 'Authorized Treasury Officer',
+        show_line: true
+      },
+      notes: {
+        text: 'Thank you for your valued participation in Federal Medical Centre Kumo Staff MPCS Ltd. Issued under the Cooperative Bye-Laws.'
+      }
+    }
+  },
+  {
+    name: 'Thrift & Savings Contribution Receipt',
+    type: 'contribution',
+    paper_size: 'A4',
+    is_active: true,
+    is_default: false,
+    version: 1,
+    tenant_id: 'fmcksmcs',
+    layout_config: {
+      theme: 'fmck_emerald',
+      colors: {
+        primary: '#03490b',
+        secondary: '#5cd674',
+        text: '#111827',
+        background: '#FFFFFF',
+        border: '#DCFCE7',
+        accent: '#F0FDF4'
+      },
+      typography: {
+        font_family: 'Inter, sans-serif',
+        font_scale: 'medium',
+        heading_weight: 'bold',
+        body_size: '10pt',
+        text_align: 'left'
+      },
+      header: {
+        org_name: 'Federal Medical Centre Kumo Staff MPCS Ltd',
+        tagline: 'Monthly Thrift, Savings & Special Contribution',
+        registration_no: 'FMCK/MPCS/2024/001',
+        address: 'Federal Medical Centre Kumo, Gombe State, Nigeria',
+        phone: '+234 810 588 0201',
+        email: 'info@fmcksmcs.com',
+        website: 'www.fmcksmcs.com',
+        receipt_title: 'CONTRIBUTION RECEIPT'
+      },
+      logo: {
+        url: '/fmck-logo.png',
+        position: 'center',
+        width: 70,
+        height: 70,
+        show_on_print: true
+      },
+      border_style: 'solid',
+      sections: {
+        show_logo: true,
+        show_header: true,
+        show_metadata: true,
+        show_member_details: true,
+        show_breakdown: true,
+        show_summary: true,
+        show_qr_code: true,
+        show_barcode: true,
+        show_signatures: true,
+        show_stamp: true,
+        show_notes: true,
+        show_watermark: true
+      },
+      watermark: {
+        text: 'CONTRIBUTION PAID',
+        opacity: 0.12,
+        rotation: -30
+      },
+      stamp: {
+        text: 'FMCK STAFF MPCS LTD • SAVINGS & THRIFT DESK',
+        color: '#03490b',
+        show_date: true
+      },
+      signature: {
+        title: 'Treasurer / Financial Secretary',
+        show_line: true
+      },
+      notes: {
+        text: 'Your monthly thrift contribution strengthens staff economic resilience. Monthly balance reflects on your FMCKSMCS member portal dashboard.'
+      }
+    }
+  },
+  {
+    name: 'Loan Repayment & Liquidation Receipt',
+    type: 'loan_repayment',
+    paper_size: 'A4',
+    is_active: true,
+    is_default: false,
+    version: 1,
+    tenant_id: 'fmcksmcs',
+    layout_config: {
+      theme: 'fmck_emerald',
+      colors: {
+        primary: '#03490b',
+        secondary: '#5cd674',
+        text: '#1F2937',
+        background: '#FFFFFF',
+        border: '#DCFCE7',
+        accent: '#F0FDF4'
+      },
+      typography: {
+        font_family: 'Inter, sans-serif',
+        font_scale: 'medium',
+        heading_weight: 'bold',
+        body_size: '10pt',
+        text_align: 'left'
+      },
+      header: {
+        org_name: 'Federal Medical Centre Kumo Staff MPCS Ltd',
+        tagline: 'Credit & Staff Loan Repayment Operations',
+        registration_no: 'FMCK/MPCS/2024/001',
+        address: 'Federal Medical Centre Kumo, Gombe State, Nigeria',
+        phone: '+234 810 588 0201',
+        email: 'info@fmcksmcs.com',
+        website: 'www.fmcksmcs.com',
+        receipt_title: 'LOAN REPAYMENT RECEIPT'
+      },
+      logo: {
+        url: '/fmck-logo.png',
+        position: 'center',
+        width: 70,
+        height: 70,
+        show_on_print: true
+      },
+      border_style: 'solid',
+      sections: {
+        show_logo: true,
+        show_header: true,
+        show_metadata: true,
+        show_member_details: true,
+        show_breakdown: true,
+        show_summary: true,
+        show_qr_code: true,
+        show_barcode: true,
+        show_signatures: true,
+        show_stamp: true,
+        show_notes: true,
+        show_watermark: true
+      },
+      watermark: {
+        text: 'REPAYMENT ACKNOWLEDGED',
+        opacity: 0.1,
+        rotation: -30
+      },
+      stamp: {
+        text: 'FMCK STAFF MPCS LTD • CREDIT DEPARTMENT',
+        color: '#03490b',
+        show_date: true
+      },
+      signature: {
+        title: 'Credit & Loan Committee Head',
+        show_line: true
+      },
+      notes: {
+        text: 'Repayment successfully applied towards loan amortisation. Regulated by FMCK Staff MPCS Ltd Bye-Laws.'
+      }
+    }
+  },
+  {
+    name: 'Savings Deposit Receipt (Thermal 80mm)',
+    type: 'savings',
+    paper_size: 'thermal_80',
+    is_active: true,
+    is_default: false,
+    version: 1,
+    tenant_id: 'fmcksmcs',
+    layout_config: {
+      theme: 'fmck_emerald',
+      colors: {
+        primary: '#03490b',
+        secondary: '#5cd674',
+        text: '#111827',
+        background: '#FFFFFF',
+        border: '#DCFCE7',
+        accent: '#F0FDF4'
+      },
+      typography: {
+        font_family: 'Inter, sans-serif',
+        font_scale: 'compact',
+        heading_weight: 'bold',
+        body_size: '8pt',
+        text_align: 'center'
+      },
+      header: {
+        org_name: 'FMCK STAFF MPCS LTD',
+        tagline: 'Staff Savings & Counter Cash Operations',
+        registration_no: 'FMCK/MPCS/2024/001',
+        address: 'FMC Kumo, Gombe, Nigeria',
+        phone: '+234 810 588 0201',
+        email: 'info@fmcksmcs.com',
+        website: 'www.fmcksmcs.com',
+        receipt_title: 'SAVINGS DEPOSIT RECEIPT'
+      },
+      logo: {
+        url: '/fmck-logo.png',
+        position: 'center',
+        width: 50,
+        height: 50,
+        show_on_print: true
+      },
+      border_style: 'dashed',
+      sections: {
+        show_logo: true,
+        show_header: true,
+        show_metadata: true,
+        show_member_details: true,
+        show_breakdown: true,
+        show_summary: true,
+        show_qr_code: true,
+        show_barcode: false,
+        show_signatures: false,
+        show_stamp: true,
+        show_notes: true,
+        show_watermark: false
+      },
+      watermark: {
+        text: '',
+        opacity: 0,
+        rotation: 0
+      },
+      stamp: {
+        text: 'FMCK STAFF MPCS LTD • CASH OFFICE',
+        color: '#03490b',
+        show_date: true
+      },
+      signature: {
+        title: 'Counter Teller',
+        show_line: false
+      },
+      notes: {
+        text: 'Immediate transaction slip. Retain for official record.'
+      }
+    }
+  },
+  {
+    name: 'Special Investment & Capital Participation Receipt',
+    type: 'investment',
+    paper_size: 'A4',
+    is_active: true,
+    is_default: false,
+    version: 1,
+    tenant_id: 'fmcksmcs',
+    layout_config: {
+      theme: 'fmck_emerald',
+      colors: {
+        primary: '#03490b',
+        secondary: '#5cd674',
+        text: '#0F172A',
+        background: '#FFFFFF',
+        border: '#DCFCE7',
+        accent: '#F0FDF4'
+      },
+      typography: {
+        font_family: 'Inter, sans-serif',
+        font_scale: 'medium',
+        heading_weight: 'bold',
+        body_size: '10pt',
+        text_align: 'left'
+      },
+      header: {
+        org_name: 'Federal Medical Centre Kumo Staff MPCS Ltd',
+        tagline: 'Capital Investment & Cooperative Asset Ventures',
+        registration_no: 'FMCK/MPCS/2024/001',
+        address: 'Federal Medical Centre Kumo, Gombe State, Nigeria',
+        phone: '+234 810 588 0201',
+        email: 'info@fmcksmcs.com',
+        website: 'www.fmcksmcs.com',
+        receipt_title: 'CAPITAL ALLOCATION RECEIPT'
+      },
+      logo: {
+        url: '/fmck-logo.png',
+        position: 'center',
+        width: 70,
+        height: 70,
+        show_on_print: true
+      },
+      border_style: 'double',
+      sections: {
+        show_logo: true,
+        show_header: true,
+        show_metadata: true,
+        show_member_details: true,
+        show_breakdown: true,
+        show_summary: true,
+        show_qr_code: true,
+        show_barcode: true,
+        show_signatures: true,
+        show_stamp: true,
+        show_notes: true,
+        show_watermark: true
+      },
+      watermark: {
+        text: 'CAPITAL ALLOCATION',
+        opacity: 0.08,
+        rotation: -30
+      },
+      stamp: {
+        text: 'FMCK STAFF MPCS LTD • INVESTMENT BOARD',
+        color: '#03490b',
+        show_date: true
+      },
+      signature: {
+        title: 'Investment Committee Chairman',
+        show_line: true
+      },
+      notes: {
+        text: 'This receipt confirms capital participation in FMCK Staff MPCS Ltd initiatives. Dividend distribution adheres to approved cooperative shares.'
+      }
+    }
+  },
+  {
+    name: 'Membership Registration & Dues Receipt',
+    type: 'membership',
+    paper_size: 'A5',
+    is_active: true,
+    is_default: false,
+    version: 1,
+    tenant_id: 'fmcksmcs',
+    layout_config: {
+      theme: 'fmck_emerald',
+      colors: {
+        primary: '#03490b',
+        secondary: '#5cd674',
+        text: '#1F2937',
+        background: '#FFFFFF',
+        border: '#DCFCE7',
+        accent: '#F0FDF4'
+      },
+      typography: {
+        font_family: 'Inter, sans-serif',
+        font_scale: 'medium',
+        heading_weight: 'bold',
+        body_size: '9pt',
+        text_align: 'left'
+      },
+      header: {
+        org_name: 'Federal Medical Centre Kumo Staff MPCS Ltd',
+        tagline: 'Staff Onboarding & Member Registration Dues',
+        registration_no: 'FMCK/MPCS/2024/001',
+        address: 'Federal Medical Centre Kumo, Gombe State, Nigeria',
+        phone: '+234 810 588 0201',
+        email: 'info@fmcksmcs.com',
+        website: 'www.fmcksmcs.com',
+        receipt_title: 'MEMBERSHIP DUES RECEIPT'
+      },
+      logo: {
+        url: '/fmck-logo.png',
+        position: 'center',
+        width: 60,
+        height: 60,
+        show_on_print: true
+      },
+      border_style: 'solid',
+      sections: {
+        show_logo: true,
+        show_header: true,
+        show_metadata: true,
+        show_member_details: true,
+        show_breakdown: true,
+        show_summary: true,
+        show_qr_code: true,
+        show_barcode: true,
+        show_signatures: true,
+        show_stamp: true,
+        show_notes: true,
+        show_watermark: true
+      },
+      watermark: {
+        text: 'OFFICIAL MEMBER',
+        opacity: 0.1,
+        rotation: -30
+      },
+      stamp: {
+        text: 'FMCK STAFF MPCS LTD • SECRETARIAT',
+        color: '#03490b',
+        show_date: true
+      },
+      signature: {
+        title: 'General Secretary',
+        show_line: true
+      },
+      notes: {
+        text: 'Welcome to Federal Medical Centre Kumo Staff MPCS Ltd. Carry your IPPIS Number for all official transactions.'
+      }
+    }
+  },
+  {
+    name: 'Official Expense & Payment Voucher Receipt',
+    type: 'expense',
+    paper_size: 'A4',
+    is_active: true,
+    is_default: false,
+    version: 1,
+    tenant_id: 'fmcksmcs',
+    layout_config: {
+      theme: 'fmck_emerald',
+      colors: {
+        primary: '#03490b',
+        secondary: '#5cd674',
+        text: '#1F2937',
+        background: '#FFFFFF',
+        border: '#DCFCE7',
+        accent: '#F0FDF4'
+      },
+      typography: {
+        font_family: 'Inter, sans-serif',
+        font_scale: 'medium',
+        heading_weight: 'bold',
+        body_size: '10pt',
+        text_align: 'left'
+      },
+      header: {
+        org_name: 'Federal Medical Centre Kumo Staff MPCS Ltd',
+        tagline: 'Disbursement Voucher & Expenditure Management',
+        registration_no: 'FMCK/MPCS/2024/001',
+        address: 'Federal Medical Centre Kumo, Gombe State, Nigeria',
+        phone: '+234 810 588 0201',
+        email: 'info@fmcksmcs.com',
+        website: 'www.fmcksmcs.com',
+        receipt_title: 'OFFICIAL PAYMENT VOUCHER'
+      },
+      logo: {
+        url: '/fmck-logo.png',
+        position: 'center',
+        width: 70,
+        height: 70,
+        show_on_print: true
+      },
+      border_style: 'solid',
+      sections: {
+        show_logo: true,
+        show_header: true,
+        show_metadata: true,
+        show_member_details: true,
+        show_breakdown: true,
+        show_summary: true,
+        show_qr_code: true,
+        show_barcode: true,
+        show_signatures: true,
+        show_stamp: true,
+        show_notes: true,
+        show_watermark: true
+      },
+      watermark: {
+        text: 'PAYMENT DISBURSED',
+        opacity: 0.1,
+        rotation: -30
+      },
+      stamp: {
+        text: 'FMCK STAFF MPCS LTD • DISBURSEMENTS & EXPENDITURE DESK',
+        color: '#03490b',
+        show_date: true
+      },
+      signature: {
+        title: 'Treasurer / Financial Officer',
+        show_line: true
+      },
+      notes: {
+        text: 'Official payment disbursement voucher and expense receipt issued by Federal Medical Centre Kumo Staff MPCS Ltd.'
+      }
+    }
   }
-  await ensureDefaultTemplatesExist();
+];
+
+/**
+ * Helper to determine clean tenant ID
+ */
+function getResolvedTenantId(req) {
+  const tid = req.tenantId || req.tenant?.id || req.headers['x-tenant-id'] || req.query?.tenant || 'default';
+  const clean = String(tid).toLowerCase().trim();
+  if (clean === 'fmcksmcs' || clean === 'fmck') return 'fmcksmcs';
+  return clean || 'default';
 }
 
 /**
- * Ensure default templates exist in database
+ * Ensure database tables and default seed templates exist per tenant
  */
-async function ensureDefaultTemplatesExist() {
+async function ensureTablesAndDefaultsExist(tenantId = 'default') {
+  const isFmck = tenantId === 'fmcksmcs' || tenantId === 'fmck';
+  const targetTenant = isFmck ? 'fmcksmcs' : 'default';
+
   try {
     await ReceiptTemplate.sync();
     await ReceiptTemplateVersion.sync();
     await ReceiptRecord.sync();
-    for (const t of DEFAULT_TEMPLATES) {
-      const existing = await ReceiptTemplate.findOne({ where: { type: t.type } });
+  } catch (syncErr) {
+    console.warn('[ReceiptTemplateController] sync warning:', syncErr.message);
+  }
+
+  // Idempotent column check for production
+  try {
+    await sequelize.query(`
+      ALTER TABLE receipt_templates ADD COLUMN IF NOT EXISTS tenant_id VARCHAR(100) DEFAULT 'default';
+      ALTER TABLE receipt_template_versions ADD COLUMN IF NOT EXISTS tenant_id VARCHAR(100) DEFAULT 'default';
+      ALTER TABLE receipt_records ADD COLUMN IF NOT EXISTS tenant_id VARCHAR(100) DEFAULT 'default';
+    `);
+  } catch (colErr) {
+    // Column may already exist or SQLite in memory
+  }
+
+  await ensureDefaultTemplatesExist(targetTenant);
+}
+
+/**
+ * Ensure default templates exist in database for the given tenant
+ */
+async function ensureDefaultTemplatesExist(tenantId = 'default') {
+  try {
+    const isFmck = tenantId === 'fmcksmcs' || tenantId === 'fmck';
+    const targetTenant = isFmck ? 'fmcksmcs' : 'default';
+    const sourceTemplates = isFmck ? FMCK_DEFAULT_TEMPLATES : DEFAULT_TEMPLATES;
+
+    for (const t of sourceTemplates) {
+      const existing = await ReceiptTemplate.findOne({
+        where: { type: t.type, tenant_id: targetTenant }
+      });
       if (!existing) {
-        const created = await ReceiptTemplate.create(t);
+        const created = await ReceiptTemplate.create({ ...t, tenant_id: targetTenant });
         await ReceiptTemplateVersion.create({
           template_id: created.id,
           version: 1,
           layout_config: created.layout_config,
-          change_summary: 'Initial System Standard Baseline'
-        });
+          change_summary: isFmck ? 'Initial FMCKSMCS Standard Baseline' : 'Initial System Standard Baseline',
+          tenant_id: targetTenant
+        }).catch(() => {});
       }
     }
   } catch (err) {
@@ -584,13 +1159,15 @@ function generateVerificationHash(receiptNumber, transactionType, amount, issued
 
 /**
  * GET /receipt-templates
- * Lists all receipt templates
+ * Lists all receipt templates for active tenant
  */
 exports.getTemplates = async (req, res) => {
   try {
-    await ensureTablesAndDefaultsExist();
+    const tenantId = getResolvedTenantId(req);
+    await ensureTablesAndDefaultsExist(tenantId);
 
     const templates = await ReceiptTemplate.findAll({
+      where: { tenant_id: tenantId },
       order: [
         ['is_default', 'DESC'],
         ['is_active', 'DESC'],
@@ -614,13 +1191,16 @@ exports.getTemplates = async (req, res) => {
 
 /**
  * GET /receipt-templates/:id
- * Get single template by ID
+ * Get single template by ID for active tenant
  */
 exports.getTemplateById = async (req, res) => {
   try {
-    await ensureTablesAndDefaultsExist();
+    const tenantId = getResolvedTenantId(req);
+    await ensureTablesAndDefaultsExist(tenantId);
     const { id } = req.params;
-    const template = await ReceiptTemplate.findByPk(id, {
+
+    const template = await ReceiptTemplate.findOne({
+      where: { id, tenant_id: tenantId },
       include: [
         {
           model: ReceiptTemplateVersion,
@@ -648,11 +1228,12 @@ exports.getTemplateById = async (req, res) => {
 
 /**
  * POST /receipt-templates
- * Create a new receipt template
+ * Create a new receipt template for active tenant
  */
 exports.createTemplate = async (req, res) => {
   try {
-    await ensureTablesAndDefaultsExist();
+    const tenantId = getResolvedTenantId(req);
+    await ensureTablesAndDefaultsExist(tenantId);
     const { name, type, paper_size, layout_config, is_active } = req.body;
     const userId = req.user ? req.user.id : null;
 
@@ -667,6 +1248,7 @@ exports.createTemplate = async (req, res) => {
       layout_config,
       is_active: is_active !== false,
       version: 1,
+      tenant_id: tenantId,
       created_by: userId,
       updated_by: userId
     });
@@ -678,7 +1260,8 @@ exports.createTemplate = async (req, res) => {
         version: 1,
         layout_config,
         change_summary: 'Initial template creation',
-        created_by: userId
+        created_by: userId,
+        tenant_id: tenantId
       });
     } catch (verErr) {
       console.warn('ReceiptTemplateVersion create fallback:', verErr.message);
@@ -688,7 +1271,8 @@ exports.createTemplate = async (req, res) => {
         version: 1,
         layout_config,
         change_summary: 'Initial template creation',
-        created_by: userId
+        created_by: userId,
+        tenant_id: tenantId
       });
     }
 
@@ -721,12 +1305,15 @@ exports.createTemplate = async (req, res) => {
  */
 exports.updateTemplate = async (req, res) => {
   try {
-    await ensureTablesAndDefaultsExist();
+    const tenantId = getResolvedTenantId(req);
+    await ensureTablesAndDefaultsExist(tenantId);
     const { id } = req.params;
     const { name, paper_size, layout_config, change_summary, is_active } = req.body;
     const userId = req.user ? req.user.id : null;
 
-    const template = await ReceiptTemplate.findByPk(id);
+    const template = await ReceiptTemplate.findOne({
+      where: { id, tenant_id: tenantId }
+    });
     if (!template) {
       return res.status(404).json({ success: false, message: 'Receipt template not found' });
     }
@@ -748,7 +1335,8 @@ exports.updateTemplate = async (req, res) => {
         version: newVersion,
         layout_config: template.layout_config,
         change_summary: change_summary || `Updated template to version ${newVersion}`,
-        created_by: userId
+        created_by: userId,
+        tenant_id: tenantId
       });
     } catch (verErr) {
       console.warn('ReceiptTemplateVersion insert failed, ensuring table exists and retrying:', verErr.message);
@@ -758,7 +1346,8 @@ exports.updateTemplate = async (req, res) => {
         version: newVersion,
         layout_config: template.layout_config,
         change_summary: change_summary || `Updated template to version ${newVersion}`,
-        created_by: userId
+        created_by: userId,
+        tenant_id: tenantId
       });
     }
 
@@ -787,25 +1376,28 @@ exports.updateTemplate = async (req, res) => {
 
 /**
  * POST /receipt-templates/:id/activate
- * Set template as active or default for its type
+ * Set template as active or default for its type within tenant
  */
 exports.activateTemplate = async (req, res) => {
   try {
+    const tenantId = getResolvedTenantId(req);
     const { id } = req.params;
     const { make_default } = req.body;
     const userId = req.user ? req.user.id : null;
 
-    const template = await ReceiptTemplate.findByPk(id);
+    const template = await ReceiptTemplate.findOne({
+      where: { id, tenant_id: tenantId }
+    });
     if (!template) {
       return res.status(404).json({ success: false, message: 'Receipt template not found' });
     }
 
     template.is_active = true;
     if (make_default) {
-      // De-default other templates of same type
+      // De-default other templates of same type for this tenant
       await ReceiptTemplate.update(
         { is_default: false },
-        { where: { type: template.type } }
+        { where: { type: template.type, tenant_id: tenantId } }
       );
       template.is_default = true;
     }
@@ -829,8 +1421,10 @@ exports.activateTemplate = async (req, res) => {
  */
 exports.getTemplateVersions = async (req, res) => {
   try {
-    await ensureTablesAndDefaultsExist();
+    const tenantId = getResolvedTenantId(req);
+    await ensureTablesAndDefaultsExist(tenantId);
     const { id } = req.params;
+
     const versions = await ReceiptTemplateVersion.findAll({
       where: { template_id: id },
       order: [['version', 'DESC']],
@@ -855,18 +1449,21 @@ exports.getTemplateVersions = async (req, res) => {
  */
 exports.restoreTemplateVersion = async (req, res) => {
   try {
-    await ensureTablesAndDefaultsExist();
+    const tenantId = getResolvedTenantId(req);
+    await ensureTablesAndDefaultsExist(tenantId);
     const { id } = req.params;
     const { version_id } = req.body;
     const userId = req.user ? req.user.id : null;
 
-    const template = await ReceiptTemplate.findByPk(id);
+    const template = await ReceiptTemplate.findOne({
+      where: { id, tenant_id: tenantId }
+    });
     if (!template) {
       return res.status(404).json({ success: false, message: 'Template not found' });
     }
 
     const targetVersion = await ReceiptTemplateVersion.findOne({
-      where: { template_id: id, id: version_id }
+      where: { id: version_id, template_id: id }
     });
 
     if (!targetVersion) {
@@ -885,7 +1482,8 @@ exports.restoreTemplateVersion = async (req, res) => {
         version: nextVersion,
         layout_config: targetVersion.layout_config,
         change_summary: `Restored configuration from v${targetVersion.version}`,
-        created_by: userId
+        created_by: userId,
+        tenant_id: tenantId
       });
     } catch (verErr) {
       console.warn('ReceiptTemplateVersion rollback create retry:', verErr.message);
@@ -895,7 +1493,8 @@ exports.restoreTemplateVersion = async (req, res) => {
         version: nextVersion,
         layout_config: targetVersion.layout_config,
         change_summary: `Restored configuration from v${targetVersion.version}`,
-        created_by: userId
+        created_by: userId,
+        tenant_id: tenantId
       });
     }
 
@@ -924,20 +1523,25 @@ exports.restoreTemplateVersion = async (req, res) => {
 
 /**
  * POST /receipt-templates/:id/reset
- * Reverts template layout to system default
+ * Reverts template layout to system default according to tenant
  */
 exports.resetTemplateToDefault = async (req, res) => {
   try {
-    await ensureTablesAndDefaultsExist();
+    const tenantId = getResolvedTenantId(req);
+    await ensureTablesAndDefaultsExist(tenantId);
     const { id } = req.params;
     const userId = req.user ? req.user.id : null;
 
-    const template = await ReceiptTemplate.findByPk(id);
+    const template = await ReceiptTemplate.findOne({
+      where: { id, tenant_id: tenantId }
+    });
     if (!template) {
       return res.status(404).json({ success: false, message: 'Template not found' });
     }
 
-    const defaultMatch = DEFAULT_TEMPLATES.find(t => t.type === template.type) || DEFAULT_TEMPLATES[0];
+    const isFmck = tenantId === 'fmcksmcs';
+    const sourceTemplates = isFmck ? FMCK_DEFAULT_TEMPLATES : DEFAULT_TEMPLATES;
+    const defaultMatch = sourceTemplates.find(t => t.type === template.type) || sourceTemplates[0];
 
     const nextVersion = (template.version || 1) + 1;
     template.layout_config = defaultMatch.layout_config;
@@ -951,8 +1555,9 @@ exports.resetTemplateToDefault = async (req, res) => {
         template_id: template.id,
         version: nextVersion,
         layout_config: defaultMatch.layout_config,
-        change_summary: 'Reset to system default template baseline',
-        created_by: userId
+        change_summary: `Reset to ${isFmck ? 'FMCKSMCS' : 'system default'} template baseline`,
+        created_by: userId,
+        tenant_id: tenantId
       });
     } catch (verErr) {
       console.warn('ReceiptTemplateVersion reset create retry:', verErr.message);
@@ -961,8 +1566,9 @@ exports.resetTemplateToDefault = async (req, res) => {
         template_id: template.id,
         version: nextVersion,
         layout_config: defaultMatch.layout_config,
-        change_summary: 'Reset to system default template baseline',
-        created_by: userId
+        change_summary: `Reset to ${isFmck ? 'FMCKSMCS' : 'system default'} template baseline`,
+        created_by: userId,
+        tenant_id: tenantId
       });
     }
 
@@ -980,7 +1586,7 @@ exports.resetTemplateToDefault = async (req, res) => {
 
     return res.json({
       success: true,
-      message: `Template reset to system default baseline (v${nextVersion})`,
+      message: `Template reset to ${isFmck ? 'FMCKSMCS' : 'system default'} baseline (v${nextVersion})`,
       template
     });
   } catch (error) {
@@ -995,13 +1601,18 @@ exports.resetTemplateToDefault = async (req, res) => {
  */
 exports.testPrintReceipt = async (req, res) => {
   try {
+    const tenantId = getResolvedTenantId(req);
+    const isFmck = tenantId === 'fmcksmcs';
+    const sourceTemplates = isFmck ? FMCK_DEFAULT_TEMPLATES : DEFAULT_TEMPLATES;
     const { template_id, paper_size, layout_config } = req.body;
 
     let config = layout_config;
     let size = paper_size;
 
     if (template_id && !config) {
-      const template = await ReceiptTemplate.findByPk(template_id);
+      const template = await ReceiptTemplate.findOne({
+        where: { id: template_id, tenant_id: tenantId }
+      });
       if (template) {
         config = template.layout_config;
         size = size || template.paper_size;
@@ -1009,11 +1620,28 @@ exports.testPrintReceipt = async (req, res) => {
     }
 
     if (!config) {
-      config = DEFAULT_TEMPLATES[0].layout_config;
+      config = sourceTemplates[0].layout_config;
       size = size || 'A4';
     }
 
-    const sampleData = {
+    const sampleData = isFmck ? {
+      receipt_number: `FMCK-TEST-${Date.now().toString().slice(-6)}`,
+      issue_date: new Date().toISOString().slice(0, 10),
+      payment_method: 'Bank Transfer / Payroll (Sample)',
+      transaction_type: 'Monthly Thrift Contribution (Sample)',
+      amount: 25000.00,
+      balance_after: 250000.00,
+      verification_hash: generateVerificationHash('FMCK-TEST-SAMPLE', 'Sample', 25000, new Date()),
+      member: {
+        name: 'Malam Ibrahim Danjuma (Sample Member)',
+        psn: 'FMCK/IPPIS/2024/0042',
+        facility: 'Federal Medical Centre Kumo, Gombe State'
+      },
+      items: [
+        { description: 'Monthly Savings Thrift Contribution (Thrift Fund)', amount: 20000.00 },
+        { description: 'Administrative & Welfare Levy', amount: 5000.00 }
+      ]
+    } : {
       receipt_number: `IMAN-TEST-${Date.now().toString().slice(-6)}`,
       issue_date: new Date().toISOString().slice(0, 10),
       payment_method: 'Bank Transfer (Sample)',
@@ -1054,22 +1682,25 @@ exports.testPrintReceipt = async (req, res) => {
  */
 exports.verifyReceiptPublic = async (req, res) => {
   try {
-    await ensureTablesAndDefaultsExist();
+    const tenantId = getResolvedTenantId(req);
+    await ensureTablesAndDefaultsExist(tenantId);
     const { receiptNumber } = req.params;
 
     if (!receiptNumber || receiptNumber.trim() === '') {
       return res.status(400).json({ success: false, message: 'Receipt number is required' });
     }
 
+    const isFmckReceipt = receiptNumber.startsWith('FMCK-TEST') || receiptNumber.startsWith('FMCK-REC') || tenantId === 'fmcksmcs';
+
     // Special test receipt handling
-    if (receiptNumber.startsWith('IMAN-TEST') || receiptNumber.includes('SAMPLE')) {
+    if (receiptNumber.startsWith('IMAN-TEST') || receiptNumber.startsWith('FMCK-TEST') || receiptNumber.includes('SAMPLE')) {
       return res.json({
         success: true,
         verified: true,
         is_sample: true,
         receipt: {
           receipt_number: receiptNumber,
-          cooperative_name: 'IMAN MULTI-PURPOSE COOPERATIVE SOCIETY',
+          cooperative_name: isFmckReceipt ? 'Federal Medical Centre Kumo Staff MPCS Ltd' : 'IMAN MULTI-PURPOSE COOPERATIVE SOCIETY',
           status: 'verified_sample',
           badge: 'Official Sample Receipt',
           transaction_type: 'Sample Contribution',
@@ -1077,7 +1708,7 @@ exports.verifyReceiptPublic = async (req, res) => {
           currency: 'NGN',
           issued_at: new Date().toISOString(),
           masked_member_name: 'I*** D***',
-          masked_member_id: 'MEM-***42',
+          masked_member_id: isFmckReceipt ? 'IPPIS-***42' : 'MEM-***42',
           verification_hash_snippet: 'a1b2c3d4e5f6...'
         }
       });
@@ -1093,7 +1724,7 @@ exports.verifyReceiptPublic = async (req, res) => {
             {
               model: MembershipApplication,
               as: 'membershipApplication',
-              attributes: ['name', 'psn']
+              attributes: ['name', 'psn', 'tenant_id']
             }
           ]
         }
@@ -1117,20 +1748,21 @@ exports.verifyReceiptPublic = async (req, res) => {
     );
 
     const isTamperFree = record.verification_hash === calculatedHash;
+    const isFmckUser = record.tenant_id === 'fmcksmcs' || record.member?.membershipApplication?.tenant_id === 'fmcksmcs' || isFmckReceipt;
 
     // Mask name: "Ibrahim Danjuma" -> "I*** D***"
     const fullName = record.member?.membershipApplication?.name || record.snapshot_data?.member?.name || 'Cooperative Member';
     const maskedName = fullName.split(' ').map(part => part.charAt(0) + '***').join(' ');
 
     const rawPsn = record.member?.membershipApplication?.psn || record.snapshot_data?.member?.psn || '';
-    const maskedPsn = rawPsn ? rawPsn.slice(0, 3) + '***' + rawPsn.slice(-2) : 'MEM-***';
+    const maskedPsn = rawPsn ? rawPsn.slice(0, 3) + '***' + rawPsn.slice(-2) : (isFmckUser ? 'IPPIS-***' : 'MEM-***');
 
     return res.json({
       success: true,
       verified: isTamperFree,
       receipt: {
         receipt_number: record.receipt_number,
-        cooperative_name: record.snapshot_data?.header?.org_name || 'IMAN MULTI-PURPOSE COOPERATIVE SOCIETY',
+        cooperative_name: record.snapshot_data?.header?.org_name || (isFmckUser ? 'Federal Medical Centre Kumo Staff MPCS Ltd' : 'IMAN MULTI-PURPOSE COOPERATIVE SOCIETY'),
         status: isTamperFree ? 'verified' : 'integrity_warning',
         badge: isTamperFree ? 'Official Verified Receipt' : 'Integrity Mismatch',
         transaction_type: record.transaction_type,
@@ -1155,7 +1787,8 @@ exports.verifyReceiptPublic = async (req, res) => {
  */
 exports.getReceiptRecord = async (req, res) => {
   try {
-    await ensureTablesAndDefaultsExist();
+    const tenantId = getResolvedTenantId(req);
+    await ensureTablesAndDefaultsExist(tenantId);
     const { receiptNumber } = req.params;
     const record = await ReceiptRecord.findOne({
       where: { receipt_number: receiptNumber }
@@ -1189,29 +1822,33 @@ exports.issueReceiptRecord = async ({
   recipientName = null,
   recipientDetails = null,
   customItems = [],
-  balanceAfter = null
+  balanceAfter = null,
+  tenantId = 'default'
 }) => {
   try {
-    await ensureTablesAndDefaultsExist();
+    const targetTenant = (tenantId === 'fmcksmcs' || tenantId === 'fmck') ? 'fmcksmcs' : 'default';
+    await ensureTablesAndDefaultsExist(targetTenant);
 
-    // Find active template for transaction type, or default
+    // Find active template for transaction type, or default for this tenant
     let template = await ReceiptTemplate.findOne({
-      where: { type: transactionType, is_active: true }
+      where: { type: transactionType, is_active: true, tenant_id: targetTenant }
     });
     if (!template) {
       template = await ReceiptTemplate.findOne({
-        where: { is_default: true, is_active: true }
-      }) || await ReceiptTemplate.findOne();
+        where: { is_default: true, is_active: true, tenant_id: targetTenant }
+      }) || await ReceiptTemplate.findOne({ where: { tenant_id: targetTenant } });
     }
 
-    const templateConfig = template ? template.layout_config : DEFAULT_TEMPLATES[0].layout_config;
+    const defaultList = targetTenant === 'fmcksmcs' ? FMCK_DEFAULT_TEMPLATES : DEFAULT_TEMPLATES;
+    const templateConfig = template ? template.layout_config : defaultList[0].layout_config;
     const templateId = template ? template.id : null;
     const templateVersion = template ? template.version : 1;
 
-    // Generate receipt number: IMAN-REC-YYYY-XXXXXX or use supplied
+    // Generate receipt number: FMCK-REC-YYYY-XXXXXX or IMAN-REC-YYYY-XXXXXX
+    const isFmck = targetTenant === 'fmcksmcs';
     const year = new Date().getFullYear();
     const randomHex = crypto.randomBytes(3).toString('hex').toUpperCase();
-    const receiptNumber = customReceiptNumber || `IMAN-REC-${year}-${randomHex}`;
+    const receiptNumber = customReceiptNumber || `${isFmck ? 'FMCK' : 'IMAN'}-REC-${year}-${randomHex}`;
 
     const issuedAt = new Date();
     const verificationHash = generateVerificationHash(receiptNumber, transactionType, amount, issuedAt);
@@ -1234,7 +1871,7 @@ exports.issueReceiptRecord = async ({
     if (!memberDetails && (recipientName || recipientDetails)) {
       memberDetails = recipientDetails || {
         name: recipientName,
-        psn: 'Official Payee / Beneficiary',
+        psn: isFmck ? 'Official Payee / Staff' : 'Official Payee / Beneficiary',
         facility: 'Expense Disbursement'
       };
     }
@@ -1270,7 +1907,8 @@ exports.issueReceiptRecord = async ({
       template_id: templateId,
       template_version: templateVersion,
       verification_hash: verificationHash,
-      issued_at: issuedAt
+      issued_at: issuedAt,
+      tenant_id: targetTenant
     });
 
     return record;

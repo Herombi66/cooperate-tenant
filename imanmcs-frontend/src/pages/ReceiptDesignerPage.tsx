@@ -13,9 +13,21 @@ import receiptTemplateService, {
 } from '../services/receiptTemplateService';
 import { ReceiptPreview } from '../components/Receipt/ReceiptPreview';
 import toast from 'react-hot-toast';
+import { useTenant } from '../contexts/TenantContext';
+import { isFmckTenant } from '../utils/tenantTerminology';
 
-// 8 Professional Pre-Curated Color Palettes
+// 9 Professional Pre-Curated Color Palettes
 const COLOR_PRESETS = [
+  {
+    id: 'fmck_emerald',
+    name: 'FMCKSMCS Forest Green (Official)',
+    primary: '#03490b',
+    secondary: '#5cd674',
+    accent: '#F0FDF4',
+    border: '#DCFCE7',
+    text: '#1F2937',
+    background: '#FFFFFF'
+  },
   {
     id: 'iman_emerald',
     name: 'IMAN Emerald (Standard)',
@@ -99,6 +111,8 @@ const COLOR_PRESETS = [
 ];
 
 export const ReceiptDesignerPage: React.FC = () => {
+  const { tenant } = useTenant();
+  const isFmck = isFmckTenant(tenant);
   const [templates, setTemplates] = useState<ReceiptTemplate[]>([]);
   const [currentTemplate, setCurrentTemplate] = useState<ReceiptTemplate | null>(null);
   const [config, setConfig] = useState<ReceiptLayoutConfig | null>(null);
@@ -349,7 +363,9 @@ export const ReceiptDesignerPage: React.FC = () => {
             <div>
               <h1 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight">Receipt Designer & Branding</h1>
               <p className="text-xs sm:text-sm text-gray-500">
-                Visual template designer & presentation engine for all IMAN cooperative receipts
+                {isFmck
+                  ? 'Visual template designer & presentation engine for all FMCKSMCS cooperative receipts'
+                  : 'Visual template designer & presentation engine for all IMAN cooperative receipts'}
               </p>
             </div>
           </div>

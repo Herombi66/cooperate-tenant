@@ -118,6 +118,17 @@ export interface PublicAgreementVerification {
 }
 
 export const COLOR_PALETTES: Record<string, { label: string; colors: ContractColors }> = {
+  fmck_emerald: {
+    label: 'FMCKSMCS Forest Green (Official)',
+    colors: {
+      primary: '#03490b',
+      secondary: '#5cd674',
+      text: '#111827',
+      background: '#FFFFFF',
+      border: '#DCFCE7',
+      accent: '#F0FDF4'
+    }
+  },
   iman_emerald: {
     label: 'IMAN Emerald (Official)',
     colors: {

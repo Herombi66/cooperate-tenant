@@ -23,8 +23,12 @@ import DocumentTemplateService, {
   COLOR_PALETTES
 } from '../services/documentTemplateService';
 import { ContractPreview } from '../components/Contract/ContractPreview';
+import { useTenant } from '../contexts/TenantContext';
+import { isFmckTenant } from '../utils/tenantTerminology';
 
 export const DocumentDesignerPage: React.FC = () => {
+  const { tenant } = useTenant();
+  const isFmck = isFmckTenant(tenant);
   const [templates, setTemplates] = useState<DocumentTemplate[]>([]);
   const [selectedTemplate, setSelectedTemplate] = useState<DocumentTemplate | null>(null);
   const [layout, setLayout] = useState<ContractLayoutConfig | null>(null);
@@ -223,7 +227,9 @@ export const DocumentDesignerPage: React.FC = () => {
             <div>
               <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Document Designer</h1>
               <p className="text-xs sm:text-sm text-gray-500">
-                Official branding & layout designer for Islamic Murabaha Contracts and Agreements
+                {isFmck
+                  ? 'Official branding & layout designer for FMCKSMCS Contracts and Agreements'
+                  : 'Official branding & layout designer for Islamic Murabaha Contracts and Agreements'}
               </p>
             </div>
           </div>
@@ -321,10 +327,12 @@ export const DocumentDesignerPage: React.FC = () => {
             <div className="bg-white rounded-lg border border-gray-200 p-4 space-y-4 shadow-sm">
               <div>
                 <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wide">
-                  Curated Islamic Color Palettes
+                  {isFmck ? 'Curated Cooperative Color Palettes' : 'Curated Islamic Color Palettes'}
                 </h3>
                 <p className="text-[11px] text-gray-500 mb-3">
-                  Select a pre-designed palette suitable for official Islamic cooperative agreements:
+                  {isFmck
+                    ? 'Select a pre-designed palette suitable for official FMCKSMCS cooperative agreements:'
+                    : 'Select a pre-designed palette suitable for official Islamic cooperative agreements:'}
                 </p>
 
                 <div className="grid grid-cols-2 gap-2">

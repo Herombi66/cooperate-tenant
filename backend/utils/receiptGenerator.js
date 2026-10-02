@@ -189,7 +189,12 @@ async function generateReceiptPdf(templateConfig, receiptData, options = {}) {
     const rawName = receiptData.member.name || 'Cooperative Member';
     const nameDisplay = (rawName.startsWith('Payee') || rawName.startsWith('Name:')) ? rawName : `Name: ${rawName}`;
     doc.text(nameDisplay);
-    if (receiptData.member.psn) doc.text(receiptData.member.psn.startsWith('Category:') ? receiptData.member.psn : `PSN/ID: ${receiptData.member.psn}`);
+    if (receiptData.member.psn) {
+      const idPrefix = receiptData.member.psn.startsWith('Category:')
+        ? ''
+        : (receiptData.member.psn.includes('IPPIS') ? 'IPPIS No: ' : 'PSN/ID: ');
+      doc.text(idPrefix ? `${idPrefix}${receiptData.member.psn}` : receiptData.member.psn);
+    }
     if (receiptData.member.facility) doc.text(receiptData.member.facility.includes(':') ? receiptData.member.facility : `Facility: ${receiptData.member.facility}`);
     doc.moveDown(0.5);
   }
