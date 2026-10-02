@@ -248,7 +248,7 @@ export const AdminDashboard: React.FC = () => {
       {/* Enhanced Stats Grid */}
       {!loading && !error && (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div data-tour="dashboard-stats" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <StatsCard
               title="Total Members"
               value={currentStats.totalMembers.toLocaleString()}

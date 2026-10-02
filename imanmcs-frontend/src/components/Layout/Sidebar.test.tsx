@@ -45,6 +45,18 @@ vi.mock('../../contexts/TenantContext', () => ({
   }),
 }));
 
+vi.mock('../../contexts/PermissionContext', () => ({
+  usePermissions: () => ({
+    canAccess: () => true,
+    can: () => true,
+    isAdmin: true,
+    isLoading: false,
+    permissions: {},
+    roles: ['admin'],
+    refreshPermissions: vi.fn(),
+  }),
+}));
+
 describe('Sidebar Component Theme', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -102,8 +114,8 @@ describe('Sidebar Component Theme', () => {
     expect(icon?.getAttribute('class')).toContain('text-[#03490b]');
     expect(icon?.getAttribute('class')).toContain('dark:text-[#5cd674]');
 
-    // Verify FMCK hides Roles and Withdrawals
-    expect(screen.queryByText('Roles & Permissions')).toBeNull();
+    // Verify FMCK admin can access Roles & Permissions, but Withdrawals is hidden
+    expect(screen.getByText('Roles & Permissions')).toBeTruthy();
     expect(screen.queryByText('Withdrawals')).toBeNull();
   });
 

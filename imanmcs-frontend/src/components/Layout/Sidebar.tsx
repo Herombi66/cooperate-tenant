@@ -399,7 +399,7 @@ export const Sidebar: React.FC = () => {
           </button>
         </div>
 
-        <nav className="mt-4 overflow-y-auto h-[calc(100vh-5rem)]">
+        <nav data-tour="sidebar-nav" className="mt-4 overflow-y-auto h-[calc(100vh-5rem)]">
           {items.map((item) => (
             <NavLink
               key={item.name}
