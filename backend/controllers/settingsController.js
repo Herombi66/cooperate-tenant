@@ -37,6 +37,7 @@ const logoUpload = multer({
 exports.getSettings = async (req, res) => {
   try {
     const allSettings = await Settings.findAll({
+      skipTenant: true,
       order: [
         ['category', 'ASC'],
         ['key', 'ASC']
@@ -271,21 +272,34 @@ exports.updateSettings = async (req, res) => {
         const category = getCategoryByKey(key);
         const description = getDescriptionByKey(key);
 
-        const existingSetting = await Settings.findOne({ where: { key } });
+        const existingSetting = await Settings.findOne({ where: { key }, skipTenant: true });
         
         if (existingSetting) {
           existingSetting.proposed_value = serializeSettingValue(value);
           existingSetting.status = 'pending_approval';
           await existingSetting.save();
         } else {
-          await Settings.create({
-            key,
-            value: serializeSettingValue(value),
-            proposed_value: serializeSettingValue(value),
-            status: 'pending_approval',
-            category,
-            description
-          });
+          try {
+            await Settings.create({
+              key,
+              value: serializeSettingValue(value),
+              proposed_value: serializeSettingValue(value),
+              status: 'pending_approval',
+              category,
+              description
+            }, { skipTenant: true });
+          } catch (createErr) {
+            if (createErr.name === 'SequelizeUniqueConstraintError' || createErr.original?.code === '23505') {
+              const fallback = await Settings.findOne({ where: { key }, skipTenant: true });
+              if (fallback) {
+                fallback.proposed_value = serializeSettingValue(value);
+                fallback.status = 'pending_approval';
+                await fallback.save();
+              }
+            } else {
+              throw createErr;
+            }
+          }
         }
 
         updatedKeys.push(key);

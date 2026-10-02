@@ -124,7 +124,8 @@ const globalModels = [
   'RolePermission',
   'Permission',
   'PermissionCategory',
-  'UserRole'
+  'UserRole',
+  'Settings'
 ];
 
 function applyTenantFilter(options) {

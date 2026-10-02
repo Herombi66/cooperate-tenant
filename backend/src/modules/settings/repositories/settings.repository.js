@@ -15,14 +15,14 @@ class SettingsRepository extends BaseRepository {
    * Get a setting by key
    */
   async getByKey(key) {
-    return Settings.findOne({ where: { key } });
+    return Settings.findOne({ where: { key }, skipTenant: true });
   }
 
   /**
    * Set a setting by key
    */
   async setByKey(key, value, description = '') {
-    const existing = await Settings.findOne({ where: { key } });
+    const existing = await Settings.findOne({ where: { key }, skipTenant: true });
     
     if (existing) {
       return existing.update({
@@ -30,11 +30,24 @@ class SettingsRepository extends BaseRepository {
         description
       });
     } else {
-      return Settings.create({
-        key,
-        value: typeof value === 'object' ? JSON.stringify(value) : value,
-        description
-      });
+      try {
+        return await Settings.create({
+          key,
+          value: typeof value === 'object' ? JSON.stringify(value) : value,
+          description
+        }, { skipTenant: true });
+      } catch (createErr) {
+        if (createErr.name === 'SequelizeUniqueConstraintError' || createErr.original?.code === '23505') {
+          const fallback = await Settings.findOne({ where: { key }, skipTenant: true });
+          if (fallback) {
+            return fallback.update({
+              value: typeof value === 'object' ? JSON.stringify(value) : value,
+              description
+            });
+          }
+        }
+        throw createErr;
+      }
     }
   }
 }

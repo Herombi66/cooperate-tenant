@@ -286,7 +286,8 @@ class TenantSettingsService {
       const defaults = this.getDefaultSettings();
       
       const customSetting = await Settings.findOne({
-        where: { key: `tenant:${tenantId}:config` }
+        where: { key: `tenant:${tenantId}:config` },
+        skipTenant: true
       });
 
       let customSettings = {};
@@ -338,7 +339,7 @@ class TenantSettingsService {
   async update(tenantId = 'default', newSettings) {
     const key = `tenant:${tenantId}:config`;
     
-    const existing = await Settings.findOne({ where: { key } });
+    let existing = await Settings.findOne({ where: { key }, skipTenant: true });
     let currentSettings = {};
     
     if (existing) {
@@ -357,18 +358,35 @@ class TenantSettingsService {
     
     if (existing) {
       await existing.update({
+        tenant_id: tenantId,
         value: JSON.stringify(mergedSettings),
         updatedAt: new Date()
       });
     } else {
-      await Settings.create({
-        key,
-        value: JSON.stringify(mergedSettings),
-        description: `Settings for tenant ${tenantId}`,
-        category: 'general',
-        createdAt: new Date(),
-        updatedAt: new Date()
-      });
+      try {
+        await Settings.create({
+          tenant_id: tenantId,
+          key,
+          value: JSON.stringify(mergedSettings),
+          description: `Settings for tenant ${tenantId}`,
+          category: 'general',
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }, { skipTenant: true });
+      } catch (createErr) {
+        if (createErr.name === 'SequelizeUniqueConstraintError' || createErr.original?.code === '23505') {
+          existing = await Settings.findOne({ where: { key }, skipTenant: true });
+          if (existing) {
+            await existing.update({
+              tenant_id: tenantId,
+              value: JSON.stringify(mergedSettings),
+              updatedAt: new Date()
+            });
+          }
+        } else {
+          throw createErr;
+        }
+      }
     }
 
     // Sync to Tenant model if applicable
@@ -423,12 +441,37 @@ class TenantSettingsService {
           const serialized = typeof mergedSettings[k] === 'object'
             ? JSON.stringify(mergedSettings[k])
             : mergedSettings[k];
-          await Settings.upsert({
-            key: k,
-            value: serialized,
-            description: `${k} setting`,
-            category: this.getCategoryForKey(k)
-          });
+          const existingFlat = await Settings.findOne({ where: { key: k }, skipTenant: true });
+          if (existingFlat) {
+            await existingFlat.update({
+              tenant_id: tenantId,
+              value: serialized,
+              description: `${k} setting`,
+              category: this.getCategoryForKey(k)
+            });
+          } else {
+            try {
+              await Settings.create({
+                tenant_id: tenantId,
+                key: k,
+                value: serialized,
+                description: `${k} setting`,
+                category: this.getCategoryForKey(k)
+              }, { skipTenant: true });
+            } catch (err) {
+              if (err.name === 'SequelizeUniqueConstraintError' || err.original?.code === '23505') {
+                const rec = await Settings.findOne({ where: { key: k }, skipTenant: true });
+                if (rec) {
+                  await rec.update({
+                    tenant_id: tenantId,
+                    value: serialized,
+                    description: `${k} setting`,
+                    category: this.getCategoryForKey(k)
+                  });
+                }
+              }
+            }
+          }
         } catch (e) {
           // Non-blocking sync
         }
@@ -443,7 +486,7 @@ class TenantSettingsService {
    */
   async reset(tenantId = 'default') {
     const key = `tenant:${tenantId}:config`;
-    await Settings.destroy({ where: { key } });
+    await Settings.destroy({ where: { key }, skipTenant: true });
     return this.getDefaultSettings();
   }
 
