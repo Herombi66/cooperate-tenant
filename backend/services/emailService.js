@@ -157,8 +157,8 @@ class EmailService {
 
     let base = (config.urls?.memberPortal || process.env.FRONTEND_URL || process.env.APP_URL || 'https://www.fmcksmcs.com').replace(/\/+$/, '');
 
-    // If target tenant is fmcksmcs and base URL contains imanmcs.com, override to www.fmcksmcs.com
-    if (isFmck && (base.includes('imanmcs.com') || !base || base === 'http://localhost')) {
+    // For FMCKSMCS, never expose internal ports or raw server IP addresses
+    if (isFmck || base.includes('209.38.106.28') || base.includes(':8080') || base.includes(':3000') || base.includes('localhost') || base.includes('imanmcs.com')) {
       base = 'https://www.fmcksmcs.com';
     }
 

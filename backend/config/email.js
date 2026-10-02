@@ -26,24 +26,20 @@ module.exports = {
   
   // Application URLs
   urls: {
-    memberPortal: (process.env.MEMBER_PORTAL_URL && !process.env.MEMBER_PORTAL_URL.includes('imanmcs.com')
-      ? process.env.MEMBER_PORTAL_URL
-      : (process.env.FRONTEND_URL && !process.env.FRONTEND_URL.includes('imanmcs.com')
-        ? process.env.FRONTEND_URL.split(',')[0]
-        : (process.env.APP_URL && !process.env.APP_URL.includes('imanmcs.com')
-          ? process.env.APP_URL
-          : 'https://www.fmcksmcs.com')
-        )
-    ).replace(/\/+$/, ''),
-    adminPortal: (process.env.ADMIN_PORTAL_URL && !process.env.ADMIN_PORTAL_URL.includes('imanmcs.com')
-      ? process.env.ADMIN_PORTAL_URL
-      : (process.env.FRONTEND_URL && !process.env.FRONTEND_URL.includes('imanmcs.com')
-        ? process.env.FRONTEND_URL.split(',')[0]
-        : (process.env.APP_URL && !process.env.APP_URL.includes('imanmcs.com')
-          ? process.env.APP_URL
-          : 'https://www.fmcksmcs.com')
-        )
-    ).replace(/\/+$/, '')
+    memberPortal: (() => {
+      const candidate = (process.env.MEMBER_PORTAL_URL || process.env.FRONTEND_URL || process.env.APP_URL || '').split(',')[0].trim().replace(/\/+$/, '');
+      if (!candidate || candidate.includes('imanmcs.com') || candidate.includes('localhost') || candidate.includes('209.38.106.28') || candidate.includes(':8080') || candidate.includes(':3000')) {
+        return 'https://www.fmcksmcs.com';
+      }
+      return candidate;
+    })(),
+    adminPortal: (() => {
+      const candidate = (process.env.ADMIN_PORTAL_URL || process.env.FRONTEND_URL || process.env.APP_URL || '').split(',')[0].trim().replace(/\/+$/, '');
+      if (!candidate || candidate.includes('imanmcs.com') || candidate.includes('localhost') || candidate.includes('209.38.106.28') || candidate.includes(':8080') || candidate.includes(':3000')) {
+        return 'https://www.fmcksmcs.com';
+      }
+      return candidate;
+    })()
   },
   
   // Support Information
