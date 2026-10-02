@@ -235,10 +235,10 @@ const createMemberAccount = async (applicationId, password = null, sendEmail = t
     return { user: existingMember, generatedPassword: null };
   }
 
-  // Generate password if not provided
+  // Generate 4-digit default password if not provided
   let passwordToHash = password;
   if (!passwordToHash) {
-    passwordToHash = crypto.randomBytes(8).toString('hex');
+    passwordToHash = Math.floor(1000 + Math.random() * 9000).toString();
   }
 
   // Hash the password
@@ -767,8 +767,8 @@ const resetMemberPassword = async (req, res) => {
       });
     }
 
-    // Generate new password
-    const newPassword = crypto.randomBytes(8).toString('hex');
+    // Generate new 4-digit default password
+    const newPassword = Math.floor(1000 + Math.random() * 9000).toString();
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
 

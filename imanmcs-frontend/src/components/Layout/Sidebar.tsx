@@ -207,6 +207,29 @@ const navigationItems: Record<string, Array<{ name: string; href: string; icon: 
   ],
 };
 
+const executiveNavigationItems: Array<{ name: string; href: string; icon: any }> = [
+  { name: 'Dashboard', href: '/dashboard', icon: Home },
+  { name: 'Member Applications', href: '/member-applications', icon: UserPlus },
+  { name: 'Members', href: '/members', icon: Users },
+  { name: 'User Management', href: '/user-management', icon: Shield },
+  { name: 'Contributions', href: '/contributions', icon: DollarSign },
+  { name: 'Loan Applications', href: '/loan-applications', icon: CreditCard },
+  { name: 'Loans', href: '/loans', icon: CreditCard },
+  { name: 'Loan Repayments', href: '/loan-repayments', icon: Upload },
+  { name: 'Agreements', href: '/agreements', icon: CheckCircle },
+  { name: 'Layyah Management', href: '/admin-layyah', icon: Heart },
+  { name: 'Expenses', href: '/expenses', icon: Receipt },
+  { name: 'Profit Sharing', href: '/profit-sharing', icon: TrendingUp },
+  { name: 'Reports', href: '/reports', icon: FileText },
+  { name: 'Cooperative Bylaws', href: '/bylaws', icon: FileText },
+  { name: 'Withdrawals', href: '/withdrawals', icon: Percent },
+  { name: 'Communication', href: '/communication', icon: MessageSquare },
+  { name: 'Security Center', href: '/security-center', icon: ShieldAlert },
+  { name: 'Receipt Designer', href: '/receipt-designer', icon: Palette },
+  { name: 'Document Designer', href: '/document-designer', icon: FileSignature },
+  { name: 'Settings', href: '/settings', icon: Settings },
+];
+
 export const Sidebar: React.FC = () => {
   const { user } = useAuth();
   const { isSidebarOpen, isSidebarCollapsed, toggleSidebarCollapse, closeSidebar } = useLayout();
@@ -219,9 +242,18 @@ export const Sidebar: React.FC = () => {
     ? (rawLogo.startsWith('http') || rawLogo.startsWith('/') ? rawLogo : `${API_URL}${rawLogo}`)
     : undefined;
 
-  const { canAccess, isAdmin } = usePermissions();
+  const { canAccess, isAdmin, isLoading: isPermissionsLoading, permissions } = usePermissions();
 
-  const rawItems = user ? (navigationItems[user.role] || []) : [];
+  const isExecutive = !isAdmin && !!user && user.role !== 'member';
+
+  // If permissions are still loading and we have no cached permissions, show role static fallback
+  const hasLoadedPermissions = Object.keys(permissions).length > 0;
+  const rawItems = user 
+    ? (isExecutive 
+        ? (isPermissionsLoading && !hasLoadedPermissions ? (navigationItems[user.role] || executiveNavigationItems) : executiveNavigationItems)
+        : (navigationItems[user.role] || []))
+    : [];
+
   const items = rawItems.filter(i => {
     // Roles & Permissions is available to admin & super_admin
     if (i.href === '/roles') {
@@ -238,8 +270,11 @@ export const Sidebar: React.FC = () => {
     const requiredFeature = featureMap[i.href];
     if (requiredFeature && !hasFeature(requiredFeature)) return false;
 
+    // Cooperative Bylaws is readable by all cooperative members and executive officers
+    if (i.href === '/bylaws') return true;
+
     // Dynamic RBAC Permission Check for Executive Roles
-    if (!isAdmin && user.role !== 'member') {
+    if (isExecutive && hasLoadedPermissions) {
       const modKey = hrefToModuleKey[i.href];
       if (modKey && !canAccess(modKey)) {
         return false;

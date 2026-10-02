@@ -16,9 +16,11 @@ class RBACController {
   // 1. Get complete permission matrix
   async getMatrix(req, res) {
     try {
-      // Ensure seed has run only if no modules exist yet
+      // Ensure seed has run if modules, roles, or role permissions are missing
       const moduleCount = await Module.count({ skipTenant: true });
-      if (moduleCount === 0) {
+      const roleCount = await Role.count({ skipTenant: true });
+      const rolePermCount = await RolePermission.count({ skipTenant: true });
+      if (moduleCount === 0 || roleCount === 0 || rolePermCount === 0) {
         await seedModulesAndRBAC();
       }
 
@@ -104,7 +106,10 @@ class RBACController {
       }
 
       // Capture previous permissions for audit trail
-      const previousPerms = await RolePermission.findAll({ where: { role_id: role.id } });
+      const previousPerms = await RolePermission.findAll({
+        where: { role_id: role.id },
+        skipTenant: true
+      });
       const prevMap = {};
       previousPerms.forEach(p => {
         prevMap[p.module_id] = { r: p.can_read, w: p.can_write, e: p.can_edit, d: p.can_delete };
@@ -114,7 +119,7 @@ class RBACController {
 
       for (const item of permissions) {
         const moduleId = item.module_id;
-        const mod = await Module.findByPk(moduleId);
+        const mod = await Module.findByPk(moduleId, { skipTenant: true });
         if (!mod) continue;
 
         const prev = prevMap[moduleId] || { r: false, w: false, e: false, d: false };
@@ -127,27 +132,33 @@ class RBACController {
 
         const changed = prev.r !== next.r || prev.w !== next.w || prev.e !== next.e || prev.d !== next.d;
 
-        let [record] = await RolePermission.findOrCreate({
+        let record = await RolePermission.findOne({
           where: { role_id: role.id, module_id: moduleId },
-          defaults: {
-            tenant_id: role.tenant_id || 'default',
+          skipTenant: true
+        });
+
+        if (!record) {
+          record = await RolePermission.create({
+            role_id: role.id,
+            module_id: moduleId,
             module_key: mod.key,
+            tenant_id: role.tenant_id || 'default',
             can_read: next.r,
             can_write: next.w,
             can_edit: next.e,
             can_delete: next.d
-          }
-        });
-
-        if (changed) {
+          }, { skipTenant: true });
+        } else {
           await record.update({
             module_key: mod.key,
             can_read: next.r,
             can_write: next.w,
             can_edit: next.e,
             can_delete: next.d
-          });
+          }, { skipTenant: true });
+        }
 
+        if (changed) {
           auditChanges.push({
             module: mod.name,
             moduleKey: mod.key,
@@ -482,11 +493,20 @@ class RBACController {
         return res.status(401).json({ success: false, message: 'Authentication required' });
       }
 
+      // Ensure seed has run if modules, roles, or role permissions are missing
+      const moduleCount = await Module.count({ skipTenant: true });
+      const roleCount = await Role.count({ skipTenant: true });
+      const rolePermCount = await RolePermission.count({ skipTenant: true });
+      if (moduleCount === 0 || roleCount === 0 || rolePermCount === 0) {
+        await seedModulesAndRBAC();
+      }
+
       const roleNames = await getUserRoleNames(req.user);
       const isAdmin = roleNames.includes('super_admin') || roleNames.includes('admin');
 
       const allModules = await Module.findAll({
-        attributes: ['id', 'key', 'name', 'category', 'route_path']
+        attributes: ['id', 'key', 'name', 'category', 'route_path'],
+        skipTenant: true
       });
 
       const permissionsMap = {};
@@ -506,13 +526,26 @@ class RBACController {
         // Query user's roles
         const roles = await Role.findAll({
           where: { name: roleNames },
-          attributes: ['id', 'name']
+          attributes: ['id', 'name'],
+          skipTenant: true
         });
 
         const roleIds = roles.map(r => r.id);
-        const rolePermissions = await RolePermission.findAll({
-          where: { role_id: roleIds }
+        let rolePermissions = await RolePermission.findAll({
+          where: { role_id: roleIds },
+          skipTenant: true
         });
+
+        // If user has roles but zero permissions seeded, seed defaults for their roles
+        if (roles.length > 0 && rolePermissions.length === 0) {
+          for (const r of roles) {
+            await seedModulesAndRBAC(r.name);
+          }
+          rolePermissions = await RolePermission.findAll({
+            where: { role_id: roleIds },
+            skipTenant: true
+          });
+        }
 
         allModules.forEach(m => {
           // Check if any role grants read, write, edit, delete

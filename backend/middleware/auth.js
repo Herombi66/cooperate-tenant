@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const { User, Role, RolePermission, ActivityLog, MembershipApplication } = require('../models');
+const { User, Role, Module, RolePermission, ActivityLog, MembershipApplication } = require('../models');
 
 const authenticateToken = async (req, res, next) => {
   try {
@@ -54,21 +54,11 @@ const authenticateToken = async (req, res, next) => {
     // Attach user to request
     req.user = user;
 
-    if (user.role === 'state_auditor') {
-      const method = (req.method || '').toUpperCase();
-      const isReadMethod = method === 'GET' || method === 'HEAD' || method === 'OPTIONS';
-      const isAllowedWrite =
-        (method === 'PUT' && (req.originalUrl || '').startsWith('/auth/change-password')) ||
-        (method === 'PUT' && (req.originalUrl || '').startsWith('/auth/profile')) ||
-        (method === 'PATCH' && (req.originalUrl || '').startsWith('/auth/profile'));
+    const method = (req.method || '').toUpperCase();
+    const isReadMethod = method === 'GET' || method === 'HEAD' || method === 'OPTIONS';
 
-      if (!isReadMethod && !isAllowedWrite) {
-        return res.status(403).json({
-          success: false,
-          message: 'Access denied. State Auditor role is read-only.'
-        });
-      }
-
+    // Audit logging for state auditor views
+    if (user.role === 'state_auditor' && isReadMethod) {
       const pathname = (req.originalUrl || req.path || '').split('?')[0];
       const shouldLog =
         pathname.startsWith('/dashboard') ||
@@ -101,50 +91,34 @@ const authenticateToken = async (req, res, next) => {
       }
     }
 
-    if (user.role === 'secretary' || user.role === 'assistant_secretary') {
-      const method = (req.method || '').toUpperCase();
-      const isReadMethod = method === 'GET' || method === 'HEAD' || method === 'OPTIONS';
-      const isAllowedWrite =
-        (method === 'PUT' && (req.originalUrl || '').startsWith('/auth/change-password')) ||
-        (method === 'PUT' && (req.originalUrl || '').startsWith('/auth/profile')) ||
-        (method === 'PATCH' && (req.originalUrl || '').startsWith('/auth/profile')) ||
-        ((method === 'POST' || method === 'DELETE') && (req.originalUrl || req.path || '').includes('/settings/bylaw'));
+    // Audit logging for secretarial views
+    if ((user.role === 'secretary' || user.role === 'assistant_secretary') && isReadMethod) {
+      const pathname = (req.originalUrl || req.path || '').split('?')[0];
+      const shouldLog =
+        pathname.startsWith('/dashboard') ||
+        pathname.startsWith('/reports') ||
+        pathname.startsWith('/loans') ||
+        pathname.startsWith('/expenses') ||
+        pathname.startsWith('/profit-shares') ||
+        pathname.startsWith('/layyah') ||
+        pathname.startsWith('/members') ||
+        pathname.startsWith('/contributions');
 
-      if (!isReadMethod && !isAllowedWrite) {
-        return res.status(403).json({
-          success: false,
-          message: 'Access denied. Secretarial role is view-only.'
-        });
-      }
-
-      if (isReadMethod) {
-        const pathname = (req.originalUrl || req.path || '').split('?')[0];
-        const shouldLog =
-          pathname.startsWith('/dashboard') ||
-          pathname.startsWith('/reports') ||
-          pathname.startsWith('/loans') ||
-          pathname.startsWith('/expenses') ||
-          pathname.startsWith('/profit-shares') ||
-          pathname.startsWith('/layyah') ||
-          pathname.startsWith('/members') ||
-          pathname.startsWith('/contributions');
-
-        if (shouldLog) {
-          const logUser = {
-            id: user.id,
-            role: user.role,
-            name: user?.membershipApplication?.name || null
-          };
-          await ActivityLog.logActivity(
-            logUser,
-            'secretary_view',
-            'chairman_data',
-            null,
-            `${method} ${pathname}`,
-            { path: pathname, query: req.query || {} },
-            req
-          );
-        }
+      if (shouldLog) {
+        const logUser = {
+          id: user.id,
+          role: user.role,
+          name: user?.membershipApplication?.name || null
+        };
+        await ActivityLog.logActivity(
+          logUser,
+          'secretary_view',
+          'chairman_data',
+          null,
+          `${method} ${pathname}`,
+          { path: pathname, query: req.query || {} },
+          req
+        );
       }
     }
 
@@ -193,22 +167,26 @@ const requireAdmin = (req, res, next) => {
 };
 
 function getModuleFromUrl(pathname) {
-  const p = (pathname || '').toLowerCase();
+  let p = (pathname || '').toLowerCase();
+  // Strip /api/v1 or /api prefix so routes mounted on /api work identically
+  p = p.replace(/^\/api(\/v\d+)?/, '');
+  if (!p.startsWith('/')) p = '/' + p;
+
   if (p.startsWith('/members')) return 'members';
-  if (p.startsWith('/applications')) return 'member_applications';
+  if (p.startsWith('/applications') || p.startsWith('/member-applications')) return 'member_applications';
   if (p.startsWith('/contributions')) return 'contributions';
   if (p.startsWith('/withdrawals')) return 'savings';
   if (p.startsWith('/loans') || p.startsWith('/loan-applications')) return 'loans';
   if (p.startsWith('/loan-repayments')) return 'repayments';
-  if (p.startsWith('/layyah')) return 'investments';
+  if (p.startsWith('/layyah') || p.startsWith('/admin-layyah') || p.startsWith('/admin-animal-requests')) return 'investments';
   if (p.startsWith('/expenses')) return 'expenses';
   if (p.startsWith('/profit-shares') || p.startsWith('/profit-sharing')) return 'profit_distribution';
   if (p.startsWith('/reports')) return 'reports';
   if (p.startsWith('/audit') || p.startsWith('/security')) return 'audit';
   if (p.startsWith('/communication') || p.startsWith('/direct-messages') || p.startsWith('/notifications')) return 'notifications';
-  if (p.startsWith('/documents') || p.startsWith('/document-templates') || p.startsWith('/receipt-templates') || p.startsWith('/receipts') || p.startsWith('/agreements') || p.startsWith('/settings/bylaw')) return 'documents';
+  if (p.startsWith('/documents') || p.startsWith('/document-templates') || p.startsWith('/receipt-templates') || p.startsWith('/receipts') || p.startsWith('/agreements') || p.startsWith('/settings/bylaw') || p.startsWith('/bylaws')) return 'documents';
   if (p.startsWith('/settings')) return 'settings';
-  if (p.startsWith('/users')) return 'user_management';
+  if (p.startsWith('/users') || p.startsWith('/user-management') || p.startsWith('/roles')) return 'user_management';
   return null;
 }
 
@@ -226,7 +204,14 @@ const authorizeRole = (roles) => {
       return next();
     }
 
-    const pathname = (req.baseUrl || req.path || req.originalUrl || '').split('?')[0];
+    const { getUserRoleNames } = require('./rbac');
+    const userRoleNames = await getUserRoleNames(req.user);
+
+    if (userRoleNames.includes('super_admin') || userRoleNames.includes('admin')) {
+      return next();
+    }
+
+    const pathname = (req.originalUrl || req.baseUrl || req.path || '').split('?')[0];
     const moduleKey = getModuleFromUrl(pathname);
     const method = (req.method || '').toUpperCase();
     const action = (method === 'GET' || method === 'HEAD' || method === 'OPTIONS') ? 'read'
@@ -234,29 +219,48 @@ const authorizeRole = (roles) => {
       : (method === 'DELETE') ? 'delete'
       : 'edit';
 
+    const permCol = action === 'read' ? 'can_read'
+      : action === 'write' ? 'can_write'
+      : action === 'delete' ? 'can_delete'
+      : 'can_edit';
+
     // If route maps to a system module, check dynamic permissions in DB
     if (moduleKey) {
       try {
-        const userRoleRecord = await Role.findOne({
-          where: { name: req.user.role },
-          attributes: ['id', 'name']
+        const userRoles = await Role.findAll({
+          where: { name: userRoleNames },
+          attributes: ['id', 'name'],
+          skipTenant: true
         });
 
-        if (userRoleRecord) {
-          const perm = await RolePermission.findOne({
+        if (userRoles && userRoles.length > 0) {
+          const roleIds = userRoles.map(r => r.id);
+          
+          let perms = await RolePermission.findAll({
             where: {
-              role_id: userRoleRecord.id,
+              role_id: roleIds,
               module_key: moduleKey
-            }
+            },
+            skipTenant: true
           });
 
-          if (perm) {
-            const permCol = action === 'read' ? 'can_read'
-              : action === 'write' ? 'can_write'
-              : action === 'delete' ? 'can_delete'
-              : 'can_edit';
+          // If not found by module_key, try by Module association
+          if (!perms || perms.length === 0) {
+            const mod = await Module.findOne({ where: { key: moduleKey }, attributes: ['id'], skipTenant: true });
+            if (mod) {
+              perms = await RolePermission.findAll({
+                where: {
+                  role_id: roleIds,
+                  module_id: mod.id
+                },
+                skipTenant: true
+              });
+            }
+          }
 
-            if (perm[permCol] === true) {
+          if (perms && perms.length > 0) {
+            const hasPermission = perms.some(p => p[permCol] === true);
+            if (hasPermission) {
               return next();
             } else {
               return res.status(403).json({
@@ -267,11 +271,13 @@ const authorizeRole = (roles) => {
           }
         }
       } catch (err) {
-        // Fallback to static roles array if query fails
+        console.warn('⚠️ [authorizeRole] Dynamic RBAC check failed, using fallback:', err);
       }
     }
     
-    if (!roles.includes(req.user.role)) {
+    // Fallback: check if any of user's roles is included in the static roles list
+    const hasStaticRole = userRoleNames.some(r => roles.includes(r));
+    if (!hasStaticRole) {
       return res.status(403).json({
         success: false,
         message: 'Access denied. Insufficient privileges.'
@@ -322,5 +328,6 @@ module.exports = {
   authenticateToken,
   requireAdmin,
   authorizeRole,
-  requirePermission
+  requirePermission,
+  getModuleFromUrl
 };

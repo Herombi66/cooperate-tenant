@@ -155,7 +155,7 @@ const assignMemberRole = async (req, res) => {
       const crypto = require('crypto');
       const bcrypt = require('bcryptjs');
 
-      const passwordToHash = crypto.randomBytes(8).toString('hex');
+      const passwordToHash = Math.floor(1000 + Math.random() * 9000).toString();
       const hashedPassword = await bcrypt.hash(passwordToHash, 10);
 
       user = await User.create({
@@ -299,7 +299,7 @@ const assignAdditionalRole = async (req, res) => {
       const crypto = require('crypto');
       const bcrypt = require('bcryptjs');
 
-      password = crypto.randomBytes(8).toString('hex');
+      password = Math.floor(1000 + Math.random() * 9000).toString();
       const hashedPassword = await bcrypt.hash(password, 10);
 
       console.log('🔐 [ROLE ASSIGNMENT] Generated password for new account:', password);
@@ -629,10 +629,10 @@ const adminResetPassword = async (req, res) => {
       });
     }
 
-    // Generate new password
+    // Generate new 4-digit default password
     const crypto = require('crypto');
     const bcrypt = require('bcryptjs');
-    const newPassword = crypto.randomBytes(8).toString('hex');
+    const newPassword = Math.floor(1000 + Math.random() * 9000).toString();
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
     // Update user

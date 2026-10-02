@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
+import { usePermissions } from '../../contexts/PermissionContext';
 
 interface Role {
   id: number;
@@ -50,6 +51,7 @@ const ROLE_DISPLAY_NAMES: Record<string, string> = {
 };
 
 export const PermissionMatrix: React.FC = () => {
+  const { refreshPermissions } = usePermissions();
   const [roles, setRoles] = useState<Role[]>([]);
   const [modules, setModules] = useState<ModuleItem[]>([]);
   const [matrix, setMatrix] = useState<Record<number, Record<number, MatrixEntry>>>({});
@@ -236,6 +238,9 @@ export const PermissionMatrix: React.FC = () => {
         toast.success(`Permissions for ${ROLE_DISPLAY_NAMES[selectedRole?.name || ''] || selectedRole?.name} updated successfully!`);
         // Refresh and update initialMatrix
         await fetchMatrix();
+        try {
+          await refreshPermissions();
+        } catch (_) {}
       }
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Failed to save permissions');
@@ -266,6 +271,9 @@ export const PermissionMatrix: React.FC = () => {
         toast.success('Permissions copied successfully!');
         setShowCopyModal(false);
         await fetchMatrix();
+        try {
+          await refreshPermissions();
+        } catch (_) {}
       }
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Failed to copy permissions');
@@ -284,6 +292,9 @@ export const PermissionMatrix: React.FC = () => {
         toast.success(`Reset ${selectedRole?.name} permissions to defaults.`);
         setShowResetConfirmModal(false);
         await fetchMatrix();
+        try {
+          await refreshPermissions();
+        } catch (_) {}
       }
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Failed to reset permissions');
