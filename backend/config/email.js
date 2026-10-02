@@ -26,8 +26,8 @@ module.exports = {
   
   // Application URLs
   urls: {
-    memberPortal: process.env.MEMBER_PORTAL_URL || 'https://www.fmcksmcs.com',
-    adminPortal: process.env.ADMIN_PORTAL_URL || 'https://www.fmcksmcs.com'
+    memberPortal: (process.env.MEMBER_PORTAL_URL || process.env.FRONTEND_URL || process.env.APP_URL || 'https://www.fmcksmcs.com').replace(/\/+$/, ''),
+    adminPortal: (process.env.ADMIN_PORTAL_URL || process.env.FRONTEND_URL || process.env.APP_URL || 'https://www.fmcksmcs.com').replace(/\/+$/, '')
   },
   
   // Support Information

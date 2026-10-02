@@ -265,8 +265,9 @@ const createMemberAccount = async (applicationId, password = null, sendEmail = t
       await emailService.sendWelcomeEmail({
         name: application.name,
         email: application.email,
-        psn: application.psn
-      }, passwordToHash);
+        psn: application.psn,
+        tenant_id: application.tenant_id || user.tenant_id || 'fmcksmcs'
+      }, passwordToHash, application.tenant_id || user.tenant_id || 'fmcksmcs');
     } catch (emailError) {
       console.error('Failed to send welcome email:', emailError);
       // Don't fail the creation if email fails
@@ -738,7 +739,7 @@ const resetMemberPassword = async (req, res) => {
 
     // Send password reset email
     try {
-      await emailService.sendPasswordResetEmail(member, newPassword);
+      await emailService.sendPasswordResetEmail(member, newPassword, member.tenant_id || 'fmcksmcs');
     } catch (emailError) {
       console.error('Failed to send password reset email:', emailError);
       // Don't fail the password reset if email fails

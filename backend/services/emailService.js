@@ -125,12 +125,41 @@ class EmailService {
     }
   }
 
+  /**
+   * Helper to resolve tenant details (name, id, support email, phone)
+   */
+  resolveTenantInfo(tenantId = 'fmcksmcs') {
+    const tid = (tenantId || 'fmcksmcs').toString().toLowerCase().trim();
+    const isFmck = tid === 'fmcksmcs' || tid === 'fmck' || tid === 'default';
+
+    return {
+      tenantId: isFmck ? 'fmcksmcs' : tid,
+      name: isFmck ? (config.from?.name || 'FMCK SMCS') : (config.from?.name || 'Cooperative Society'),
+      supportEmail: config.support?.email || config.smtp?.auth?.user || 'fmcksmcs@gmail.com',
+      supportPhone: config.support?.phone || '+234 810 588 0201'
+    };
+  }
+
+  /**
+   * Helper to construct tenant-aware portal URLs
+   */
+  getPortalUrl(pathname = '/login', tenantId = 'fmcksmcs') {
+    const base = (config.urls?.memberPortal || process.env.FRONTEND_URL || process.env.APP_URL || 'https://www.fmcksmcs.com').replace(/\/+$/, '');
+    const cleanPath = pathname.startsWith('/') ? pathname : `/${pathname}`;
+    const tid = (tenantId || 'fmcksmcs').toString().toLowerCase().trim();
+    const targetTenant = (tid === 'default' || !tid) ? 'fmcksmcs' : tid;
+    const separator = cleanPath.includes('?') ? '&' : '?';
+    return `${base}${cleanPath}${separator}tenant=${encodeURIComponent(targetTenant)}`;
+  }
+
   generateFallbackHtml(templateName, context = {}) {
     const orgName = context.cooperative_name || config.from?.name || 'FMCK SMCS';
     const fields = Object.entries(context)
       .filter(([k, v]) => v && typeof v !== 'object' && !['current_year', 'support_email', 'support_phone'].includes(k))
       .map(([k, v]) => `<tr><td style="padding:10px;font-weight:bold;color:#475569;border-bottom:1px solid #f1f5f9;text-transform:capitalize;">${k.replace(/_/g, ' ')}:</td><td style="padding:10px;color:#0f172a;border-bottom:1px solid #f1f5f9;word-break:break-all;">${v}</td></tr>`)
       .join('');
+
+    const targetUrl = context.login_url || context.login_link || this.getPortalUrl('/login', context.tenant_id || 'fmcksmcs');
 
     return `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background: #ffffff;">
@@ -141,9 +170,9 @@ class EmailService {
         <table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px;">
           ${fields}
         </table>
-        ${context.login_url || context.login_link ? `
+        ${targetUrl ? `
           <div style="margin: 24px 0; text-align: center;">
-            <a href="${context.login_url || context.login_link}" style="background-color: #0F3D3D; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">Access Member Portal</a>
+            <a href="${targetUrl}" style="background-color: #0F3D3D; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">Access Member Portal</a>
           </div>
         ` : ''}
         <div style="border-top: 1px solid #e2e8f0; padding-top: 16px; margin-top: 24px; font-size: 12px; color: #94a3b8; text-align: center;">
@@ -157,9 +186,11 @@ class EmailService {
   // ==================== SPECIFIC EMAIL METHODS ====================
 
   // 1. WELCOME EMAIL
-  async sendWelcomeEmail(member, password) {
+  async sendWelcomeEmail(member, password, tenantId = null) {
     const { name, email, psn } = member;
-    const orgName = config.from?.name || 'FMCK SMCS';
+    const tid = tenantId || member.tenant_id || member.tenantId || 'fmcksmcs';
+    const tenantInfo = this.resolveTenantInfo(tid);
+    const portalLoginUrl = this.getPortalUrl('/login', tenantInfo.tenantId);
     
     const context = {
       recipient_name: name,
@@ -172,20 +203,21 @@ class EmailService {
       temporary_password: password,
       default_password: password,
       password: password,
-      login_url: `${config.urls.memberPortal}/login`,
-      login_link: `${config.urls.memberPortal}/login`,
-      cooperative_name: orgName,
-      support_email: config.support?.email || 'fmcksmcs@gmail.com',
-      support_phone: config.support?.phone || '+234 810 588 0201',
+      login_url: portalLoginUrl,
+      login_link: portalLoginUrl,
+      cooperative_name: tenantInfo.name,
+      tenant_id: tenantInfo.tenantId,
+      support_email: tenantInfo.supportEmail,
+      support_phone: tenantInfo.supportPhone,
       current_year: new Date().getFullYear().toString()
     };
 
     const result = await this.sendEmail({
       to: email,
-      subject: `Welcome to ${orgName} - Membership Approved!`,
+      subject: `Welcome to ${tenantInfo.name} - Membership Approved!`,
       template: 'welcome',
       context: context,
-      replyTo: config.support?.email || 'fmcksmcs@gmail.com',
+      replyTo: tenantInfo.supportEmail,
       tags: ['welcome', 'registration']
     });
 
@@ -197,9 +229,12 @@ class EmailService {
   }
 
   // 2. ROLE ASSIGNMENT
-  async sendRoleAssignmentEmail(member, roleDetails) {
+  async sendRoleAssignmentEmail(member, roleDetails, tenantId = null) {
     const { name, email, psn } = member;
     const { role, username, password } = roleDetails;
+    const tid = tenantId || member.tenant_id || member.tenantId || 'fmcksmcs';
+    const tenantInfo = this.resolveTenantInfo(tid);
+    const portalLoginUrl = this.getPortalUrl('/login', tenantInfo.tenantId);
 
     const context = {
       full_name: name.toUpperCase(),
@@ -209,18 +244,21 @@ class EmailService {
       creation_date: new Date().toLocaleDateString('en-NG', {
         year: 'numeric', month: 'long', day: 'numeric'
       }),
-      login_link: `${config.urls.memberPortal}/login`,
-      support_email: config.support.email,
-      support_phone: config.support.phone,
+      login_link: portalLoginUrl,
+      login_url: portalLoginUrl,
+      cooperative_name: tenantInfo.name,
+      tenant_id: tenantInfo.tenantId,
+      support_email: tenantInfo.supportEmail,
+      support_phone: tenantInfo.supportPhone,
       current_year: new Date().getFullYear().toString()
     };
 
     const result = await this.sendEmail({
       to: email,
-      subject: `IMAN MCS - Official Account Creation: ${role.toUpperCase()} Role Assigned`,
+      subject: `${tenantInfo.name} - Official Account Creation: ${role.toUpperCase()} Role Assigned`,
       template: 'role_assignment',
       context: context,
-      replyTo: 'security@imanmcs.com',
+      replyTo: tenantInfo.supportEmail,
       tags: ['role_assignment', role.toLowerCase()]
     });
 
@@ -232,26 +270,32 @@ class EmailService {
   }
 
   // 3. ADMIN PASSWORD RESET
-  async sendAdminPasswordResetEmail(member, newPassword, adminName = "System Administrator") {
+  async sendAdminPasswordResetEmail(member, newPassword, adminName = "System Administrator", tenantId = null) {
     const { name, email } = member;
+    const tid = tenantId || member.tenant_id || member.tenantId || 'fmcksmcs';
+    const tenantInfo = this.resolveTenantInfo(tid);
+    const portalLoginUrl = this.getPortalUrl('/login', tenantInfo.tenantId);
 
     const context = {
       full_name: name.toUpperCase(),
       admin_name: adminName,
       reset_time: new Date().toLocaleString('en-NG'),
       new_password: newPassword,
-      login_link: `${config.urls.memberPortal}/login`,
-      support_email: config.support.email,
-      support_phone: config.support.phone,
+      login_link: portalLoginUrl,
+      login_url: portalLoginUrl,
+      cooperative_name: tenantInfo.name,
+      tenant_id: tenantInfo.tenantId,
+      support_email: tenantInfo.supportEmail,
+      support_phone: tenantInfo.supportPhone,
       current_year: new Date().getFullYear().toString()
     };
 
     const result = await this.sendEmail({
       to: email,
-      subject: `🔐 IMAN MCS - Administrator Password Reset for ${name.split(' ')[0]}`,
+      subject: `🔐 ${tenantInfo.name} - Administrator Password Reset for ${name.split(' ')[0]}`,
       template: 'admin_password_reset',
       context: context,
-      replyTo: 'security@imanmcs.com',
+      replyTo: tenantInfo.supportEmail,
       tags: ['admin_password_reset', 'security']
     });
 
@@ -263,9 +307,11 @@ class EmailService {
   }
 
   // 4. LOAN DISBURSEMENT
-  async sendLoanDisbursementEmail(member, loanDetails) {
+  async sendLoanDisbursementEmail(member, loanDetails, tenantId = null) {
     const { name, email } = member;
     const { loanId, loanAmount, disbursedAmount } = loanDetails;
+    const tid = tenantId || member.tenant_id || member.tenantId || 'fmcksmcs';
+    const tenantInfo = this.resolveTenantInfo(tid);
 
     const context = {
       member_name: name,
@@ -275,16 +321,19 @@ class EmailService {
       disbursement_date: new Date().toLocaleDateString('en-NG'),
       disbursement_method: 'Bank Transfer',
       transaction_ref: loanDetails.transactionRef || `TRX${Date.now()}`,
-      support_email: config.support.email,
+      cooperative_name: tenantInfo.name,
+      tenant_id: tenantInfo.tenantId,
+      support_email: tenantInfo.supportEmail,
+      support_phone: tenantInfo.supportPhone,
       current_year: new Date().getFullYear().toString()
     };
 
     const result = await this.sendEmail({
       to: email,
-      subject: `🎉 IMAN MCS - Loan #${loanId} Disbursed Successfully`,
+      subject: `🎉 ${tenantInfo.name} - Loan #${loanId} Disbursed Successfully`,
       template: 'loan_disbursement',
       context: context,
-      replyTo: 'loans@imanmcs.com',
+      replyTo: tenantInfo.supportEmail,
       tags: ['loan_disbursement', `loan_${loanId}`]
     });
 
@@ -296,9 +345,12 @@ class EmailService {
   }
 
   // 5. GUARANTOR NOTIFICATION (Loan application uses their PSN)
-  async sendGuarantorNotificationEmail(grantor, loanDetails) {
+  async sendGuarantorNotificationEmail(grantor, loanDetails, tenantId = null) {
     const { name, email } = grantor;
     const { loanId, loanAmount } = loanDetails;
+    const tid = tenantId || grantor.tenant_id || grantor.tenantId || 'fmcksmcs';
+    const tenantInfo = this.resolveTenantInfo(tid);
+    const portalLoginUrl = this.getPortalUrl('/login', tenantInfo.tenantId);
 
     if (!email) {
       console.warn('📧 [EmailService] Skipping guarantor notification email - no email on file');
@@ -310,32 +362,36 @@ class EmailService {
       loan_id: loanId,
       loan_amount: this.formatCurrency(loanAmount),
       request_date: new Date().toLocaleString('en-NG'),
-      support_email: config.support.email,
+      login_url: portalLoginUrl,
+      cooperative_name: tenantInfo.name,
+      tenant_id: tenantInfo.tenantId,
+      support_email: tenantInfo.supportEmail,
+      support_phone: tenantInfo.supportPhone,
       current_year: new Date().getFullYear().toString()
     };
 
     const text = `
 Dear ${name},
 
-You have been listed as a grantor for a new loan application (Loan #${loanId}) on the IMAN MCS platform.
+You have been listed as a guarantor for a new loan application (Loan #${loanId}) on the ${tenantInfo.name} platform.
 
 Loan amount: ${this.formatCurrency(loanAmount)}
 
-Please log in to your IMAN MCS account to review and respond to this guarantee request.
+Please log in to your account at ${portalLoginUrl} to review and respond to this guarantee request.
 
-If you were not expecting this request, please contact IMAN MCS support immediately.
+If you were not expecting this request, please contact ${tenantInfo.name} support immediately at ${tenantInfo.supportEmail}.
 
-IMAN MCS Support
-${config.support.email}
+${tenantInfo.name} Support
+${tenantInfo.supportEmail}
     `;
 
     const result = await this.sendEmail({
       to: email,
-      subject: `IMAN MCS - Loan Guarantee Request (Loan #${loanId})`,
+      subject: `${tenantInfo.name} - Loan Guarantee Request (Loan #${loanId})`,
       template: 'guarantor_request',
       context: context,
       text: text,
-      replyTo: 'loans@imanmcs.com',
+      replyTo: tenantInfo.supportEmail,
       tags: ['guarantor_request', `loan_${loanId}`]
     });
 
@@ -347,9 +403,11 @@ ${config.support.email}
   }
 
   // 6. COMPLAINT CONFIRMATION
-  async sendComplaintConfirmationEmail(member, complaintDetails) {
+  async sendComplaintConfirmationEmail(member, complaintDetails, tenantId = null) {
     const { name, email } = member;
     const { ticketId, category, priority, description } = complaintDetails;
+    const tid = tenantId || member.tenant_id || member.tenantId || 'fmcksmcs';
+    const tenantInfo = this.resolveTenantInfo(tid);
 
     const priorityColors = {
       'High': '#dc3545',
@@ -367,18 +425,20 @@ ${config.support.email}
       complaint_text: description,
       response_time: '24 hours',
       resolution_time: '5-7 working days',
-      track_link: `${config.urls.memberPortal}/support/tickets/${ticketId}`,
-      support_email: config.support.email,
-      support_phone: config.support.phone,
+      track_link: this.getPortalUrl(`/support/tickets/${ticketId}`, tenantInfo.tenantId),
+      cooperative_name: tenantInfo.name,
+      tenant_id: tenantInfo.tenantId,
+      support_email: tenantInfo.supportEmail,
+      support_phone: tenantInfo.supportPhone,
       current_year: new Date().getFullYear().toString()
     };
 
     const result = await this.sendEmail({
       to: email,
-      subject: `✅ IMAN MCS - Complaint #${ticketId} Received`,
+      subject: `✅ ${tenantInfo.name} - Complaint #${ticketId} Received`,
       template: 'complaint_confirmation',
       context: context,
-      replyTo: 'support@imanmcs.com',
+      replyTo: tenantInfo.supportEmail,
       tags: ['complaint', `priority_${priority.toLowerCase()}`]
     });
 
@@ -390,10 +450,12 @@ ${config.support.email}
   }
 
   // 7. ADMIN COMPLAINT ALERT
-  async sendNewComplaintAlertToAdmin(admin, complaint, member) {
+  async sendNewComplaintAlertToAdmin(admin, complaint, member, tenantId = null) {
     const { name: adminName, email: adminEmail } = admin.membershipApplication || admin;
     const { name: memberName } = member.membershipApplication || member;
     const { tracking_id, title, category, priority, description } = complaint;
+    const tid = tenantId || admin.tenant_id || member.tenant_id || 'fmcksmcs';
+    const tenantInfo = this.resolveTenantInfo(tid);
 
     const context = {
       admin_name: adminName,
@@ -404,8 +466,11 @@ ${config.support.email}
       priority: priority,
       description: description,
       submission_date: new Date().toLocaleString('en-NG'),
-      admin_link: `${config.urls.memberPortal}/admin/complaints/${complaint.id}`,
-      support_email: config.support.email,
+      admin_link: this.getPortalUrl(`/admin/complaints/${complaint.id}`, tenantInfo.tenantId),
+      cooperative_name: tenantInfo.name,
+      tenant_id: tenantInfo.tenantId,
+      support_email: tenantInfo.supportEmail,
+      support_phone: tenantInfo.supportPhone,
       current_year: new Date().getFullYear().toString()
     };
 
@@ -414,69 +479,170 @@ ${config.support.email}
       subject: `🚨 NEW COMPLAINT: [${priority.toUpperCase()}] ${title} (${tracking_id})`,
       template: 'admin_complaint_alert',
       context: context,
-      replyTo: 'no-reply@imanmcs.com',
+      replyTo: tenantInfo.supportEmail,
       tags: ['admin_alert', 'complaint', priority.toLowerCase()]
     });
 
     return result;
   }
 
-  // 8. PASSWORD RESET (User initiated)
-  async sendPasswordResetEmail(member, resetToken) {
+  // 8. PASSWORD RESET (User initiated or admin generated)
+  async sendPasswordResetEmail(member, resetToken, tenantId = null) {
     const { name, email } = member;
-    const firstName = name.split(' ')[0] || name;
+    const firstName = (name || 'Member').split(' ')[0] || name;
+    const tid = tenantId || member.tenant_id || member.tenantId || 'fmcksmcs';
+    const tenantInfo = this.resolveTenantInfo(tid);
 
-    const resetLink = `${config.urls.memberPortal}/reset-password?token=${resetToken}&email=${encodeURIComponent(email)}`;
-
-    // Check if template exists
-    const templateId = config.brevo.templateIds.password_reset;
-    if (!templateId || templateId === 0) {
-      // Fallback to simple email
-      const text = `
-Dear ${name},
-
-You requested a password reset. Click the link below to reset your password:
-
-${resetLink}
-
-This link expires in 1 hour.
-
-If you didn't request this, please ignore this email.
-
-IMAN MCS Support
-${config.support.email}
-      `;
-
-      return await this.sendEmail({
-        to: email,
-        subject: `IMAN MCS - Password Reset Request`,
-        text: text,
-        replyTo: 'security@imanmcs.com'
-      });
-    }
+    // If resetToken looks like a temporary raw password rather than a hash/token, link to /login
+    const isTempPassword = typeof resetToken === 'string' && resetToken.length <= 20 && !resetToken.includes('-');
+    const resetLink = isTempPassword 
+      ? this.getPortalUrl('/login', tenantInfo.tenantId)
+      : this.getPortalUrl(`/reset-password?token=${resetToken}&email=${encodeURIComponent(email)}`, tenantInfo.tenantId);
 
     const context = {
       first_name: firstName.toUpperCase(),
       email: email,
       reset_link: resetLink,
-      expiry_time: '1 hour',
-      support_email: config.support.email,
+      expiry_time: isTempPassword ? 'immediate' : '1 hour',
+      cooperative_name: tenantInfo.name,
+      tenant_id: tenantInfo.tenantId,
+      support_email: tenantInfo.supportEmail,
+      support_phone: tenantInfo.supportPhone,
       current_year: new Date().getFullYear().toString()
     };
 
-    const result = await this.sendEmail({
-      to: email,
-      subject: `IMAN MCS - Password Reset Request`,
-      template: 'password_reset',
-      context: context,
-      replyTo: 'security@imanmcs.com'
-    });
+    // If template exists, render it
+    try {
+      const result = await this.sendEmail({
+        to: email,
+        subject: `${tenantInfo.name} - Password Reset Request`,
+        template: 'password_reset',
+        context: context,
+        replyTo: tenantInfo.supportEmail
+      });
+      return result;
+    } catch (templateError) {
+      console.warn(`⚠️ [EmailService] Password reset template error, falling back to text: ${templateError.message}`);
+      const text = `
+Dear ${name},
 
-    if (!result.success) {
-      throw new Error(result.error || 'Failed to send password reset email');
+You received a password reset request for your account on ${tenantInfo.name}.
+
+Link: ${resetLink}
+${isTempPassword ? `Temporary Password: ${resetToken}` : 'This link expires in 1 hour.'}
+
+If you didn't request this, please contact support.
+
+${tenantInfo.name} Support
+${tenantInfo.supportEmail}
+      `;
+
+      return await this.sendEmail({
+        to: email,
+        subject: `${tenantInfo.name} - Password Reset Request`,
+        text: text,
+        replyTo: tenantInfo.supportEmail
+      });
     }
+  }
 
-    return result;
+  // 9. APPLICATION UNDER REVIEW EMAIL
+  async sendUnderReviewEmail(application, tenantId = null) {
+    const { name, email, psn } = application;
+    const tid = tenantId || application.tenant_id || application.tenantId || 'fmcksmcs';
+    const tenantInfo = this.resolveTenantInfo(tid);
+    const portalLoginUrl = this.getPortalUrl('/login', tenantInfo.tenantId);
+
+    const context = {
+      recipient_name: name,
+      member_name: name,
+      full_name: name,
+      psn: psn,
+      member_email: email,
+      email: email,
+      application_status: 'Under Review',
+      login_url: portalLoginUrl,
+      login_link: portalLoginUrl,
+      cooperative_name: tenantInfo.name,
+      tenant_id: tenantInfo.tenantId,
+      support_email: tenantInfo.supportEmail,
+      support_phone: tenantInfo.supportPhone,
+      current_year: new Date().getFullYear().toString()
+    };
+
+    const text = `
+Dear ${name},
+
+Your membership application for ${tenantInfo.name} has been received and is currently under review by our administration.
+
+PSN / Staff ID: ${psn || 'N/A'}
+
+You will receive an email notification once your application review is completed.
+
+Portal: ${portalLoginUrl}
+
+${tenantInfo.name} Support
+${tenantInfo.supportEmail}
+    `;
+
+    return await this.sendEmail({
+      to: email,
+      subject: `${tenantInfo.name} - Membership Application Under Review`,
+      context: context,
+      text: text,
+      replyTo: tenantInfo.supportEmail,
+      tags: ['application', 'under_review']
+    });
+  }
+
+  // 10. APPLICATION REJECTION EMAIL
+  async sendRejectionEmail(application, rejectionReason = '', tenantId = null) {
+    const { name, email, psn } = application;
+    const tid = tenantId || application.tenant_id || application.tenantId || 'fmcksmcs';
+    const tenantInfo = this.resolveTenantInfo(tid);
+    const portalLoginUrl = this.getPortalUrl('/login', tenantInfo.tenantId);
+
+    const context = {
+      recipient_name: name,
+      member_name: name,
+      full_name: name,
+      psn: psn,
+      member_email: email,
+      email: email,
+      application_status: 'Declined',
+      rejection_reason: rejectionReason || 'Requirements not met at this time.',
+      login_url: portalLoginUrl,
+      login_link: portalLoginUrl,
+      cooperative_name: tenantInfo.name,
+      tenant_id: tenantInfo.tenantId,
+      support_email: tenantInfo.supportEmail,
+      support_phone: tenantInfo.supportPhone,
+      current_year: new Date().getFullYear().toString()
+    };
+
+    const text = `
+Dear ${name},
+
+Thank you for your interest in joining ${tenantInfo.name}.
+
+After reviewing your membership application (PSN: ${psn || 'N/A'}), we regret to inform you that it could not be approved at this time.
+
+Reason: ${rejectionReason || 'Requirements not met at this time.'}
+
+If you have questions or need further clarification, please contact our support team at ${tenantInfo.supportEmail}.
+
+${tenantInfo.name} Support
+${tenantInfo.supportEmail}
+    `;
+
+    return await this.sendEmail({
+      to: email,
+      subject: `${tenantInfo.name} - Membership Application Status Update`,
+      context: context,
+      text: text,
+      replyTo: tenantInfo.supportEmail,
+      tags: ['application', 'rejected']
+    });
   }
 
   // Helper method to format currency

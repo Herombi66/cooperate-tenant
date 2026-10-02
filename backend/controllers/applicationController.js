@@ -309,7 +309,7 @@ const submitApplication = async (req, res) => {
     // Send acknowledgement email
     try {
       if (typeof emailService.sendUnderReviewEmail === 'function') {
-        await emailService.sendUnderReviewEmail(application);
+        await emailService.sendUnderReviewEmail(application, application.tenant_id || req.body?.tenant_id || 'fmcksmcs');
       }
     } catch (emailError) {
       console.warn('Failed to send application acknowledgement email:', emailError?.message);
@@ -996,7 +996,7 @@ const updateApplicationStatus = async (req, res) => {
       // Send rejection email
       try {
         if (typeof emailService.sendRejectionEmail === 'function') {
-          await emailService.sendRejectionEmail(application, rejection_reason);
+          await emailService.sendRejectionEmail(application, rejection_reason, application.tenant_id || req.user?.tenant_id || 'fmcksmcs');
           console.log('📧 Rejection email sent successfully');
         }
       } catch (emailError) {
@@ -1008,7 +1008,7 @@ const updateApplicationStatus = async (req, res) => {
       // Send under review email
       try {
         if (typeof emailService.sendUnderReviewEmail === 'function') {
-          await emailService.sendUnderReviewEmail(application);
+          await emailService.sendUnderReviewEmail(application, application.tenant_id || req.user?.tenant_id || 'fmcksmcs');
           console.log('📧 Under review email sent successfully');
         }
       } catch (emailError) {

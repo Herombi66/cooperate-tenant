@@ -172,8 +172,9 @@ const assignMemberRole = async (req, res) => {
         await emailService.sendWelcomeEmail({
           name: application.name,
           email: application.email,
-          psn: application.psn
-        }, passwordToHash);
+          psn: application.psn,
+          tenant_id: application.tenant_id || user.tenant_id || 'fmcksmcs'
+        }, passwordToHash, application.tenant_id || user.tenant_id || 'fmcksmcs');
       } catch (emailError) {
         console.error('Failed to send welcome email:', emailError);
       }
@@ -337,17 +338,20 @@ const assignAdditionalRole = async (req, res) => {
 
       try {
         const emailService = require('../services/emailService');
+        const targetTenantId = existingUser.tenant_id || existingUser.membershipApplication?.tenant_id || req.user?.tenant_id || 'fmcksmcs';
         const emailResult = await emailService.sendRoleAssignmentEmail(
           {
             name: existingUser.membershipApplication.name,
             email: existingUser.membershipApplication.email,
-            psn: existingUser.membershipApplication.psn
+            psn: existingUser.membershipApplication.psn,
+            tenant_id: targetTenantId
           },
           {
             role: additionalRole,
             password: password,
             username: `${existingUser.membershipApplication.psn}_${additionalRole}`
-          }
+          },
+          targetTenantId
         );
         
         if (emailResult) {
@@ -642,7 +646,8 @@ const adminResetPassword = async (req, res) => {
         const emailService = require('../services/emailService');
         // Ensure we pass the structure expected by sendPasswordResetEmail
         // It expects 'member' object which has 'membershipApplication' property
-        await emailService.sendPasswordResetEmail(user, newPassword);
+        const targetTenantId = user.tenant_id || user.membershipApplication?.tenant_id || req.user?.tenant_id || 'fmcksmcs';
+        await emailService.sendPasswordResetEmail(user, newPassword, targetTenantId);
     } catch (emailError) {
         console.error('Failed to send password reset email:', emailError);
         // We continue even if email fails, as we return the password to admin
