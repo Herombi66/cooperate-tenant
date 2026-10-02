@@ -19,9 +19,16 @@ class EmailService {
   createTransporter() {
     if (this.transporter) return this.transporter;
 
-    console.log(`📧 [EmailService] Initializing Gmail Nodemailer (${config.smtp.auth.user})...`);
+    const host = config.smtp.host || 'smtp.gmail.com';
+    const port = parseInt(config.smtp.port) || 587;
+    const isSecure = port === 465;
+
+    console.log(`📧 [EmailService] Initializing Gmail Nodemailer (${config.smtp.auth.user} via ${host}:${port})...`);
     this.transporter = nodemailer.createTransport({
-      service: 'gmail',
+      service: host.includes('gmail') ? 'gmail' : undefined,
+      host: host,
+      port: port,
+      secure: isSecure,
       auth: {
         user: config.smtp.auth.user,
         pass: config.smtp.auth.pass
@@ -144,10 +151,18 @@ class EmailService {
    * Helper to construct tenant-aware portal URLs
    */
   getPortalUrl(pathname = '/login', tenantId = 'fmcksmcs') {
-    const base = (config.urls?.memberPortal || process.env.FRONTEND_URL || process.env.APP_URL || 'https://www.fmcksmcs.com').replace(/\/+$/, '');
-    const cleanPath = pathname.startsWith('/') ? pathname : `/${pathname}`;
     const tid = (tenantId || 'fmcksmcs').toString().toLowerCase().trim();
     const targetTenant = (tid === 'default' || !tid) ? 'fmcksmcs' : tid;
+    const isFmck = targetTenant === 'fmcksmcs' || targetTenant === 'fmck';
+
+    let base = (config.urls?.memberPortal || process.env.FRONTEND_URL || process.env.APP_URL || 'https://www.fmcksmcs.com').replace(/\/+$/, '');
+
+    // If target tenant is fmcksmcs and base URL contains imanmcs.com, override to www.fmcksmcs.com
+    if (isFmck && (base.includes('imanmcs.com') || !base || base === 'http://localhost')) {
+      base = 'https://www.fmcksmcs.com';
+    }
+
+    const cleanPath = pathname.startsWith('/') ? pathname : `/${pathname}`;
     const separator = cleanPath.includes('?') ? '&' : '?';
     return `${base}${cleanPath}${separator}tenant=${encodeURIComponent(targetTenant)}`;
   }
