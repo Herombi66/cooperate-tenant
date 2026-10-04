@@ -25,7 +25,12 @@ const AgentAgreementModal: React.FC<AgentAgreementModalProps> = ({ isOpen, onClo
           setContent(response.data.data.agent_agreement_template);
         } else {
              // Fallback content if not found
-             setContent(`
+             const isFmck = (localStorage.getItem('previewTenantId') || localStorage.getItem('tenant_id') || '').toLowerCase().includes('fmck');
+             setContent(isFmck ? `
+              <h3 class="text-gray-900">1. Appointment of Agent / Financing</h3>
+              <p>By accepting this agreement, you (the "Principal") hereby appoint FMCKSMCS Multipurpose Cooperative Society (the "Agent") to disburse and manage the credit facility on your behalf...</p>
+              <p><em>(Official FMCKSMCS Standard Terms Applied)</em></p>
+             ` : `
               <h3 class="text-gray-900">1. Appointment of Agent (Wakala)</h3>
               <p>By accepting this agreement, you (the "Principal") hereby appoint IMAN Cooperative Society (the "Agent") to act on your behalf...</p>
               <p><em>(Default content used - please update in Settings)</em></p>

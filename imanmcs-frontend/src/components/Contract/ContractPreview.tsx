@@ -121,10 +121,10 @@ export const ContractPreview: React.FC<ContractPreviewProps> = ({
                   className="text-lg sm:text-xl font-bold tracking-tight uppercase"
                   style={{ color: colors.primary }}
                 >
-                  {header.org_name || 'IMAN MULTIPURPOSE COOPERATIVE SOCIETY'}
+                  {header.org_name || (isFmck ? 'Federal Medical Centre Kumo Staff MPCS Ltd' : 'IMAN MULTIPURPOSE COOPERATIVE SOCIETY')}
                 </h1>
                 <p className="text-xs sm:text-sm font-semibold" style={{ color: colors.secondary }}>
-                  {header.chapter || 'Gombe State Chapter'}
+                  {header.chapter || (isFmck ? 'Federal Medical Centre Kumo' : 'Gombe State Chapter')}
                 </p>
                 <p className="text-[11px] text-gray-500 leading-relaxed">
                   {[
@@ -145,7 +145,7 @@ export const ContractPreview: React.FC<ContractPreviewProps> = ({
               className="py-2.5 px-4 text-center rounded text-white font-bold text-xs sm:text-sm tracking-wider uppercase shadow-sm"
               style={{ backgroundColor: colors.primary }}
             >
-              {header.contract_title || 'MURABAHA SALES CONTRACT'}
+              {header.contract_title || (isFmck ? 'LOAN & FINANCING AGREEMENT' : 'MURABAHA SALES CONTRACT')}
             </div>
           </div>
         )}
@@ -334,7 +334,7 @@ export const ContractPreview: React.FC<ContractPreviewProps> = ({
         {sections.show_terms && terms && terms.length > 0 && (
           <div className="space-y-2.5">
             <h3 className="font-bold text-xs uppercase tracking-wide" style={{ color: colors.primary }}>
-              Islamic Murabaha Contract Terms & General Conditions
+              {isFmck ? 'FMCKSMCS Contract Terms & General Conditions' : 'Islamic Murabaha Contract Terms & General Conditions'}
             </h3>
             <div className="space-y-2 text-[11px] leading-relaxed text-gray-700 text-justify">
               {terms.map((term, index) => (
@@ -362,13 +362,15 @@ export const ContractPreview: React.FC<ContractPreviewProps> = ({
               Buyer Declaration & Electronic Signature Certification
             </h3>
             <p className="text-[10px] text-gray-600 italic">
-              "I confirm that I have reviewed, understood, and irrevocably accepted all terms and conditions of this Murabaha Sales Contract electronically through the authenticated IMAN Cooperative Portal."
+              {isFmck
+                ? '"I confirm that I have reviewed, understood, and irrevocably accepted all terms and conditions of this FMCKSMCS Agreement electronically through the authenticated FMCKSMCS Cooperative Portal."'
+                : '"I confirm that I have reviewed, understood, and irrevocably accepted all terms and conditions of this Murabaha Sales Contract electronically through the authenticated IMAN Cooperative Portal."'}
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-gray-200 text-[11px]">
               <div>
                 <span className="text-gray-500">Signed By: </span>
-                <span className="font-semibold text-gray-900">{borrowerName} (PSN: {borrowerPsn})</span>
+                <span className="font-semibold text-gray-900">{borrowerName} ({idLabel}: {borrowerPsn})</span>
               </div>
               <div>
                 <span className="text-gray-500">Timestamp: </span>
@@ -401,10 +403,10 @@ export const ContractPreview: React.FC<ContractPreviewProps> = ({
                     color: stamp.color || colors.primary
                   }}
                 >
-                  <span className="leading-tight">IMAN COOPERATIVE</span>
+                  <span className="leading-tight">{isFmck ? 'FMCKSMCS' : 'IMAN COOPERATIVE'}</span>
                   <span className="text-[7px] text-amber-600 my-0.5">★ OFFICIAL SEAL ★</span>
                   <span className="text-[6.5px] text-gray-500">{recordedDate}</span>
-                  <span className="text-[7px]">GOMBE STATE</span>
+                  <span className="text-[7px]">{isFmck ? 'FMCK KUMO' : 'GOMBE STATE'}</span>
                 </div>
                 <div className="text-[10px] text-gray-500">
                   <span className="font-bold block text-gray-800">OFFICIAL VERIFIED SEAL</span>
@@ -437,11 +439,13 @@ export const ContractPreview: React.FC<ContractPreviewProps> = ({
         {sections.show_footer && (
           <div className="pt-4 border-t border-gray-200 text-center text-[10px] text-gray-400 space-y-0.5">
             <p>
-              {header.org_name || 'IMAN MULTIPURPOSE COOPERATIVE SOCIETY'} • Official Murabaha Agreement • Ref:{' '}
+              {header.org_name || (isFmck ? 'Federal Medical Centre Kumo Staff MPCS Ltd' : 'IMAN MULTIPURPOSE COOPERATIVE SOCIETY')} • {isFmck ? 'Official FMCKSMCS Agreement' : 'Official Murabaha Agreement'} • Ref:{' '}
               {agreementRef} • Page 1 of 1
             </p>
             <p className="text-[9px]">
-              This document was electronically generated and certified by the IMAN Multipurpose Cooperative Society System.
+              {isFmck
+                ? 'This document was electronically generated and certified by the FMCKSMCS Multipurpose Cooperative Society system.'
+                : 'This document was electronically generated and certified by the IMAN Multipurpose Cooperative Society System.'}
             </p>
           </div>
         )}

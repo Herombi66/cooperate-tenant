@@ -338,7 +338,7 @@ const FMCK_DEFAULT_DOC_TEMPLATES = [
  * Helper to determine clean tenant ID
  */
 function getResolvedTenantId(req) {
-  const tid = req.tenantId || req.tenant?.id || req.headers['x-tenant-id'] || req.query?.tenant || 'default';
+  const tid = req.tenantId || req.tenant?.id || req.headers['x-tenant-id'] || req.user?.tenant_id || req.query?.tenant || 'default';
   const clean = String(tid).toLowerCase().trim();
   if (clean === 'fmcksmcs' || clean === 'fmck') return 'fmcksmcs';
   return clean || 'default';
@@ -378,6 +378,19 @@ async function ensureTablesAndDefaultsExist(tenantId = 'default') {
           change_summary: isFmck ? 'Initial FMCKSMCS official template' : 'Initial system default template',
           tenant_id: targetTenant
         }).catch(() => {});
+      }
+    } else if (isFmck) {
+      // Self-heal: If FMCK templates previously had default IMAN/Murabaha references, sync them to FMCK standard defaults
+      const existingFmckTemplates = await DocumentTemplate.findAll({ where: { tenant_id: 'fmcksmcs' } });
+      for (const tpl of existingFmckTemplates) {
+        const layoutStr = JSON.stringify(tpl.layout_config || {});
+        if (layoutStr.includes('IMAN MULTIPURPOSE') || layoutStr.includes('Islamic Murabaha') || layoutStr.includes('MURABAHA SALES CONTRACT')) {
+          const freshDef = FMCK_DEFAULT_DOC_TEMPLATES.find(f => f.type === tpl.type) || FMCK_DEFAULT_DOC_TEMPLATES[0];
+          await tpl.update({
+            name: freshDef.name,
+            layout_config: freshDef.layout_config
+          });
+        }
       }
     }
   } catch (err) {

@@ -80,7 +80,7 @@ export const VerifyReceiptPage: React.FC = () => {
                 </div>
                 <h2 className="text-xl font-black tracking-tight">Official Receipt Verified</h2>
                 <p className="text-xs text-emerald-100 font-medium">
-                  {result.receipt?.badge || 'Digitally Authenticated by IMAN Cooperative Society'}
+                  {result.receipt?.badge || (result.receipt?.cooperative_name ? `Digitally Authenticated by ${result.receipt.cooperative_name}` : 'Digitally Authenticated by Cooperative Society')}
                 </p>
               </div>
 
@@ -199,7 +199,7 @@ export const VerifyReceiptPage: React.FC = () => {
 
         {/* Footer Note */}
         <div className="text-center text-xs text-gray-400">
-          <p>© {new Date().getFullYear()} IMAN Multi-Purpose Cooperative Society. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} {result?.receipt?.cooperative_name || 'Multi-Purpose Cooperative Society'}. All rights reserved.</p>
           <p className="mt-0.5">Strict privacy protection: Personal sensitive identifiers are masked by default.</p>
         </div>
       </div>

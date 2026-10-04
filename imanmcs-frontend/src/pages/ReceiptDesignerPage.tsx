@@ -861,7 +861,7 @@ export const ReceiptDesignerPage: React.FC = () => {
                       type="text"
                       value={config.stamp?.text || ''}
                       onChange={(e) => updateConfig('stamp.text', e.target.value)}
-                      placeholder="e.g. IMAN COOPERATIVE • OFFICIAL SEAL"
+                      placeholder={isFmck ? "e.g. FMCKSMCS • OFFICIAL SEAL" : "e.g. IMAN COOPERATIVE • OFFICIAL SEAL"}
                       className="w-full border rounded-lg p-2"
                     />
                   </div>
@@ -872,7 +872,7 @@ export const ReceiptDesignerPage: React.FC = () => {
                       rows={3}
                       value={config.notes?.text || ''}
                       onChange={(e) => updateConfig('notes.text', e.target.value)}
-                      placeholder="Enter legal notice, payment policies or Shari'ah compliance statement"
+                      placeholder={isFmck ? "Enter legal notice, payment policies or cooperative compliance statement" : "Enter legal notice, payment policies or Shari'ah compliance statement"}
                       className="w-full border rounded-lg p-2"
                     />
                   </div>

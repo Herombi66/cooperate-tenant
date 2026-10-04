@@ -661,9 +661,9 @@ export const DocumentDesignerPage: React.FC = () => {
                   { key: 'show_metadata', label: 'Document Information Panel', desc: 'Reference ID, version & status badge' },
                   { key: 'show_borrower_card', label: 'Borrower Details Card', desc: 'Buyer name, PSN, phone, email' },
                   { key: 'show_financing_card', label: 'Financing Details Card', desc: 'Tenure & monthly repayment' },
-                  { key: 'show_breakdown_card', label: 'Cost-Plus-Profit Breakdown', desc: 'Principal, Murabaha profit & total price' },
+                  { key: 'show_breakdown_card', label: isFmck ? 'FMCKSMCS Loan Breakdown' : 'Cost-Plus-Profit Breakdown', desc: isFmck ? 'Principal, administrative fee & total amount' : 'Principal, Murabaha profit & total price' },
                   { key: 'show_schedule', label: 'Repayment Schedule Table', desc: 'Numbered monthly installments' },
-                  { key: 'show_terms', label: 'Islamic Agreement Clauses', desc: 'Numbered legal terms & declaration' },
+                  { key: 'show_terms', label: isFmck ? 'FMCKSMCS Agreement Clauses' : 'Islamic Agreement Clauses', desc: 'Numbered legal terms & declaration' },
                   { key: 'show_signatures', label: 'Electronic Signature Box', desc: 'Audit certification & signature reference' },
                   { key: 'show_stamp', label: 'Official Circular Seal', desc: 'Verified cooperative stamp emblem' },
                   { key: 'show_qr_code', label: 'Verification QR Code', desc: 'Resolves to public verification registry' },
@@ -699,10 +699,12 @@ export const DocumentDesignerPage: React.FC = () => {
           {activeTab === 'terms' && (
             <div className="bg-white rounded-lg border border-gray-200 p-4 space-y-4 shadow-sm text-xs">
               <h3 className="font-bold text-gray-900 uppercase tracking-wide">
-                Islamic Murabaha Contract Clauses
+                {isFmck ? 'FMCKSMCS Contract Clauses' : 'Islamic Murabaha Contract Clauses'}
               </h3>
               <p className="text-[11px] text-gray-500">
-                Draft and review the Shari'ah-compliant legal clauses included in the contract:
+                {isFmck
+                  ? 'Draft and review the official FMCKSMCS legal clauses included in the contract:'
+                  : "Draft and review the Shari'ah-compliant legal clauses included in the contract:"}
               </p>
 
               <div className="space-y-3 max-h-[480px] overflow-y-auto pr-1">

@@ -1084,7 +1084,7 @@ const FMCK_DEFAULT_TEMPLATES = [
  * Helper to determine clean tenant ID
  */
 function getResolvedTenantId(req) {
-  const tid = req.tenantId || req.tenant?.id || req.headers['x-tenant-id'] || req.query?.tenant || 'default';
+  const tid = req.tenantId || req.tenant?.id || req.headers['x-tenant-id'] || req.user?.tenant_id || req.query?.tenant || 'default';
   const clean = String(tid).toLowerCase().trim();
   if (clean === 'fmcksmcs' || clean === 'fmck') return 'fmcksmcs';
   return clean || 'default';
@@ -1141,6 +1141,15 @@ async function ensureDefaultTemplatesExist(tenantId = 'default') {
           change_summary: isFmck ? 'Initial FMCKSMCS Standard Baseline' : 'Initial System Standard Baseline',
           tenant_id: targetTenant
         }).catch(() => {});
+      } else if (isFmck) {
+        // Self-heal: If an existing FMCK template has old IMAN branding in its layout_config header, update it to FMCK standard defaults
+        const layoutStr = JSON.stringify(existing.layout_config || {});
+        if (layoutStr.includes('IMAN MULTI-PURPOSE') || layoutStr.includes('IMAN COOPERATIVE')) {
+          await existing.update({
+            name: t.name,
+            layout_config: t.layout_config
+          });
+        }
       }
     }
   } catch (err) {

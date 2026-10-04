@@ -10,9 +10,16 @@ const api: AxiosInstance = axios.create({
 // Request interceptor
 api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const token = localStorage.getItem('token');
+  config.headers = config.headers || {};
   if (token) {
-    config.headers = config.headers || {};
     config.headers.Authorization = `Bearer ${token}`;
+  }
+
+  // Attach active tenant ID so backend always accurately scopes templates, documents, and receipts
+  const storedTenant = localStorage.getItem('previewTenantId') || localStorage.getItem('tenant_id') || localStorage.getItem('currentTenant');
+  if (storedTenant) {
+    const cleanTid = storedTenant.toLowerCase().trim();
+    config.headers['x-tenant-id'] = (cleanTid === 'fmcksmcs' || cleanTid === 'fmck') ? 'fmcksmcs' : cleanTid;
   }
 
   const userRaw = localStorage.getItem('user');

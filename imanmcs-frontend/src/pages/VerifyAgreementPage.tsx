@@ -89,7 +89,7 @@ export const VerifyAgreementPage: React.FC = () => {
                   Official Agreement Verified
                 </h1>
                 <p className="text-xs text-emerald-100 max-w-md mx-auto">
-                  This document is authenticated and recorded on the official IMAN Cooperative Society ledger.
+                  {`This document is authenticated and recorded on the official ${verification.organization || 'Cooperative Society'} ledger.`}
                 </p>
               </div>
 
@@ -198,7 +198,7 @@ export const VerifyAgreementPage: React.FC = () => {
       </div>
 
       <div className="text-center text-xs text-gray-400 py-4">
-        © {new Date().getFullYear()} IMAN Multipurpose Cooperative Society. All rights reserved.
+        © {new Date().getFullYear()} {verification?.organization || 'Multipurpose Cooperative Society'}. All rights reserved.
       </div>
     </div>
   );

@@ -25,7 +25,12 @@ const MurabahaContractModal: React.FC<MurabahaContractModalProps> = ({ isOpen, o
           setContent(response.data.data.murabaha_contract_template);
         } else {
              // Fallback content if not found
-             setContent(`
+             const isFmck = (localStorage.getItem('previewTenantId') || localStorage.getItem('tenant_id') || '').toLowerCase().includes('fmck');
+             setContent(isFmck ? `
+              <h3 class="text-gray-900">1. Offer and Acceptance</h3>
+              <p>FMCKSMCS Multipurpose Cooperative Society (the "Financier") hereby disburses the loan/financing facility specified in the schedule to you (the "Borrower")...</p>
+              <p><em>(Official FMCKSMCS Standard Terms Applied)</em></p>
+             ` : `
               <h3 class="text-gray-900">1. Offer and Acceptance</h3>
               <p>IMAN Cooperative Society (the "Seller") hereby sells the goods specified in the schedule to you (the "Buyer")...</p>
               <p><em>(Default content used - please update in Settings)</em></p>

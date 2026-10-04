@@ -112,7 +112,7 @@ function BarcodeSVG({ value }: { value: string }) {
 }
 
 // Official Digital Circular Seal Stamp
-function CircularSeal({ text, color = '#0F766E', date }: { text: string; color?: string; date?: string }) {
+function CircularSeal({ text, color = '#0F766E', date, isFmck = false }: { text: string; color?: string; date?: string; isFmck?: boolean }) {
   return (
     <div
       className="relative flex items-center justify-center rounded-full border-2 border-dashed p-2 text-center select-none shadow-sm"
@@ -132,7 +132,7 @@ function CircularSeal({ text, color = '#0F766E', date }: { text: string; color?:
       <div className="flex flex-col items-center justify-center p-1 z-10">
         <ShieldCheck className="w-5 h-5 mb-0.5" style={{ color }} />
         <span className="text-[7.5px] font-bold uppercase tracking-tight leading-tight px-1">
-          {text || 'IMAN COOP • OFFICIAL SEAL'}
+          {text || (isFmck ? 'FMCKSMCS • OFFICIAL SEAL' : 'IMAN COOP • OFFICIAL SEAL')}
         </span>
         <span className="text-[7px] font-mono font-semibold mt-0.5">
           {date || new Date().toISOString().slice(0, 10)}
@@ -331,7 +331,7 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({
                 }`}
                 style={{ color: colors.primary }}
               >
-                {header.org_name || 'IMAN MULTI-PURPOSE COOPERATIVE SOCIETY'}
+                {header.org_name || (isFmck ? 'Federal Medical Centre Kumo Staff MPCS Ltd' : 'IMAN MULTI-PURPOSE COOPERATIVE SOCIETY')}
               </h2>
 
               {header.tagline && (
@@ -484,17 +484,18 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({
                 <div className="flex-1 text-center sm:text-left">
                   <div className="w-36 border-b border-gray-400 h-8 mb-1 mx-auto sm:mx-0"></div>
                   <span className="text-[10px] font-semibold text-gray-600 block">
-                    {config.signature?.title || 'Authorized Signatory'}
+                    {config.signature?.title || (isFmck ? 'Authorized Treasury Officer' : 'Authorized Signatory')}
                   </span>
-                  <span className="text-[9px] text-gray-400">IMAN Cooperative Society</span>
+                  <span className="text-[9px] text-gray-400">{isFmck ? 'FMCKSMCS COOP. Society' : (header.org_name || 'IMAN Cooperative Society')}</span>
                 </div>
               )}
 
               {sections.show_stamp && (
                 <CircularSeal
-                  text={config.stamp?.text || 'IMAN COOPERATIVE • OFFICIAL SEAL'}
+                  text={config.stamp?.text || (isFmck ? 'FMCKSMCS • OFFICIAL SEAL' : 'IMAN COOPERATIVE • OFFICIAL SEAL')}
                   color={config.stamp?.color || colors.primary}
                   date={data.issue_date}
+                  isFmck={isFmck}
                 />
               )}
             </div>

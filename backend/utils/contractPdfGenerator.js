@@ -157,18 +157,45 @@ async function generateContractPdf(templateConfig = {}, contractData = {}, optio
   const isTest = Boolean(options.isTest);
   const layout = templateConfig.layout_config || templateConfig;
 
+  // Detect tenant context
+  const tenantId = (
+    templateConfig.tenant_id ||
+    layout.tenant_id ||
+    contractData.tenant_id ||
+    options.tenantId ||
+    ''
+  ).toString().toLowerCase().trim();
+  const isFmck = tenantId === 'fmcksmcs' || tenantId === 'fmck' ||
+    (layout.header?.org_name && layout.header.org_name.toLowerCase().includes('kumo'));
+
   // Extract color theme
-  const colors = layout.colors || {
+  const colors = layout.colors || (isFmck ? {
+    primary: '#03490b',
+    secondary: '#5cd674',
+    text: '#111827',
+    background: '#FFFFFF',
+    border: '#DCFCE7',
+    accent: '#F0FDF4'
+  } : {
     primary: '#047857',
     secondary: '#B45309',
     text: '#111827',
     background: '#FFFFFF',
     border: '#E5E7EB',
     accent: '#ECFDF5'
-  };
+  });
 
   // Header & Org details
-  const header = layout.header || {
+  const header = layout.header || (isFmck ? {
+    org_name: 'Federal Medical Centre Kumo Staff MPCS Ltd',
+    chapter: 'Federal Medical Centre Kumo',
+    registration_no: 'FMCK/MPCS/2024/001',
+    address: 'Federal Medical Centre Kumo, Gombe State, Nigeria',
+    phone: '+234 810 588 0201',
+    email: 'info@fmcksmcs.com',
+    website: 'www.fmcksmcs.com',
+    contract_title: 'LOAN & FINANCING AGREEMENT'
+  } : {
     org_name: 'IMAN MULTIPURPOSE COOPERATIVE SOCIETY',
     chapter: 'Gombe State Chapter',
     registration_no: 'IMAN/COOP/2024/001',
@@ -177,7 +204,7 @@ async function generateContractPdf(templateConfig = {}, contractData = {}, optio
     email: 'info@imancooperative.org',
     website: 'www.imancooperative.org',
     contract_title: 'MURABAHA SALES CONTRACT'
-  };
+  });
 
   const sections = layout.sections || {
     show_logo: true,
@@ -202,11 +229,15 @@ async function generateContractPdf(templateConfig = {}, contractData = {}, optio
     show_on_print: true
   };
 
-  const stampConfig = layout.stamp || {
+  const stampConfig = layout.stamp || (isFmck ? {
+    show: true,
+    text: 'FEDERAL MEDICAL CENTRE KUMO STAFF MPCS LTD • OFFICIAL VERIFIED SEAL',
+    color: colors.primary
+  } : {
     show: true,
     text: 'IMAN MULTIPURPOSE COOPERATIVE SOCIETY • OFFICIAL VERIFIED SEAL • GOMBE STATE',
     color: colors.primary
-  };
+  });
 
   // Terms configuration
   const contractType = contractData.type || templateConfig.type || 'murabaha_contract';
@@ -540,7 +571,7 @@ async function generateContractPdf(templateConfig = {}, contractData = {}, optio
   if (sections.show_terms && terms && terms.length > 0) {
     ensureSpace(80);
     doc.font('Helvetica-Bold').fontSize(9).fillColor(colors.primary);
-    doc.text('ISLAMIC MURABAHA CONTRACT TERMS & GENERAL CONDITIONS', leftX, doc.y);
+    doc.text(isFmck ? 'FMCKSMCS CONTRACT TERMS & GENERAL CONDITIONS' : 'ISLAMIC MURABAHA CONTRACT TERMS & GENERAL CONDITIONS', leftX, doc.y);
     doc.y += 5;
 
     terms.forEach((term, index) => {
@@ -575,7 +606,9 @@ async function generateContractPdf(templateConfig = {}, contractData = {}, optio
 
     doc.font('Helvetica-Oblique').fontSize(7.5).fillColor('#4B5563');
     doc.text(
-      '"I confirm that I have reviewed, understood, and irrevocably accepted all terms and conditions of this Murabaha Sales Contract electronically through the authenticated IMAN Cooperative Portal."',
+      isFmck
+        ? '"I confirm that I have reviewed, understood, and irrevocably accepted all terms and conditions of this FMCKSMCS Agreement electronically through the authenticated FMCKSMCS Cooperative Portal."'
+        : '"I confirm that I have reviewed, understood, and irrevocably accepted all terms and conditions of this Murabaha Sales Contract electronically through the authenticated IMAN Cooperative Portal."',
       leftX + 10,
       sigTop + 22,
       { width: contentWidth - 20, align: 'left' }
@@ -584,7 +617,7 @@ async function generateContractPdf(templateConfig = {}, contractData = {}, optio
     const sigColW = (contentWidth - 30) / 2;
     doc.font('Helvetica').fontSize(8).fillColor('#4B5563');
     doc.text('Signed By: ', leftX + 10, sigTop + 45, { continued: true });
-    doc.font('Helvetica-Bold').fillColor(colors.text).text(`${borrowerName} (PSN: ${borrowerPsn})`);
+    doc.font('Helvetica-Bold').fillColor(colors.text).text(`${borrowerName} (${isFmck ? 'IPPIS/SVC' : 'PSN'}: ${borrowerPsn})`);
 
     doc.font('Helvetica').fillColor('#4B5563').text('Signature Status: ', leftX + 10, sigTop + 58, { continued: true });
     doc.font('Helvetica-Bold').fillColor('#059669').text(`✓ ACCEPTED & SIGNED ELECTRONICALLY`);
@@ -624,13 +657,13 @@ async function generateContractPdf(templateConfig = {}, contractData = {}, optio
       }
 
       doc.font('Helvetica-Bold').fontSize(6).fillColor(colors.primary);
-      doc.text('IMAN COOPERATIVE', stampX - 25, stampY - 14, { width: 50, align: 'center' });
+      doc.text(isFmck ? 'FMCKSMCS' : 'IMAN COOPERATIVE', stampX - 25, stampY - 14, { width: 50, align: 'center' });
       doc.font('Helvetica-Bold').fontSize(5.5).fillColor(colors.secondary || '#B45309');
       doc.text('OFFICIAL SEAL', stampX - 25, stampY - 5, { width: 50, align: 'center' });
       doc.font('Helvetica').fontSize(5).fillColor('#4B5563');
       doc.text(recordedDate, stampX - 25, stampY + 4, { width: 50, align: 'center' });
       doc.font('Helvetica-Bold').fontSize(5).fillColor(colors.primary);
-      doc.text('GOMBE STATE', stampX - 25, stampY + 12, { width: 50, align: 'center' });
+      doc.text(isFmck ? 'FMCK KUMO' : 'GOMBE STATE', stampX - 25, stampY + 12, { width: 50, align: 'center' });
     }
 
     // QR Code and Verification info on the right
@@ -660,10 +693,17 @@ async function generateContractPdf(templateConfig = {}, contractData = {}, optio
 
     // If using SimplePdfDocument or PDFKit, print running footer on current/each page
     doc.font('Helvetica').fontSize(7).fillColor('#6B7280');
-    const footerText = `${header.org_name || 'IMAN MULTIPURPOSE COOPERATIVE SOCIETY'} • Official Murabaha Agreement • Ref: ${agreementRef} • Page 1 of ${pageCount}`;
+    const footerText = `${header.org_name || (isFmck ? 'FEDERAL MEDICAL CENTRE KUMO STAFF MPCS LTD' : 'IMAN MULTIPURPOSE COOPERATIVE SOCIETY')} • ${isFmck ? 'Official FMCKSMCS Agreement' : 'Official Murabaha Agreement'} • Ref: ${agreementRef} • Page 1 of ${pageCount}`;
     doc.text(footerText, leftX, footerY, { width: contentWidth, align: 'center' });
     doc.font('Helvetica').fontSize(6).fillColor('#9CA3AF');
-    doc.text('This document was electronically generated and certified by the IMAN Multipurpose Cooperative Society System.', leftX, footerY + 9, { width: contentWidth, align: 'center' });
+    doc.text(
+      isFmck
+        ? 'This document was electronically generated and certified by the FMCKSMCS Multipurpose Cooperative Society system.'
+        : 'This document was electronically generated and certified by the IMAN Multipurpose Cooperative Society System.',
+      leftX,
+      footerY + 9,
+      { width: contentWidth, align: 'center' }
+    );
   }
 
   // End Document and Return Buffer
