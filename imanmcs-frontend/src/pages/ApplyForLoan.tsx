@@ -5,6 +5,7 @@ import {
   GraduationCap, TrendingUp
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useTenant } from '../contexts/TenantContext';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import toast from 'react-hot-toast';
@@ -31,11 +32,13 @@ interface MemberData {
 
 const ApplyForLoan: React.FC = () => {
   const { user } = useAuth();
+  const { tenant } = useTenant();
   const navigate = useNavigate();
   const { isFmck, idLabel, idPlaceholder, loanTypes, formatLoanType } = useTenantTerminology();
   const draftKey = 'loan_application_draft_v1';
   const [loanType, setLoanType] = useState<LoanType>('cash');
   const [memberData, setMemberData] = useState<MemberData | null>(null);
+  const [eligibilityData, setEligibilityData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [showValidation, setShowValidation] = useState(false);
@@ -124,104 +127,106 @@ const ApplyForLoan: React.FC = () => {
       const memberResponse = await api.get('/auth/me');
       const memberInfo = memberResponse.data.user;
 
-      // Fetch dynamic settings
+      // 1. Fetch exact loan eligibility criteria from backend
+      let eligibility: any = null;
       try {
-        const settingsResponse = await api.get('/settings/');
-        const activeSettings = settingsResponse.data.settings.filter((s: any) => s.status === 'active');
-        const settingsMap: Record<string, any> = {};
-        activeSettings.forEach((s: any) => {
-          settingsMap[s.key] = s.value;
-        });
-        setSettings(settingsMap);
+        const eligResponse = await api.get('/loans/eligibility');
+        if (eligResponse.data.success && eligResponse.data.data) {
+          eligibility = eligResponse.data.data;
+          setEligibilityData(eligibility);
+        }
       } catch (err) {
-        console.error('Failed to fetch settings, using defaults', err);
+        console.warn('Loan eligibility endpoint fallback:', err);
       }
 
-      // Fetch total contributions (savings + investment)
-      const contributionsResponse = await api.get('/contributions', {
-        params: { user_id: memberInfo.id }
-      });
+      // 2. Contributions
+      let totalSavings = eligibility?.total_savings ?? 0;
+      let totalInvestment = eligibility?.total_investment ?? 0;
 
-      // Calculate total savings and investment
-      let totalSavings = 0;
-      let totalInvestment = 0;
-
-      if (contributionsResponse.data.contributions && contributionsResponse.data.contributions.length > 0) {
-        contributionsResponse.data.contributions.forEach((contribution: any) => {
-          if (contribution.status && contribution.status !== 'approved') return;
-          // Sum the individual amount fields from contributions
-          totalSavings += parseFloat(contribution.savings || 0);
-          totalInvestment += parseFloat(contribution.investment || 0);
-        });
+      if (!eligibility) {
+        try {
+          const contributionsResponse = await api.get('/contributions', {
+            params: { user_id: memberInfo.id, limit: 100 }
+          });
+          if (contributionsResponse.data.contributions && contributionsResponse.data.contributions.length > 0) {
+            contributionsResponse.data.contributions.forEach((contribution: any) => {
+              if (contribution.status && contribution.status !== 'approved') return;
+              totalSavings += parseFloat(contribution.savings || 0);
+              totalInvestment += parseFloat(contribution.investment || 0);
+            });
+          }
+        } catch (e) {}
       }
 
-      // Fetch active loans to calculate loan balance
-      const loansResponse = await api.get('/loans', {
-        params: { user_id: memberInfo.id, status: 'active' }
-      });
-
+      // 3. Active loans
       let activeLoanBalance = 0;
-      if (loansResponse.data.loans && loansResponse.data.loans.length > 0) {
-        activeLoanBalance = loansResponse.data.loans.reduce((total: number, loan: any) =>
-          total + parseFloat(loan.amount_approved || 0), 0
-        );
-      }
+      let existingLoanInfo: any = eligibility?.existing_loan || null;
 
-      // Calculate membership duration (months since join date)
-      const joinDate = new Date(memberInfo.created_at);
+      try {
+        const loansResponse = await api.get('/loans', {
+          params: { user_id: memberInfo.id, status: 'active' }
+        });
+        if (loansResponse.data.loans && loansResponse.data.loans.length > 0) {
+          activeLoanBalance = loansResponse.data.loans.reduce((total: number, loan: any) =>
+            total + parseFloat(loan.amount_approved || 0), 0
+          );
+          if (!existingLoanInfo) {
+            existingLoanInfo = {
+              id: loansResponse.data.loans[0].id,
+              status: loansResponse.data.loans[0].status,
+              amount_requested: loansResponse.data.loans[0].amount_requested,
+              application_date: loansResponse.data.loans[0].created_at || loansResponse.data.loans[0].application_date
+            };
+          }
+        }
+      } catch (e) {}
+
+      // Calculate membership duration
+      const joinDate = new Date(memberInfo.created_at || memberInfo.membershipApplication?.created_at || Date.now());
       const now = new Date();
-      const membershipDuration = Math.floor((now.getTime() - joinDate.getTime()) / (1000 * 60 * 60 * 24 * 30));
+      const membershipDuration = Math.floor((now.getTime() - joinDate.getTime()) / (1000 * 60 * 60 * 24 * 30.4375));
 
       const realMemberData: MemberData = {
-        totalInvestment: totalInvestment,
-        totalSavings: totalSavings,
-        activeLoanBalance: activeLoanBalance,
-        membershipDuration: Math.max(membershipDuration, 1), // At least 1 month
+        totalInvestment,
+        totalSavings,
+        activeLoanBalance,
+        membershipDuration: Math.max(membershipDuration, 1),
         psn: memberInfo.psn || '',
-        name: memberInfo.name || ''
+        name: memberInfo.name || '',
+        hasActiveLoan: !!existingLoanInfo,
+        existingLoan: existingLoanInfo
       };
 
       setMemberData(realMemberData);
-
     } catch (error) {
       console.error('Error fetching member data:', error);
       toast.error('Failed to load member data for loan calculations');
-
-      // Fallback to basic data if API fails
-      setMemberData({
-        totalInvestment: 0,
-        totalSavings: 0,
-        activeLoanBalance: 0,
-        membershipDuration: 1,
-        psn: user?.psn || '',
-        name: user?.name || ''
-      });
     } finally {
       setLoading(false);
     }
   };
 
-  // Calculate loan limits based on new rules and dynamic settings
-  const totalContributions = memberData ? (memberData.totalSavings + memberData.totalInvestment) : 0;
-  const totalInvestment = memberData ? memberData.totalInvestment : 0;
-  
-  // Use settings if available, otherwise fallback to defaults
-  const cashMaxAbsolute = settings.cash_loan_limit ? parseFloat(settings.cash_loan_limit) : 500000;
-  const cashMultiplier = settings.cash_loan_multiplier ? parseFloat(settings.cash_loan_multiplier) : 3;
-  const ventureMaxAbsolute = settings.venture_loan_limit ? parseFloat(settings.venture_loan_limit) : 1000000;
-  const ventureMultiplier = settings.venture_loan_multiplier ? parseFloat(settings.venture_loan_multiplier) : 10;
-  const maxEmergencyAbsolute = settings.emergency_loan_limit ? parseFloat(settings.emergency_loan_limit) : 20000;
+  // Cooperative Settings values from tenant context or backend
+  const curSymbol = tenant?.settings?.currency_symbol || eligibilityData?.currency_symbol || '₦';
+  const cashMaxAbsolute = parseFloat(tenant?.settings?.max_cash_loan ?? eligibilityData?.max_cash_setting ?? 500000);
+  const maxLoanOverall = parseFloat(tenant?.settings?.max_loan_amount ?? eligibilityData?.max_loan_setting ?? 1000000);
+  const multiplier = parseFloat(tenant?.settings?.investment_loan_multiplier ?? eligibilityData?.multiplier ?? 3);
+  const maxEmergencyAbsolute = parseFloat(tenant?.settings?.emergency_loan_limit ?? eligibilityData?.emergency_limit ?? 20000);
+  const minMembershipMonths = parseInt(tenant?.settings?.min_membership_months_for_loan ?? eligibilityData?.min_membership_months ?? 6, 10);
 
-  const maxCashLoan = Math.min(cashMaxAbsolute, totalContributions * 0.5 * cashMultiplier);
-  const maxVentureLoan = Math.min(ventureMaxAbsolute, totalContributions * 0.3 * ventureMultiplier);
-  const maxInvestmentLoan = Math.min(
-    settings.investment_loan_limit ? parseFloat(settings.investment_loan_limit) : (settings.venture_loan_limit ? parseFloat(settings.venture_loan_limit) : 1000000),
-    totalInvestment * 3 || totalContributions * 0.3 * ventureMultiplier
-  );
-  const maxEducationalLoan = Math.min(
-    settings.educational_loan_limit ? parseFloat(settings.educational_loan_limit) : 1000000,
-    totalInvestment * 3 || totalContributions * 0.3 * 10
-  );
+  const totalContributions = memberData ? (memberData.totalSavings + memberData.totalInvestment) : 0;
+  const totalSavings = memberData ? memberData.totalSavings : 0;
+  const totalInvestment = memberData ? memberData.totalInvestment : 0;
+
+  // Base calculation pools
+  const cashBase = Math.max(totalSavings, totalContributions * 0.5);
+  const maxCashLoan = Math.min(cashMaxAbsolute, Math.round(cashBase * multiplier));
+
+  // In FMCK and general cooperatives: if member has investment use investment, otherwise use savings/contributions
+  const investmentBase = totalInvestment > 0 ? totalInvestment : Math.max(totalSavings, totalContributions * 0.5);
+  const maxInvestmentLoan = Math.min(maxLoanOverall, Math.round(investmentBase * multiplier));
+  const maxVentureLoan = Math.min(maxLoanOverall, Math.round(Math.max(totalSavings, totalContributions * 0.5, totalInvestment) * multiplier));
+  const maxEducationalLoan = Math.min(maxLoanOverall, Math.round(investmentBase * multiplier));
   const maxEmergencyLoan = maxEmergencyAbsolute;
 
   const getMaxLoanForType = (type: LoanType): number => {
@@ -727,32 +732,76 @@ const ApplyForLoan: React.FC = () => {
       />
 
       {/* Loan Eligibility Summary */}
-      <div className="bg-primary-50 p-6 rounded-lg mb-6">
-        <h3 className="text-lg font-semibold text-primary-900 mb-4 flex items-center">
-          <Info className="w-5 h-5 mr-2" />
-          Your Loan Eligibility
-        </h3>
+      <div className="bg-primary-50/70 p-6 rounded-xl mb-6 border border-primary-200 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+          <h3 className="text-lg font-bold text-primary-950 flex items-center">
+            <Info className="w-5 h-5 mr-2 text-primary-700" />
+            Your Loan Eligibility
+          </h3>
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            {eligibilityData?.membership_months !== undefined && (
+              <span className={`px-2.5 py-1 rounded-full font-semibold border ${
+                meetsTenure 
+                  ? 'bg-emerald-50 text-emerald-800 border-emerald-200' 
+                  : 'bg-amber-50 text-amber-800 border-amber-200'
+              }`}>
+                Tenure: {eligibilityData.membership_months} mos {meetsTenure ? '✓' : `(min ${minMembershipMonths} mos)`}
+              </span>
+            )}
+            {memberData && (
+              <span className="px-2.5 py-1 rounded-full bg-white text-gray-700 font-semibold border border-gray-200 shadow-2xs">
+                Savings: {curSymbol}{memberData.totalSavings.toLocaleString()}
+              </span>
+            )}
+            {memberData?.hasActiveLoan && (
+              <span className="px-2.5 py-1 rounded-full bg-red-100 text-red-800 font-bold border border-red-200">
+                Active Loan Running
+              </span>
+            )}
+          </div>
+        </div>
+
         <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-${Math.min(loanTypes.length, 4)} gap-4`}>
           {loanTypes.map((lt) => {
             const limit = getMaxLoanForType(lt.id as LoanType);
-            const colorClass = lt.id === 'cash' ? 'text-green-600' : lt.id === 'emergency' ? 'text-red-600' : lt.id === 'educational' ? 'text-indigo-600' : 'text-purple-600';
+            const colorClass = lt.id === 'cash' ? 'text-green-700' : lt.id === 'emergency' ? 'text-red-700' : lt.id === 'educational' ? 'text-indigo-700' : 'text-purple-700';
             let subtitle = '';
+            let criteriaText = '';
+
             if (lt.id === 'cash') {
-              subtitle = `Max ₦${cashMaxAbsolute.toLocaleString()} (${cashMultiplier}x 50% contribution)`;
+              subtitle = `Max ${curSymbol}${cashMaxAbsolute.toLocaleString()} (${multiplier}x total savings)`;
+              criteriaText = `${multiplier}x approved savings`;
             } else if (lt.id === 'venture') {
-              subtitle = `Max ₦${ventureMaxAbsolute.toLocaleString()} (${ventureMultiplier}x 30% contribution)`;
+              subtitle = `Max ${curSymbol}${maxLoanOverall.toLocaleString()} (${multiplier}x contribution)`;
+              criteriaText = `${multiplier}x approved contribution`;
             } else if (lt.id === 'investment') {
-              subtitle = `Max ₦${maxInvestmentLoan.toLocaleString()} (3x total investment)`;
+              subtitle = `Max ${curSymbol}${maxLoanOverall.toLocaleString()} (${multiplier}x savings/investment)`;
+              criteriaText = `${multiplier}x approved savings / investment`;
             } else if (lt.id === 'educational') {
-              subtitle = `Max ₦${maxEducationalLoan.toLocaleString()} (3x total investment)`;
+              subtitle = `Max ${curSymbol}${maxLoanOverall.toLocaleString()} (${multiplier}x savings/investment)`;
+              criteriaText = `${multiplier}x approved savings / investment`;
             } else if (lt.id === 'emergency') {
-              subtitle = `Max ₦${maxEmergencyLoan.toLocaleString()} for emergencies.`;
+              subtitle = `Max ${curSymbol}${maxEmergencyAbsolute.toLocaleString()} for emergencies.`;
+              criteriaText = 'Emergency medical/family relief';
             }
+
             return (
-              <div key={lt.id} className="bg-white p-4 rounded-lg">
-                <h4 className="font-medium text-gray-900 mb-2">{formatLoanType(lt.id)}</h4>
-                <p className={`text-2xl font-bold ${colorClass}`}>₦{limit.toLocaleString()}</p>
-                <p className="text-sm text-gray-600">{subtitle}</p>
+              <div key={lt.id} className="bg-white p-4 rounded-xl border border-gray-200 shadow-xs flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <h4 className="font-bold text-gray-900 text-sm">{formatLoanType(lt.id)}</h4>
+                    <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+                      {lt.id === 'emergency' ? 'Emergency' : `${multiplier}x Multiplier`}
+                    </span>
+                  </div>
+                  <p className={`text-2xl font-black ${colorClass}`}>
+                    {curSymbol}{limit.toLocaleString()}
+                  </p>
+                </div>
+                <div className="mt-3 pt-2.5 border-t border-gray-100">
+                  <p className="text-xs font-semibold text-gray-800">{subtitle}</p>
+                  <p className="text-[11px] text-gray-500 mt-0.5">{criteriaText}</p>
+                </div>
               </div>
             );
           })}
@@ -793,7 +842,7 @@ const ApplyForLoan: React.FC = () => {
                               {lt.id === 'emergency' && <AlertCircle className="w-6 h-6 text-red-500 mr-3 flex-shrink-0" aria-hidden="true" />}
                               <div>
                                 <h4 className="font-medium text-gray-900">{formatLoanType(lt.id)}</h4>
-                                <p className="text-sm text-gray-600">Up to ₦{limit.toLocaleString()} • max {maxMonths}m</p>
+                                <p className="text-sm text-gray-600">Up to {curSymbol}{limit.toLocaleString()} • max {maxMonths}m</p>
                               </div>
                             </div>
                           </button>
@@ -804,7 +853,7 @@ const ApplyForLoan: React.FC = () => {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Loan Amount (₦) *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Loan Amount ({curSymbol}) *</label>
                       <input
                         type="number"
                         required
@@ -820,7 +869,7 @@ const ApplyForLoan: React.FC = () => {
                         aria-invalid={showValidation && !formData.amount}
                       />
                       <p className="text-xs text-gray-500 mt-1">
-                        Maximum: ₦{getMaxLoanForType(loanType).toLocaleString()}
+                        Maximum: {curSymbol}{getMaxLoanForType(loanType).toLocaleString()}
                       </p>
                       {showValidation &&
                         (() => {
@@ -828,7 +877,7 @@ const ApplyForLoan: React.FC = () => {
                           const maxAllowed = getMaxLoanForType(loanType);
                           if (!formData.amount) return <p className="mt-1 text-sm text-red-600">Loan amount is required.</p>;
                           if (!Number.isFinite(amount) || amount <= 0) return <p className="mt-1 text-sm text-red-600">Enter a valid loan amount.</p>;
-                          if (amount < 10000) return <p className="mt-1 text-sm text-red-600">Minimum loan amount is ₦10,000.</p>;
+                          if (amount < 10000) return <p className="mt-1 text-sm text-red-600">Minimum loan amount is {curSymbol}10,000.</p>;
                           if (amount > maxAllowed) return <p className="mt-1 text-sm text-red-600">Amount exceeds the maximum for this loan type.</p>;
                           return null;
                         })()}

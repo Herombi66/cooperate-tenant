@@ -8,7 +8,8 @@ const {
   getLoanStats, getDisbursedStats, getCurrentLoans,
   submitAgreement, getAgreements, getAllAgreements,
   bulkImportLoans, bulkUpdateLoans,
-  getPayslipDocuments, servePayslip, serveEducationalDocument
+  getPayslipDocuments, servePayslip, serveEducationalDocument,
+  getLoanEligibility
 } = require('../../../controllers/loanController');
 
 // --- Modular imports ---
@@ -78,6 +79,10 @@ router.get('/stats', authenticateToken, getLoanStats);
 
 // GET /loans/stats/disbursed - Get disbursed loan statistics with filters
 router.get('/stats/disbursed', authenticateToken, getDisbursedStats);
+
+// GET /loans/eligibility - Get loan eligibility for current member
+router.get('/eligibility', authenticateToken, getLoanEligibility);
+router.get('/eligibility/:userId', authenticateToken, getLoanEligibility);
 
 // GET /loans/my-loans - Get current user's loans
 router.get('/my-loans', authenticateToken, getCurrentLoans);

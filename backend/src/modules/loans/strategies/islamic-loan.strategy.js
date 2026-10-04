@@ -14,20 +14,22 @@ class IslamicLoanStrategy extends BaseLoanStrategy {
     }
 
     if (loanType === 'cash') {
-      const maxCash = Math.min(maxCashSetting, totalContributions * 0.5 * multiplier);
+      const maxCash = Math.min(maxCashSetting, Math.max(totalSavings, totalContributions * 0.5) * multiplier);
       if (amount > maxCash) throw new Error(`Cash loan cannot exceed max limit of ${sym}${maxCash.toLocaleString()}`);
     } else if (loanType === 'venture') {
-      const maxVenture = Math.min(maxLoanOverall, totalContributions * 0.3 * (multiplier * 3.33));
+      const maxVenture = Math.min(maxLoanOverall, Math.max(totalSavings, totalContributions * 0.5, totalInvestment) * multiplier);
       if (amount > maxVenture) throw new Error(`Venture loan cannot exceed max limit of ${sym}${maxVenture.toLocaleString()}`);
     } else if (loanType === 'emergency') {
       const emergencyLimit = 20000;
       if (amount > emergencyLimit) throw new Error(`Emergency loan cannot exceed ${sym}${emergencyLimit.toLocaleString()}`);
     } else if (loanType === 'educational') {
-      const maxEducationalLoan = totalInvestment * multiplier;
-      if (amount > maxEducationalLoan) throw new Error(`Educational loan cannot exceed ${multiplier}x your total investment (${sym}${maxEducationalLoan.toLocaleString()})`);
+      const basePool = totalInvestment > 0 ? totalInvestment : Math.max(totalSavings, totalContributions * 0.5);
+      const maxEducationalLoan = Math.min(maxLoanOverall, basePool * multiplier);
+      if (amount > maxEducationalLoan) throw new Error(`Educational loan cannot exceed ${multiplier}x your savings/investment (${sym}${maxEducationalLoan.toLocaleString()})`);
     } else if (loanType === 'investment') {
-      const maxInvestmentLoan = totalInvestment * multiplier;
-      if (amount > maxInvestmentLoan) throw new Error(`Investment loan cannot exceed ${multiplier}x your total investment (${sym}${maxInvestmentLoan.toLocaleString()})`);
+      const basePool = totalInvestment > 0 ? totalInvestment : Math.max(totalSavings, totalContributions * 0.5);
+      const maxInvestmentLoan = Math.min(maxLoanOverall, basePool * multiplier);
+      if (amount > maxInvestmentLoan) throw new Error(`Investment loan cannot exceed ${multiplier}x your savings/investment (${sym}${maxInvestmentLoan.toLocaleString()})`);
     }
   }
 

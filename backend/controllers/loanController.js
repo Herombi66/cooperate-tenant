@@ -560,12 +560,12 @@ const createLoan = async (req, res) => {
     }
 
     if (loanType === 'cash') {
-      const maxCash = Math.min(maxCashSetting, totalContributions * 0.5 * multiplier);
+      const maxCash = Math.min(maxCashSetting, Math.max(totalSavingsVal, totalContributions * 0.5) * multiplier);
       if (amountNum > maxCash) {
         return res.status(400).json({ success: false, message: `Cash loan cannot exceed max limit of ${sym}${maxCash.toLocaleString()}` });
       }
     } else if (loanType === 'venture') {
-      const maxVenture = Math.min(maxLoanOverall, totalContributions * 0.3 * (multiplier * 3.33));
+      const maxVenture = Math.min(maxLoanOverall, Math.max(totalSavingsVal, totalContributions * 0.5, totalInvestmentVal) * multiplier);
       if (amountNum > maxVenture) {
         return res.status(400).json({ success: false, message: `Venture loan cannot exceed max limit of ${sym}${maxVenture.toLocaleString()}` });
       }
@@ -574,23 +574,25 @@ const createLoan = async (req, res) => {
         return res.status(400).json({ success: false, message: `Emergency loan cannot exceed ${sym}20,000` });
       }
     } else if (loanType === 'educational') {
-      const maxEducationalLoan = totalInvestmentVal * multiplier;
+      const basePool = totalInvestmentVal > 0 ? totalInvestmentVal : Math.max(totalSavingsVal, totalContributions * 0.5);
+      const maxEducationalLoan = Math.min(maxLoanOverall, basePool * multiplier);
       if (amountNum > maxEducationalLoan) {
         return res.status(400).json({
           success: false,
-          message: `Educational loan cannot exceed ${multiplier}x your total investment (${sym}${maxEducationalLoan.toLocaleString()})`,
+          message: `Educational loan cannot exceed ${multiplier}x your savings/investment (${sym}${maxEducationalLoan.toLocaleString()})`,
           max_amount: maxEducationalLoan,
-          total_investment: totalInvestmentVal
+          total_base: basePool
         });
       }
     } else if (loanType === 'investment') {
-      const maxInvestmentLoan = totalInvestmentVal * multiplier;
+      const basePool = totalInvestmentVal > 0 ? totalInvestmentVal : Math.max(totalSavingsVal, totalContributions * 0.5);
+      const maxInvestmentLoan = Math.min(maxLoanOverall, basePool * multiplier);
       if (amountNum > maxInvestmentLoan) {
         return res.status(400).json({
           success: false,
-          message: `Investment loan cannot exceed ${multiplier}x your total investment (${sym}${maxInvestmentLoan.toLocaleString()})`,
+          message: `Investment loan cannot exceed ${multiplier}x your savings/investment (${sym}${maxInvestmentLoan.toLocaleString()})`,
           max_amount: maxInvestmentLoan,
-          total_investment: totalInvestmentVal
+          total_base: basePool
         });
       }
     }
@@ -2606,6 +2608,146 @@ const getLoanLiquidationReceipt = async (req, res) => {
     }
 };
 
+const getLoanEligibility = async (req, res) => {
+  try {
+    const targetUserId = req.params.userId && ['admin', 'super_admin'].includes(req.user.role) 
+      ? req.params.userId 
+      : req.user.id;
+
+    const user = await User.findByPk(targetUserId, {
+      include: [{ model: MembershipApplication, as: 'membershipApplication' }]
+    });
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'Member not found' });
+    }
+
+    const [totalSavingsRaw, totalInvestmentRaw, totalTargetSavingRaw] = await Promise.all([
+      Contribution.sum('savings', { where: { user_id: targetUserId, status: 'approved' } }),
+      Contribution.sum('investment', { where: { user_id: targetUserId, status: 'approved' } }),
+      Contribution.sum('target_saving', { where: { user_id: targetUserId, status: 'approved' } })
+    ]);
+
+    const totalSavings = parseFloat(totalSavingsRaw || 0);
+    const totalInvestment = parseFloat(totalInvestmentRaw || 0);
+    const totalTargetSaving = parseFloat(totalTargetSavingRaw || 0);
+    const totalContributions = totalSavings + totalInvestment + totalTargetSaving;
+
+    // Check active / pending loans
+    const activeStatuses = ['pending', 'waiting_disbursement', 'approved', 'active', 'disbursed', 'defaulted', 'awaiting_admin_review'];
+    const activeLoans = await Loan.findAll({
+      where: { user_id: targetUserId, status: { [Op.in]: activeStatuses } },
+      order: [['created_at', 'DESC']]
+    });
+
+    const activeLoansCount = activeLoans.length;
+    const latestActiveLoan = activeLoans.length > 0 ? activeLoans[0] : null;
+
+    // Check membership duration
+    const joinDate = user.membershipApplication?.created_at || user.created_at || new Date();
+    const now = new Date();
+    const membershipMonths = Math.max(0, Math.floor((now.getTime() - new Date(joinDate).getTime()) / (1000 * 60 * 60 * 24 * 30.4375)));
+
+    // Settings
+    const ts = req.tenantSettings || {};
+    const sym = ts.currency_symbol || '₦';
+    const maxCashSetting = parseFloat(ts.max_cash_loan ?? 500000);
+    const maxLoanOverall = parseFloat(ts.max_loan_amount ?? 1000000);
+    const multiplier = parseFloat(ts.investment_loan_multiplier ?? 3);
+    const minMembershipMonths = parseInt(ts.min_membership_months_for_loan ?? 6, 10);
+    const maxActiveLoans = parseInt(ts.max_active_loans_per_member ?? 2, 10);
+    const emergencyLimit = 20000;
+
+    const meetsTenure = membershipMonths >= minMembershipMonths;
+    const hasActiveLoan = activeLoansCount > 0;
+    const canBorrow = activeLoansCount < maxActiveLoans;
+
+    // Base calculation pools:
+    // For Cash: savings balance (or 50% contribution base)
+    const cashBase = Math.max(totalSavings, totalContributions * 0.5);
+    const maxCashCalculated = Math.min(maxCashSetting, Math.round(cashBase * multiplier));
+
+    // For Investment / Venture: if member has investments use investment, otherwise member savings/contributions
+    const investmentBase = totalInvestment > 0 ? totalInvestment : Math.max(totalSavings, totalContributions * 0.5);
+    const maxInvestmentCalculated = Math.min(maxLoanOverall, Math.round(investmentBase * multiplier));
+
+    // For Educational:
+    const educationalBase = totalInvestment > 0 ? totalInvestment : Math.max(totalSavings, totalContributions * 0.5);
+    const maxEducationalCalculated = Math.min(maxLoanOverall, Math.round(educationalBase * multiplier));
+
+    const maxEmergencyCalculated = emergencyLimit;
+
+    const loanTypes = [
+      {
+        id: 'cash',
+        name: 'Cash Loan',
+        eligible_amount: canBorrow && meetsTenure ? maxCashCalculated : 0,
+        policy_limit: maxCashSetting,
+        multiplier,
+        max_tenure_months: 12,
+        subtitle: `Max ${sym}${maxCashSetting.toLocaleString()} (${multiplier}x total savings)`,
+        criteria: `${multiplier}x member savings (up to ${sym}${maxCashSetting.toLocaleString()})`
+      },
+      {
+        id: 'investment',
+        name: 'Investment Loan',
+        eligible_amount: canBorrow && meetsTenure ? maxInvestmentCalculated : 0,
+        policy_limit: maxLoanOverall,
+        multiplier,
+        max_tenure_months: 24,
+        subtitle: `Max ${sym}${maxLoanOverall.toLocaleString()} (${multiplier}x savings/investment)`,
+        criteria: `${multiplier}x member savings/investment (up to ${sym}${maxLoanOverall.toLocaleString()})`
+      },
+      {
+        id: 'educational',
+        name: 'Educational Loan',
+        eligible_amount: canBorrow && meetsTenure ? maxEducationalCalculated : 0,
+        policy_limit: maxLoanOverall,
+        multiplier,
+        max_tenure_months: 24,
+        subtitle: `Max ${sym}${maxLoanOverall.toLocaleString()} (${multiplier}x savings/investment)`,
+        criteria: `${multiplier}x member savings/investment (up to ${sym}${maxLoanOverall.toLocaleString()})`
+      },
+      {
+        id: 'emergency',
+        name: 'Emergency Loan',
+        eligible_amount: canBorrow ? maxEmergencyCalculated : 0,
+        policy_limit: emergencyLimit,
+        multiplier: 1,
+        max_tenure_months: 6,
+        subtitle: `Max ${sym}${emergencyLimit.toLocaleString()} for emergencies.`,
+        criteria: `Flat emergency assistance up to ${sym}${emergencyLimit.toLocaleString()}`
+      }
+    ];
+
+    res.json({
+      success: true,
+      data: {
+        currency_symbol: sym,
+        total_savings: totalSavings,
+        total_investment: totalInvestment,
+        total_contributions: totalContributions,
+        membership_months: membershipMonths,
+        min_membership_months: minMembershipMonths,
+        meets_tenure: meetsTenure,
+        active_loans_count: activeLoansCount,
+        max_active_loans: maxActiveLoans,
+        has_active_loan: hasActiveLoan,
+        existing_loan: latestActiveLoan,
+        can_borrow: canBorrow,
+        multiplier,
+        max_cash_setting: maxCashSetting,
+        max_loan_setting: maxLoanOverall,
+        emergency_limit: emergencyLimit,
+        loan_types: loanTypes
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching loan eligibility:', error);
+    res.status(500).json({ success: false, message: 'Failed to calculate loan eligibility' });
+  }
+};
+
 module.exports = {
   validateGrantor,
   approveLoan,
@@ -2632,5 +2774,6 @@ module.exports = {
   servePayslip,
   serveEducationalDocument,
   liquidateLoan,
-  getLoanLiquidationReceipt
+  getLoanLiquidationReceipt,
+  getLoanEligibility
 };
