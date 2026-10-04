@@ -31,9 +31,14 @@ export const ContractPreview: React.FC<ContractPreviewProps> = ({
   sampleData
 }) => {
   const { tenant } = useTenant();
-  const isFmck = isFmckTenant(tenant);
-  const idLabel = getMemberIdLabel(tenant, 'full');
   const { colors, header, logo, sections, terms, stamp } = layout;
+  const isFmck = isFmckTenant(tenant) ||
+    Boolean(header?.org_name?.toLowerCase().includes('kumo')) ||
+    Boolean(header?.org_name?.toLowerCase().includes('fmck')) ||
+    Boolean(stamp?.text?.toLowerCase().includes('fmck')) ||
+    Boolean(stamp?.text?.toLowerCase().includes('kumo')) ||
+    Boolean(header?.chapter?.toLowerCase().includes('kumo'));
+  const idLabel = getMemberIdLabel(tenant, 'full');
 
   const agreementRef = sampleData?.agreementRef || 'AG-00152';
   const loanId = sampleData?.loanId || '#234';
@@ -409,7 +414,9 @@ export const ContractPreview: React.FC<ContractPreviewProps> = ({
                   <span className="text-[7px]">{isFmck ? 'FMCK KUMO' : 'GOMBE STATE'}</span>
                 </div>
                 <div className="text-[10px] text-gray-500">
-                  <span className="font-bold block text-gray-800">OFFICIAL VERIFIED SEAL</span>
+                  <span className="font-bold block text-gray-800">
+                    {isFmck ? 'FMCKSMCS OFFICIAL SEAL' : 'OFFICIAL VERIFIED SEAL'}
+                  </span>
                   <span>Digitally applied upon acceptance</span>
                 </div>
               </div>

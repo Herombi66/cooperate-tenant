@@ -28,10 +28,15 @@ import { isFmckTenant } from '../utils/tenantTerminology';
 
 export const DocumentDesignerPage: React.FC = () => {
   const { tenant } = useTenant();
-  const isFmck = isFmckTenant(tenant);
   const [templates, setTemplates] = useState<DocumentTemplate[]>([]);
   const [selectedTemplate, setSelectedTemplate] = useState<DocumentTemplate | null>(null);
   const [layout, setLayout] = useState<ContractLayoutConfig | null>(null);
+  const isFmck = isFmckTenant(tenant) ||
+    Boolean(selectedTemplate?.tenant_id === 'fmcksmcs') ||
+    Boolean(selectedTemplate?.name?.toLowerCase().includes('fmck')) ||
+    Boolean(layout?.header?.org_name?.toLowerCase().includes('kumo')) ||
+    Boolean(layout?.header?.org_name?.toLowerCase().includes('fmck')) ||
+    Boolean(layout?.stamp?.text?.toLowerCase().includes('fmck'));
   const [activeTab, setActiveTab] = useState<'theme' | 'header' | 'logo' | 'sections' | 'terms' | 'stamp'>('theme');
   const [loading, setLoading] = useState<boolean>(true);
   const [saving, setSaving] = useState<boolean>(false);
@@ -769,6 +774,7 @@ export const DocumentDesignerPage: React.FC = () => {
                 <input
                   type="text"
                   value={layout.stamp.text}
+                  placeholder={isFmck ? 'FEDERAL MEDICAL CENTRE KUMO STAFF MPCS LTD • OFFICIAL VERIFIED SEAL' : 'IMAN MULTIPURPOSE COOPERATIVE SOCIETY • OFFICIAL VERIFIED SEAL • GOMBE STATE'}
                   onChange={(e) =>
                     setLayout({
                       ...layout,

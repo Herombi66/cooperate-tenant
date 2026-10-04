@@ -4,8 +4,6 @@ import { useTenant, TenantConfig } from '../contexts/TenantContext';
  * Check if the active tenant is FMCKSMCS (Federal Medical Centre Kumo Staff MPCS Ltd)
  */
 export const isFmckTenant = (tenant?: TenantConfig | null): boolean => {
-  if (!tenant && typeof window === 'undefined') return false;
-  
   const tenantId = tenant?.id?.toLowerCase() || '';
   if (tenantId === 'fmcksmcs' || tenantId === 'fmck') return true;
 
@@ -14,8 +12,25 @@ export const isFmckTenant = (tenant?: TenantConfig | null): boolean => {
     const paramTenant = urlParams.get('tenant')?.toLowerCase() || '';
     if (paramTenant === 'fmcksmcs' || paramTenant === 'fmck') return true;
 
-    const storedTenant = localStorage.getItem('previewTenantId')?.toLowerCase() || '';
-    if (storedTenant === 'fmcksmcs' || storedTenant === 'fmck') return true;
+    const storedTenant = (
+      localStorage.getItem('previewTenantId') ||
+      localStorage.getItem('tenant_id') ||
+      localStorage.getItem('currentTenant') ||
+      ''
+    ).toLowerCase();
+    if (storedTenant === 'fmcksmcs' || storedTenant === 'fmck' || storedTenant.includes('fmck')) return true;
+
+    try {
+      const userRaw = localStorage.getItem('user');
+      if (userRaw) {
+        const u = JSON.parse(userRaw);
+        const userTenant = (u.tenant_id || u.tenantId || '').toLowerCase();
+        if (userTenant === 'fmcksmcs' || userTenant === 'fmck' || userTenant.includes('fmck')) return true;
+      }
+    } catch (_) {}
+
+    const hostname = window.location.hostname.toLowerCase();
+    if (hostname.includes('fmck')) return true;
   }
 
   const tenantName = tenant?.name?.toLowerCase() || '';

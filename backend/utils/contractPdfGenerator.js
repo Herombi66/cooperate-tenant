@@ -166,7 +166,9 @@ async function generateContractPdf(templateConfig = {}, contractData = {}, optio
     ''
   ).toString().toLowerCase().trim();
   const isFmck = tenantId === 'fmcksmcs' || tenantId === 'fmck' ||
-    (layout.header?.org_name && layout.header.org_name.toLowerCase().includes('kumo'));
+    (layout.header?.org_name && (layout.header.org_name.toLowerCase().includes('kumo') || layout.header.org_name.toLowerCase().includes('fmck'))) ||
+    (layout.stamp?.text && (layout.stamp.text.toLowerCase().includes('kumo') || layout.stamp.text.toLowerCase().includes('fmck'))) ||
+    (templateConfig.name && templateConfig.name.toLowerCase().includes('fmck'));
 
   // Extract color theme
   const colors = layout.colors || (isFmck ? {
