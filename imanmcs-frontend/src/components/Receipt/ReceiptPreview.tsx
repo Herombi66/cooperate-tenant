@@ -150,7 +150,11 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({
   sampleData
 }) => {
   const { tenant } = useTenant();
-  const isFmck = isFmckTenant(tenant);
+  const isFmck = isFmckTenant(tenant) ||
+    Boolean(config.header?.org_name?.toLowerCase().includes('kumo')) ||
+    Boolean(config.header?.org_name?.toLowerCase().includes('fmck')) ||
+    Boolean(config.stamp?.text?.toLowerCase().includes('fmck')) ||
+    Boolean(config.stamp?.text?.toLowerCase().includes('kumo'));
   const isThermal = paperSize === 'thermal_80' || paperSize === 'thermal_58';
   const is58mm = paperSize === 'thermal_58';
 
@@ -189,16 +193,31 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({
   };
 
   const data = { ...defaultData, ...sampleData };
-  const colors = config.colors || {
+  const colors = config.colors || (isFmck ? {
+    primary: '#03490b',
+    secondary: '#5cd674',
+    text: '#111827',
+    background: '#FFFFFF',
+    border: '#DCFCE7',
+    accent: '#F0FDF4'
+  } : {
     primary: '#0F766E',
     secondary: '#D97706',
     text: '#1F2937',
     background: '#FFFFFF',
     border: '#E5E7EB',
     accent: '#F0FDFA'
-  };
+  });
 
-  const header = config.header || {
+  const header = config.header || (isFmck ? {
+    org_name: 'Federal Medical Centre Kumo Staff MPCS Ltd',
+    tagline: 'Staff Welfare & Cooperative Savings Scheme',
+    registration_no: 'FMCK/MPCS/2024/001',
+    address: 'Federal Medical Centre Kumo, Gombe State, Nigeria',
+    phone: '+234 810 588 0201',
+    email: 'info@fmcksmcs.com',
+    receipt_title: 'OFFICIAL RECEIPT'
+  } : {
     org_name: 'IMAN MULTI-PURPOSE COOPERATIVE SOCIETY',
     tagline: 'Empowering Members Through Faith & Ethical Finance',
     registration_no: 'IMAN/COOP/2024/001',
@@ -206,7 +225,7 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({
     phone: '+234 800 000 0000',
     email: 'info@imancooperative.org',
     receipt_title: 'OFFICIAL RECEIPT'
-  };
+  });
 
   const sections = config.sections || {
     show_logo: true,
@@ -462,7 +481,7 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({
             <div className="py-2 flex flex-col sm:flex-row items-center justify-around gap-4 border-t border-b border-gray-100" style={{ borderColor: colors.border }}>
               {sections.show_qr_code && (
                 <div className="flex items-center gap-2.5">
-                  <InlineQRCodeSVG text={`https://imanmcs.org/verify-receipt/${data.receipt_number}`} color={colors.primary} size={64} />
+                  <InlineQRCodeSVG text={isFmck ? `https://fmcksmcs.com/verify-receipt/${data.receipt_number}` : `https://imanmcs.org/verify-receipt/${data.receipt_number}`} color={colors.primary} size={64} />
                   <div className="text-[10px] text-gray-500">
                     <span className="font-bold text-gray-700 block">Official Verification</span>
                     <span>Scan to verify receipt</span>

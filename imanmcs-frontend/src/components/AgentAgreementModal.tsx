@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Check, AlertTriangle, FileText } from 'lucide-react';
 import api from '../services/api';
 import toast from 'react-hot-toast';
+import { useTenant } from '../contexts/TenantContext';
+import { isFmckTenant } from '../utils/tenantTerminology';
 
 interface AgentAgreementModalProps {
   isOpen: boolean;
@@ -12,6 +14,8 @@ interface AgentAgreementModalProps {
 }
 
 const AgentAgreementModal: React.FC<AgentAgreementModalProps> = ({ isOpen, onClose, loanId, onSuccess }) => {
+  const { tenant } = useTenant();
+  const isFmck = isFmckTenant(tenant);
   const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [content, setContent] = useState<string>('');
@@ -64,10 +68,10 @@ const AgentAgreementModal: React.FC<AgentAgreementModalProps> = ({ isOpen, onClo
       });
       
       if (accepted) {
-        toast.success('Agent Agreement Accepted');
+        toast.success(isFmck ? 'Staff Welfare Agreement Accepted' : 'Agent Agreement Accepted');
         onSuccess();
       } else {
-        toast.error('Agent Agreement Rejected. Admin notified.');
+        toast.error(isFmck ? 'Agreement Rejected. Admin notified.' : 'Agent Agreement Rejected. Admin notified.');
         onSuccess();
       }
       onClose();
@@ -94,7 +98,7 @@ const AgentAgreementModal: React.FC<AgentAgreementModalProps> = ({ isOpen, onClo
             <div>
                 <h2 className="text-xl font-bold text-primary-900 flex items-center gap-2">
                     <FileText className="w-5 h-5" />
-                    Investment Loan Agent Agreement
+                    {isFmck ? 'Staff Welfare & Financing Agreement' : 'Investment Loan Agent Agreement'}
                 </h2>
                 <p className="text-sm text-primary-600 mt-1">Please review the terms below carefully.</p>
             </div>
@@ -131,7 +135,9 @@ const AgentAgreementModal: React.FC<AgentAgreementModalProps> = ({ isOpen, onClo
                 />
               </div>
               <span className="text-sm text-gray-600 group-hover:text-gray-900 select-none">
-                I have read and agree to the Agent Agreement terms and conditions. I understand that rejecting this agreement may delay or cancel my loan application.
+                {isFmck
+                  ? 'I have read and agree to the Staff Welfare & Financing Agreement terms and conditions. I understand that rejecting this agreement may delay or cancel my loan application.'
+                  : 'I have read and agree to the Agent Agreement terms and conditions. I understand that rejecting this agreement may delay or cancel my loan application.'}
               </span>
             </label>
 

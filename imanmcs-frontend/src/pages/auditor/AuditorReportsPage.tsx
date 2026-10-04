@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { FileText, Download, Printer, Calendar, Shield, CheckCircle } from 'lucide-react';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
+import { useTenant } from '../../contexts/TenantContext';
+import { isFmckTenant } from '../../utils/tenantTerminology';
 
 const REPORT_TYPES = [
   { id: 'financial_summary', title: '1. Cooperative Financial Summary' },
@@ -23,6 +25,8 @@ const REPORT_TYPES = [
 ];
 
 export const AuditorReportsPage: React.FC = () => {
+  const { tenant } = useTenant();
+  const isFmck = isFmckTenant(tenant);
   const [selectedReport, setSelectedReport] = useState<string>('financial_summary');
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
@@ -191,7 +195,7 @@ export const AuditorReportsPage: React.FC = () => {
         {/* Footer Signature Box */}
         <div className="pt-8 border-t flex flex-col md:flex-row justify-between items-end text-xs text-gray-500 gap-4">
           <div>
-            <p>IMAN Multi-Purpose Cooperative Society Management System</p>
+            <p>{isFmck ? 'FMCKSMCS Multipurpose Cooperative Society System' : 'IMAN Multi-Purpose Cooperative Society Management System'}</p>
             <p>Auditing Module • Cryptographic Ledger Verification</p>
           </div>
           <div className="text-right">

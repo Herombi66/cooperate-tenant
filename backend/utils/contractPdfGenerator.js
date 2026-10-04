@@ -670,7 +670,8 @@ async function generateContractPdf(templateConfig = {}, contractData = {}, optio
 
     // QR Code and Verification info on the right
     if (sections.show_qr_code) {
-      const verifyUrl = `${process.env.APP_URL || 'https://imancooperative.org'}/verify/agreement/${agreementRef}`;
+      const defaultDomain = isFmck ? 'https://fmcksmcs.com' : 'https://imancooperative.org';
+      const verifyUrl = `${process.env.APP_URL || defaultDomain}/verify/agreement/${agreementRef}`;
       const qrBoxX = rightX - 220;
 
       doc.font('Helvetica-Bold').fontSize(8).fillColor(colors.primary);
