@@ -1,27 +1,78 @@
-const { User, Role, Module, RolePermission, Permission } = require('../models');
+const { User, Role, Module, RolePermission, Permission, UserRole } = require('../models');
 
 /**
  * Helper to fetch a user's combined roles
  */
 async function getUserRoleNames(user) {
+  if (!user) return [];
+
   const roleNames = new Set();
-  if (user.role) roleNames.add(user.role.toLowerCase());
-  if (user.additional_role) roleNames.add(user.additional_role.toLowerCase());
+  if (user.role) {
+    roleNames.add(user.role.toLowerCase().trim());
+  }
+  if (user.additional_role) {
+    roleNames.add(user.additional_role.toLowerCase().trim());
+  }
 
   // Also check if user has many-to-many roles
   if (user.roles && Array.isArray(user.roles)) {
-    user.roles.forEach(r => roleNames.add(r.name.toLowerCase()));
-  } else if (user.id) {
+    user.roles.forEach(r => {
+      const name = typeof r === 'string' ? r : r.name;
+      if (name) roleNames.add(name.toLowerCase().trim());
+    });
+  }
+
+  // Check UserRole table for this user.id
+  if (user.id && UserRole) {
     try {
-      const fullUser = await User.findByPk(user.id, {
-        include: [{ model: Role, as: 'roles', attributes: ['name'] }]
+      const uRoles = await UserRole.findAll({
+        where: { user_id: user.id },
+        include: [{ model: Role, attributes: ['name'] }],
+        skipTenant: true
       });
-      if (fullUser?.roles) {
-        fullUser.roles.forEach(r => roleNames.add(r.name.toLowerCase()));
+      for (const ur of uRoles) {
+        if (ur.Role?.name) {
+          roleNames.add(ur.Role.name.toLowerCase().trim());
+        }
       }
-    } catch (e) {
-      // Ignore if association lookup fails in non-relational test runs
-    }
+    } catch (_) {}
+  }
+
+  // CRITICAL: Look up sibling accounts if membership_application_id exists!
+  // In this system, executive roles (e.g. assistant_secretary, secretary, etc.)
+  // are created as separate user accounts tied to the same membership_application_id,
+  // or assigned via additional roles.
+  if (user.membership_application_id) {
+    try {
+      const siblingAccounts = await User.findAll({
+        where: { 
+          membership_application_id: user.membership_application_id,
+          status: 'active'
+        },
+        attributes: ['id', 'role', 'additional_role'],
+        skipTenant: true
+      });
+
+      for (const acc of siblingAccounts) {
+        if (acc.role) roleNames.add(acc.role.toLowerCase().trim());
+        if (acc.additional_role) roleNames.add(acc.additional_role.toLowerCase().trim());
+
+        if (UserRole && acc.id !== user.id) {
+          try {
+            const accRoles = await UserRole.findAll({
+              where: { user_id: acc.id },
+              include: [{ model: Role, attributes: ['name'] }],
+              skipTenant: true
+            });
+            for (const ur of accRoles) {
+              if (ur.Role?.name) {
+                roleNames.add(ur.Role.name.toLowerCase().trim());
+              }
+            }
+          } catch (_) {}
+        }
+      }
+    } catch (_) {}
   }
 
   return Array.from(roleNames);
@@ -45,7 +96,7 @@ const requireModulePermission = (moduleKey, action = 'read') => {
       const roleNames = await getUserRoleNames(req.user);
 
       // Super Admin and Admin always have full system control and cannot be restricted
-      if (roleNames.includes('super_admin') || roleNames.includes('admin')) {
+      if (roleNames.includes('super_admin') || roleNames.includes('admin') || req.user.role === 'admin' || req.user.role === 'super_admin') {
         return next();
       }
 
@@ -61,44 +112,45 @@ const requireModulePermission = (moduleKey, action = 'read') => {
 
       const permColumn = colMap[action.toLowerCase()] || 'can_read';
 
-      // Find all roles associated with user
-      const roles = await Role.findAll({
-        where: { name: roleNames },
-        attributes: ['id', 'name']
+      // Find all roles associated with user (case- and format-insensitive)
+      const allRoles = await Role.findAll({ skipTenant: true });
+      const matchedRoles = allRoles.filter(r => {
+        const dbNameNorm = (r.name || '').toLowerCase().trim().replace(/[\s-]+/g, '_');
+        return roleNames.some(rn => {
+          const rnNorm = (rn || '').toLowerCase().trim().replace(/[\s-]+/g, '_');
+          return dbNameNorm === rnNorm || (r.name || '').toLowerCase() === (rn || '').toLowerCase();
+        });
       });
 
-      if (!roles || roles.length === 0) {
+      if (!matchedRoles || matchedRoles.length === 0) {
         return res.status(403).json({
           success: false,
           message: `Access denied. No active executive role assigned.`
         });
       }
 
-      const roleIds = roles.map(r => r.id);
+      const roleIds = matchedRoles.map(r => r.id);
 
-      // Check if any of user's roles has permission for this module
-      // First try module_key lookup
-      let hasPerm = await RolePermission.findOne({
-        where: {
-          role_id: roleIds,
-          module_key: moduleKey,
-          [permColumn]: true
-        }
+      // Find the module
+      const allModules = await Module.findAll({ skipTenant: true });
+      const targetModule = allModules.find(m => 
+        (m.key && m.key.toLowerCase() === moduleKey.toLowerCase()) ||
+        (m.name && m.name.toLowerCase().replace(/[\s-]+/g, '_') === moduleKey.toLowerCase())
+      );
+      const targetModuleId = targetModule ? targetModule.id : null;
+
+      // Check RolePermission
+      const perms = await RolePermission.findAll({
+        where: { role_id: roleIds },
+        skipTenant: true
       });
 
-      // If not found by key, try via Module association lookup
-      if (!hasPerm) {
-        const mod = await Module.findOne({ where: { key: moduleKey }, attributes: ['id'] });
-        if (mod) {
-          hasPerm = await RolePermission.findOne({
-            where: {
-              role_id: roleIds,
-              module_id: mod.id,
-              [permColumn]: true
-            }
-          });
-        }
-      }
+      const matchingPerms = perms.filter(p => 
+        (p.module_key && p.module_key.toLowerCase() === moduleKey.toLowerCase()) ||
+        (targetModuleId && p.module_id === targetModuleId)
+      );
+
+      const hasPerm = matchingPerms.some(p => p[permColumn] === true);
 
       if (hasPerm) {
         return next();
@@ -154,7 +206,8 @@ const can = (permissionName) => {
           as: 'permissions',
           where: { name: permissionName },
           required: false
-        }]
+        }],
+        skipTenant: true
       });
 
       const hasLegacy = roles.some(r => r.permissions && r.permissions.length > 0);

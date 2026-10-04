@@ -523,11 +523,14 @@ class RBACController {
           };
         });
       } else {
-        // Query user's roles
-        const roles = await Role.findAll({
-          where: { name: roleNames },
-          attributes: ['id', 'name'],
-          skipTenant: true
+        // Query user's roles (case- and format-insensitive)
+        const allRoles = await Role.findAll({ skipTenant: true });
+        const roles = allRoles.filter(r => {
+          const dbNameNorm = (r.name || '').toLowerCase().trim().replace(/[\s-]+/g, '_');
+          return roleNames.some(rn => {
+            const rnNorm = (rn || '').toLowerCase().trim().replace(/[\s-]+/g, '_');
+            return dbNameNorm === rnNorm || (r.name || '').toLowerCase() === (rn || '').toLowerCase();
+          });
         });
 
         const roleIds = roles.map(r => r.id);
@@ -550,7 +553,7 @@ class RBACController {
         allModules.forEach(m => {
           // Check if any role grants read, write, edit, delete
           const matchingPerms = rolePermissions.filter(rp => 
-            rp.module_id === m.id || rp.module_key === m.key
+            rp.module_id === m.id || (rp.module_key && rp.module_key.toLowerCase() === m.key.toLowerCase())
           );
 
           const canRead = matchingPerms.some(p => p.can_read);

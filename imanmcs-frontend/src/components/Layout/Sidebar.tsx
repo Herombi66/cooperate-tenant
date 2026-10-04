@@ -249,17 +249,32 @@ export const Sidebar: React.FC = () => {
     ? (rawLogo.startsWith('http') || rawLogo.startsWith('/') ? rawLogo : `${API_URL}${rawLogo}`)
     : undefined;
 
-  const { canAccess, isAdmin, isLoading: isPermissionsLoading, permissions } = usePermissions();
+  const { canAccess, isAdmin, isLoading: isPermissionsLoading, permissions, roles } = usePermissions();
 
-  const isExecutive = !isAdmin && !!user && user.role !== 'member';
+  const hasExecutiveRole = (roles && roles.some(r => r !== 'member')) || (user && user.role !== 'member');
+  const isExecutive = !isAdmin && !!user && hasExecutiveRole;
 
   // If permissions are still loading and we have no cached permissions, show role static fallback
   const hasLoadedPermissions = Object.keys(permissions).length > 0;
-  const rawItems = user 
-    ? (isExecutive 
-        ? (isPermissionsLoading && !hasLoadedPermissions ? (navigationItems[user.role] || executiveNavigationItems) : executiveNavigationItems)
-        : (navigationItems[user.role] || []))
-    : [];
+  let rawItems: Array<{ name: string; href: string; icon: any }> = [];
+  if (user) {
+    if (isAdmin) {
+      rawItems = navigationItems[user.role] || navigationItems['admin'] || [];
+    } else if (isExecutive) {
+      rawItems = (isPermissionsLoading && !hasLoadedPermissions)
+        ? (navigationItems[user.role] || executiveNavigationItems)
+        : executiveNavigationItems;
+    } else {
+      // Base member items
+      const baseItems = navigationItems['member'] || [];
+      // Plus any executive navigation items where explicit module permission is granted
+      const extraItems = executiveNavigationItems.filter(item => {
+        const modKey = hrefToModuleKey[item.href];
+        return modKey && canAccess(modKey) && !baseItems.some(b => b.href === item.href);
+      });
+      rawItems = [...baseItems, ...extraItems];
+    }
+  }
 
   const items = rawItems.filter(i => {
     // Roles & Permissions is available to admin & super_admin or users with user_management permission
