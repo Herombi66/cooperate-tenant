@@ -262,9 +262,9 @@ export const Sidebar: React.FC = () => {
     : [];
 
   const items = rawItems.filter(i => {
-    // Roles & Permissions is available to admin & super_admin
+    // Roles & Permissions is available to admin & super_admin or users with user_management permission
     if (i.href === '/roles') {
-      return user.role === 'admin' || user.role === 'super_admin';
+      return isAdmin || canAccess('user_management') || user.role === 'admin' || user.role === 'super_admin';
     }
 
     // Hide Withdrawals for FMCKSMCS tenant

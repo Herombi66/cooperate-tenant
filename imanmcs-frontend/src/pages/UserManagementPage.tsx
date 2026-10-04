@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Search, UserPlus, Shield, Crown, Calculator, User, CheckCircle, Users, Trash2, Eye, Edit, Lock, X, Copy, FileText, BookOpen, Coins, Megaphone } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { usePermissions } from '../contexts/PermissionContext';
 import toast from 'react-hot-toast';
 import api from '../services/api';
 import { useTenantTerminology } from '../utils/tenantTerminology';
@@ -300,14 +301,18 @@ export const UserManagementPage: React.FC = () => {
     loadAllUsers();
   }, [userSearch, userRoleFilter, page]);
 
-  // Only allow admin access
-  if (user?.role !== 'admin') {
+  const { canAccess, can, isAdmin, isLoading: isPermissionsLoading } = usePermissions();
+  const hasAccess = isAdmin || canAccess('user_management') || user?.role === 'admin' || user?.role === 'super_admin';
+  const canModifyUsers = isAdmin || can('user_management', 'edit') || can('user_management', 'write') || user?.role === 'admin' || user?.role === 'super_admin';
+
+  // Allow access if admin, super_admin, or user has permission for user_management
+  if (!isPermissionsLoading && !hasAccess) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <Shield className="w-16 h-16 text-red-500 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
-          <p className="text-gray-600">You need admin privileges to access this page.</p>
+          <p className="text-gray-600">You need appropriate administrative privileges to access this page.</p>
         </div>
       </div>
     );
@@ -395,14 +400,16 @@ export const UserManagementPage: React.FC = () => {
                   <Users className="w-6 h-6 text-primary-600 mr-2" />
                   <h2 className="text-xl font-semibold text-gray-900">All Users</h2>
                 </div>
-                <div className="flex items-center">
-                  <button
-                    onClick={() => setShowRoleAssignmentModal(true)}
-                    className="px-4 py-2 bg-primary-500 text-white text-sm rounded-md hover:bg-primary-600"
-                  >
-                    Assign Roles
-                  </button>
-                </div>
+                {canModifyUsers && (
+                  <div className="flex items-center">
+                    <button
+                      onClick={() => setShowRoleAssignmentModal(true)}
+                      className="px-4 py-2 bg-primary-500 text-white text-sm rounded-md hover:bg-primary-600"
+                    >
+                      Assign Roles
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* Filters */}

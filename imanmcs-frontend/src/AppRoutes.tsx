@@ -1,6 +1,7 @@
 import React from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
+import { usePermissions } from './contexts/PermissionContext';
 import { useTenant } from './contexts/TenantContext';
 import { AppLayout } from './components/Layout/AppLayout';
 import { TenantLandingPage } from './components/TenantLandingPage';
@@ -112,7 +113,14 @@ const WithdrawalsRouter: React.FC = () => {
 
 const RolesRouter: React.FC = () => {
   const { user } = useAuth();
-  if (user?.role !== 'admin' && user?.role !== 'super_admin') {
+  const { canAccess, isAdmin, isLoading } = usePermissions();
+
+  if (isLoading) {
+    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+  }
+
+  const hasAccess = isAdmin || canAccess('user_management') || user?.role === 'admin' || user?.role === 'super_admin';
+  if (!hasAccess) {
     return <Navigate to="/dashboard" replace />;
   }
   return <RolesPage />;

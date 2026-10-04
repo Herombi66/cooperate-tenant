@@ -148,7 +148,7 @@ const authenticateToken = async (req, res, next) => {
   }
 };
 
-const requireAdmin = (req, res, next) => {
+const requireAdmin = async (req, res, next) => {
   if (!req.user) {
     return res.status(401).json({
       success: false,
@@ -156,14 +156,85 @@ const requireAdmin = (req, res, next) => {
     });
   }
 
-  if (req.user.role !== 'admin' && req.user.role !== 'super_admin') {
-    return res.status(403).json({
-      success: false,
-      message: 'Access denied. Admin privileges required.'
-    });
+  // Super Admin and Admin always have full system access
+  if (req.user.role === 'admin' || req.user.role === 'super_admin') {
+    return next();
   }
 
-  next();
+  try {
+    const { getUserRoleNames } = require('./rbac');
+    const userRoleNames = await getUserRoleNames(req.user);
+
+    if (userRoleNames.includes('super_admin') || userRoleNames.includes('admin')) {
+      return next();
+    }
+
+    // Check dynamic RBAC module permissions
+    const pathname = (req.originalUrl || req.baseUrl || req.path || '').split('?')[0];
+    const moduleKey = getModuleFromUrl(pathname);
+
+    if (moduleKey) {
+      const method = (req.method || '').toUpperCase();
+      const action = (method === 'GET' || method === 'HEAD' || method === 'OPTIONS') ? 'read'
+        : (method === 'POST') ? 'write'
+        : (method === 'DELETE') ? 'delete'
+        : 'edit';
+
+      const permCol = action === 'read' ? 'can_read'
+        : action === 'write' ? 'can_write'
+        : action === 'delete' ? 'can_delete'
+        : 'can_edit';
+
+      const userRoles = await Role.findAll({
+        where: { name: userRoleNames },
+        attributes: ['id', 'name'],
+        skipTenant: true
+      });
+
+      if (userRoles && userRoles.length > 0) {
+        const roleIds = userRoles.map(r => r.id);
+        let perms = await RolePermission.findAll({
+          where: {
+            role_id: roleIds,
+            module_key: moduleKey
+          },
+          skipTenant: true
+        });
+
+        if (!perms || perms.length === 0) {
+          const mod = await Module.findOne({ where: { key: moduleKey }, attributes: ['id'], skipTenant: true });
+          if (mod) {
+            perms = await RolePermission.findAll({
+              where: {
+                role_id: roleIds,
+                module_id: mod.id
+              },
+              skipTenant: true
+            });
+          }
+        }
+
+        if (perms && perms.length > 0) {
+          const hasPermission = perms.some(p => p[permCol] === true);
+          if (hasPermission) {
+            return next();
+          } else {
+            return res.status(403).json({
+              success: false,
+              message: `Access denied. Insufficient permissions for module '${moduleKey}' (${action.toUpperCase()}).`
+            });
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('⚠️ [requireAdmin] RBAC check failed, falling back:', err);
+  }
+
+  return res.status(403).json({
+    success: false,
+    message: 'Access denied. Admin privileges required.'
+  });
 };
 
 function getModuleFromUrl(pathname) {
