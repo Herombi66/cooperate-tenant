@@ -368,7 +368,7 @@ export const ContractPreview: React.FC<ContractPreviewProps> = ({
             </h3>
             <p className="text-[10px] text-gray-600 italic">
               {isFmck
-                ? '"I confirm that I have reviewed, understood, and irrevocably accepted all terms and conditions of this FMCKSMCS Agreement electronically through the authenticated FMCKSMCS Cooperative Portal."'
+                ? '"I confirm that I have reviewed, understood, and irrevocably accepted all terms and conditions of this FMCK SMCS Sales Contract electronically through the authenticated FMCKSMCS Cooperative Portal."'
                 : '"I confirm that I have reviewed, understood, and irrevocably accepted all terms and conditions of this Murabaha Sales Contract electronically through the authenticated IMAN Cooperative Portal."'}
             </p>
 

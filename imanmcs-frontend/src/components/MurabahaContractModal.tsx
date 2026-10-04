@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Check, FileCheck } from 'lucide-react';
 import api from '../services/api';
 import toast from 'react-hot-toast';
+import { useTenant } from '../contexts/TenantContext';
+import { isFmckTenant } from '../utils/tenantTerminology';
 
 interface MurabahaContractModalProps {
   isOpen: boolean;
@@ -12,6 +14,8 @@ interface MurabahaContractModalProps {
 }
 
 const MurabahaContractModal: React.FC<MurabahaContractModalProps> = ({ isOpen, onClose, loanId, onSuccess }) => {
+  const { tenant } = useTenant();
+  const isFmck = isFmckTenant(tenant);
   const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [content, setContent] = useState<string>('');
@@ -57,7 +61,7 @@ const MurabahaContractModal: React.FC<MurabahaContractModalProps> = ({ isOpen, o
         status: 'accepted'
       });
       
-      toast.success('Murabaha Contract Accepted');
+      toast.success(isFmck ? 'FMCK SMCS Sales Contract Accepted' : 'Murabaha Contract Accepted');
       onSuccess();
       onClose();
     } catch (error) {
@@ -83,7 +87,7 @@ const MurabahaContractModal: React.FC<MurabahaContractModalProps> = ({ isOpen, o
             <div>
                 <h2 className="text-xl font-bold text-green-900 flex items-center gap-2">
                     <FileCheck className="w-5 h-5" />
-                    Murabaha Sales Contract
+                    {isFmck ? 'FMCK SMCS Sales Contract' : 'Murabaha Sales Contract'}
                 </h2>
                 <p className="text-sm text-green-700 mt-1">Final step to activate your loan.</p>
             </div>
@@ -120,7 +124,9 @@ const MurabahaContractModal: React.FC<MurabahaContractModalProps> = ({ isOpen, o
                 />
               </div>
               <span className="text-sm text-gray-600 group-hover:text-gray-900 select-none">
-                I accept the Murabaha Contract and agree to the repayment schedule.
+                {isFmck
+                  ? 'I accept the FMCK SMCS Sales Contract and agree to the repayment schedule.'
+                  : 'I accept the Murabaha Contract and agree to the repayment schedule.'}
               </span>
             </label>
 
@@ -131,7 +137,7 @@ const MurabahaContractModal: React.FC<MurabahaContractModalProps> = ({ isOpen, o
                   const element = document.createElement("a");
                   const file = new Blob([content], {type: 'text/html'});
                   element.href = URL.createObjectURL(file);
-                  element.download = `Murabaha_Contract_${loanId}.html`;
+                  element.download = isFmck ? `FMCK_Sales_Contract_${loanId}.html` : `Murabaha_Contract_${loanId}.html`;
                   document.body.appendChild(element);
                   element.click();
                   document.body.removeChild(element);

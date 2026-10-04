@@ -609,7 +609,7 @@ async function generateContractPdf(templateConfig = {}, contractData = {}, optio
     doc.font('Helvetica-Oblique').fontSize(7.5).fillColor('#4B5563');
     doc.text(
       isFmck
-        ? '"I confirm that I have reviewed, understood, and irrevocably accepted all terms and conditions of this FMCKSMCS Agreement electronically through the authenticated FMCKSMCS Cooperative Portal."'
+        ? '"I confirm that I have reviewed, understood, and irrevocably accepted all terms and conditions of this FMCK SMCS Sales Contract electronically through the authenticated FMCKSMCS Cooperative Portal."'
         : '"I confirm that I have reviewed, understood, and irrevocably accepted all terms and conditions of this Murabaha Sales Contract electronically through the authenticated IMAN Cooperative Portal."',
       leftX + 10,
       sigTop + 22,
