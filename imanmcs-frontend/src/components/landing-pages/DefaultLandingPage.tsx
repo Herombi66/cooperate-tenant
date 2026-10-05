@@ -72,7 +72,7 @@ export default function DefaultLandingPage() {
             </div>
             <div>
               <span className="text-xl font-extrabold tracking-tight text-slate-900 block leading-tight">
-                IMAN MCS
+                Care & Support (C&S)
               </span>
               <span className="text-xs font-semibold tracking-wider text-emerald-600 uppercase block">
                 Multi-Tenant Cooperative Platform
@@ -118,7 +118,7 @@ export default function DefaultLandingPage() {
             </h1>
 
             <p className="text-lg sm:text-xl text-slate-600 font-normal leading-relaxed">
-              Every cooperative on IMAN MCS operates with its own independent landing page, customized branding, Shariah-compliant or conventional financing rules, and secure member portal.
+              Every cooperative on Care & Support (C&S) operates with its own independent landing page, customized branding, Shariah-compliant or conventional financing rules, and secure member portal.
             </p>
 
             <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -309,7 +309,7 @@ export default function DefaultLandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
           <div className="flex items-center space-x-2">
             <Building2 className="w-5 h-5 text-emerald-500" />
-            <span className="font-bold text-white text-sm">IMAN MCS Platform</span>
+            <span className="font-bold text-white text-sm">Care & Support (C&S) Platform</span>
             <span>&copy; {new Date().getFullYear()} All rights reserved.</span>
           </div>
           <div className="flex items-center space-x-6">

@@ -184,7 +184,7 @@ app.options('*', cors(corsOptions)); // Enable pre-flight for all routes
 const healthCheckHandler = (req, res) => {
   res.json({
     status: 'OK',
-    message: 'IMAN MCS Backend is running',
+    message: 'Care & Support (C&S) Backend is running',
     timestamp: new Date().toISOString()
   });
 };

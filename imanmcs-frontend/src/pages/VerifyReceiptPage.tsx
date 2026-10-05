@@ -51,8 +51,8 @@ export const VerifyReceiptPage: React.FC = () => {
         {/* Header Branding */}
         <div className="text-center space-y-2">
           <Link to="/" className="inline-flex items-center gap-2 mb-2">
-            <img src="/logo.png" alt="IMAN MCS" className="w-12 h-12 rounded-full shadow-sm bg-white p-1 object-contain" />
-            <span className="text-xl font-black text-teal-800 tracking-tight">IMAN Cooperative</span>
+            <img src="/logo.png" alt="Care & Support (C&S)" className="w-12 h-12 rounded-full shadow-sm bg-white p-1 object-contain" />
+            <span className="text-xl font-black text-teal-800 tracking-tight">Care & Support (C&S)</span>
           </Link>
           <h1 className="text-2xl font-bold text-gray-900">Official Receipt Verification</h1>
           <p className="text-xs sm:text-sm text-gray-500">

@@ -1279,7 +1279,7 @@ export const SecurityCenterPage: React.FC = () => {
                   Blocked IP Addresses ({blockedIps.length})
                 </label>
                 <p className="text-gray-500 text-[11px] mb-2">
-                  IP addresses listed here are prohibited from performing authentication against IMAN MCS.
+                  IP addresses listed here are prohibited from performing authentication against Care & Support (C&S).
                 </p>
 
                 {/* Add new IP */}
