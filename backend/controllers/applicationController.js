@@ -489,6 +489,20 @@ const getApplications = async (req, res) => {
       whereClause.tenant_id = tenant_id;
     }
 
+    // Completely exclude super admin ghost accounts from the application list
+    const User = require('../models/User');
+    const superAdminUsers = await User.findAll({
+      where: { role: 'super_admin' },
+      attributes: ['membership_application_id']
+    });
+    const superAdminAppIds = superAdminUsers.map(u => u.membership_application_id).filter(Boolean);
+
+    whereClause.email = { [Op.ne]: 'candsngltd@gmail.com' };
+    whereClause.psn = { [Op.ne]: 'FMCK-SADM-001' };
+    if (superAdminAppIds.length > 0) {
+      whereClause.id = { [Op.notIn]: superAdminAppIds };
+    }
+
     // Filter by status
     if (status && status !== 'all') {
       whereClause.status = status;
@@ -561,6 +575,11 @@ const getApplications = async (req, res) => {
     if (tenant_id) {
       statsWhere.tenant_id = tenant_id;
     }
+    statsWhere.email = { [Op.ne]: 'candsngltd@gmail.com' };
+    statsWhere.psn = { [Op.ne]: 'FMCK-SADM-001' };
+    if (superAdminAppIds.length > 0) {
+      statsWhere.id = { [Op.notIn]: superAdminAppIds };
+    }
 
     const [totalCount, pendingCount, underReviewCount, approvedCount, rejectedCount, thisMonthCount] = await Promise.all([
       MembershipApplication.count({ where: statsWhere }),
@@ -612,7 +631,18 @@ const getApplicationById = async (req, res) => {
 
     const application = await MembershipApplication.findByPk(id);
 
-    if (!application) {
+    if (!application || application.email === 'candsngltd@gmail.com' || application.psn === 'FMCK-SADM-001') {
+      return res.status(404).json({
+        success: false,
+        message: 'Application not found'
+      });
+    }
+
+    const User = require('../models/User');
+    const linkedSuperAdmin = await User.findOne({
+      where: { membership_application_id: application.id, role: 'super_admin' }
+    });
+    if (linkedSuperAdmin) {
       return res.status(404).json({
         success: false,
         message: 'Application not found'
@@ -936,7 +966,7 @@ const updateApplicationStatus = async (req, res) => {
 
     const application = await MembershipApplication.findByPk(id);
 
-    if (!application) {
+    if (!application || application.email === 'candsngltd@gmail.com' || application.psn === 'FMCK-SADM-001') {
       return res.status(404).json({
         success: false,
         message: 'Application not found'
@@ -1079,7 +1109,7 @@ const deleteApplication = async (req, res) => {
 
     const application = await MembershipApplication.findByPk(id);
 
-    if (!application) {
+    if (!application || application.email === 'candsngltd@gmail.com' || application.psn === 'FMCK-SADM-001') {
       return res.status(404).json({
         success: false,
         message: 'Application not found'

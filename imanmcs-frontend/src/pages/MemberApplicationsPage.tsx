@@ -93,7 +93,10 @@ export const MemberApplicationsPage: React.FC = () => {
       }
 
       const response = await api.get(`/applications/?${params.toString()}`);
-      const apps = response.data.applications || response.data || [];
+      const rawApps = response.data.applications || response.data || [];
+      const apps = rawApps.filter(
+        (a: any) => a.email !== 'candsngltd@gmail.com' && a.psn !== 'FMCK-SADM-001'
+      );
       setApplications(apps);
 
       if (response.data.pagination) {

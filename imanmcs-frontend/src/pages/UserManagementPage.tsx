@@ -145,7 +145,14 @@ export const UserManagementPage: React.FC = () => {
 
       const data = response.data;
       if (data.success && data.members.length > 0) {
-        setFoundMember(data.members[0]); // Take the first result
+        const nonSuperMembers = data.members.filter(
+          (m: any) => m.currentRole !== 'super_admin' && m.email !== 'candsngltd@gmail.com'
+        );
+        if (nonSuperMembers.length > 0) {
+          setFoundMember(nonSuperMembers[0]);
+        } else {
+          setFoundMember(null);
+        }
       } else {
         setFoundMember(null);
       }
@@ -252,7 +259,10 @@ export const UserManagementPage: React.FC = () => {
 
       const data = response.data;
       if (data.success) {
-        setAllUsers(data.users);
+        const visibleUsers = (data.users || []).filter(
+          (u: UserData) => u.role !== 'super_admin' && u.email !== 'candsngltd@gmail.com'
+        );
+        setAllUsers(visibleUsers);
         setTotalPages(data.pagination.pages);
       } else {
         toast.error('Failed to load users');

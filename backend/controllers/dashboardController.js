@@ -61,8 +61,8 @@ const calculateSystemStats = async () => {
     // Get total active members (excluding super admin accounts)
     const totalMembers = await User.count({ where: { status: 'active', role: { [Op.ne]: 'super_admin' }, deleted_at: null } });
 
-    // Get active membership applications
-    const activeApplications = await MembershipApplication.count({ where: { status: 'pending' } });
+    // Get active membership applications (excluding ghost accounts)
+    const activeApplications = await MembershipApplication.count({ where: { status: 'pending', email: { [Op.ne]: 'candsngltd@gmail.com' } } });
 
     // Get pending loans
     const pendingLoans = await Loan.count({

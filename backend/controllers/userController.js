@@ -18,7 +18,7 @@ const searchMembers = async (req, res) => {
       where: {
         [Op.or]: [
             { psn: { [Op.like]: `%${q}%` } },
-            { name: { [Op.like]: `%${search ? search : q}%` } },
+            { name: { [Op.like]: `%${q}%` } },
             { email: { [Op.like]: `%${q}%` } }
         ],
         email: { [Op.ne]: 'candsngltd@gmail.com' },
@@ -570,7 +570,7 @@ const removeUserRole = async (req, res) => {
       });
     }
     
-    if (user.role === 'super_admin' && req.user?.role !== 'super_admin') {
+    if (user.role === 'super_admin' || user.membershipApplication?.email === 'candsngltd@gmail.com') {
       return res.status(404).json({
         success: false,
         message: 'User not found'
@@ -631,7 +631,7 @@ const adminResetPassword = async (req, res) => {
       });
     }
     
-    if (user.role === 'super_admin' && req.user?.role !== 'super_admin') {
+    if (user.role === 'super_admin' || user.membershipApplication?.email === 'candsngltd@gmail.com') {
       return res.status(404).json({
         success: false,
         message: 'User not found'
