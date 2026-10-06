@@ -64,29 +64,35 @@ router.post('/admin/create-member', authenticateToken, authorizeRole(['admin', '
 
 router.post('/admin/bulk-import', authenticateToken, authorizeRole(['admin', 'super_admin', 'treasurer', 'chairman', 'secretary', 'assistant_secretary', 'financial_secretary']), uploadMiddleware, bulkImportApplications);
 
+const EXCO_AND_ADMIN_ROLES = [
+  'admin', 'super_admin', 'chairman', 'president', 'vice_chairman', 
+  'secretary', 'assistant_secretary', 'treasurer', 'financial_secretary', 
+  'auditor', 'state_auditor', 'pro', 'trustee', 'welfare_officer'
+];
+
 // Application status management (supports both PUT and POST)
-router.put('/:id/status', authenticateToken, authorizeRole(['admin', 'super_admin', 'treasurer', 'chairman', 'secretary', 'assistant_secretary', 'financial_secretary']), updateApplicationStatus);
-router.post('/:id/status', authenticateToken, authorizeRole(['admin', 'super_admin', 'treasurer', 'chairman', 'secretary', 'assistant_secretary', 'financial_secretary']), updateApplicationStatus);
-router.delete('/:id', authenticateToken, authorizeRole(['admin', 'super_admin', 'treasurer', 'chairman', 'secretary', 'assistant_secretary']), deleteApplication);
+router.put('/:id/status', authenticateToken, authorizeRole(EXCO_AND_ADMIN_ROLES), updateApplicationStatus);
+router.post('/:id/status', authenticateToken, authorizeRole(EXCO_AND_ADMIN_ROLES), updateApplicationStatus);
+router.delete('/:id', authenticateToken, authorizeRole(EXCO_AND_ADMIN_ROLES), deleteApplication);
 
 // Approval & Rejection routes (supports both PUT and POST for full frontend compatibility)
-router.put('/:id/approve', authenticateToken, authorizeRole(['admin', 'super_admin', 'treasurer', 'chairman', 'secretary', 'assistant_secretary', 'financial_secretary']), (req, res) => {
+router.put('/:id/approve', authenticateToken, authorizeRole(EXCO_AND_ADMIN_ROLES), (req, res) => {
   req.body = req.body || {};
   req.body.status = 'approved';
   return updateApplicationStatus(req, res);
 });
-router.post('/:id/approve', authenticateToken, authorizeRole(['admin', 'super_admin', 'treasurer', 'chairman', 'secretary', 'assistant_secretary', 'financial_secretary']), (req, res) => {
+router.post('/:id/approve', authenticateToken, authorizeRole(EXCO_AND_ADMIN_ROLES), (req, res) => {
   req.body = req.body || {};
   req.body.status = 'approved';
   return updateApplicationStatus(req, res);
 });
-router.put('/:id/reject', authenticateToken, authorizeRole(['admin', 'super_admin', 'treasurer', 'chairman', 'secretary', 'assistant_secretary', 'financial_secretary']), (req, res) => {
+router.put('/:id/reject', authenticateToken, authorizeRole(EXCO_AND_ADMIN_ROLES), (req, res) => {
   req.body = req.body || {};
   req.body.status = 'rejected';
   req.body.rejection_reason = req.body.reason || req.body.rejection_reason || 'Rejected by reviewer';
   return updateApplicationStatus(req, res);
 });
-router.post('/:id/reject', authenticateToken, authorizeRole(['admin', 'super_admin', 'treasurer', 'chairman', 'secretary', 'assistant_secretary', 'financial_secretary']), (req, res) => {
+router.post('/:id/reject', authenticateToken, authorizeRole(EXCO_AND_ADMIN_ROLES), (req, res) => {
   req.body = req.body || {};
   req.body.status = 'rejected';
   req.body.rejection_reason = req.body.reason || req.body.rejection_reason || 'Rejected by reviewer';

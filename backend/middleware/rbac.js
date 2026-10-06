@@ -14,34 +14,21 @@ async function getUserRoleNames(user) {
     roleNames.add(user.additional_role.toLowerCase().trim());
   }
 
-  // Also check if user has many-to-many roles
+  // Also check if user has many-to-many roles attached to user object
   if (user.roles && Array.isArray(user.roles)) {
     user.roles.forEach(r => {
-      const name = typeof r === 'string' ? r : r.name;
+      const name = typeof r === 'string' ? r : r?.name;
       if (name) roleNames.add(name.toLowerCase().trim());
     });
   }
 
-  // Check UserRole table for this user.id
-  if (user.id && UserRole) {
-    try {
-      const uRoles = await UserRole.findAll({
-        where: { user_id: user.id },
-        include: [{ model: Role, attributes: ['name'] }],
-        skipTenant: true
-      });
-      for (const ur of uRoles) {
-        if (ur.Role?.name) {
-          roleNames.add(ur.Role.name.toLowerCase().trim());
-        }
-      }
-    } catch (_) {}
-  }
+  const userIdsToCheck = new Set();
+  if (user.id) userIdsToCheck.add(user.id);
 
   // CRITICAL: Look up sibling accounts if membership_application_id exists!
-  // In this system, executive roles (e.g. assistant_secretary, secretary, etc.)
-  // are created as separate user accounts tied to the same membership_application_id,
-  // or assigned via additional roles.
+  // In this cooperative system, executive roles (e.g. assistant_secretary, secretary, etc.)
+  // may be created as separate user accounts tied to the same membership_application_id,
+  // or assigned via additional_role.
   if (user.membership_application_id) {
     try {
       const siblingAccounts = await User.findAll({
@@ -54,22 +41,30 @@ async function getUserRoleNames(user) {
       });
 
       for (const acc of siblingAccounts) {
+        if (acc.id) userIdsToCheck.add(acc.id);
         if (acc.role) roleNames.add(acc.role.toLowerCase().trim());
         if (acc.additional_role) roleNames.add(acc.additional_role.toLowerCase().trim());
+      }
+    } catch (_) {}
+  }
 
-        if (UserRole && acc.id !== user.id) {
-          try {
-            const accRoles = await UserRole.findAll({
-              where: { user_id: acc.id },
-              include: [{ model: Role, attributes: ['name'] }],
-              skipTenant: true
-            });
-            for (const ur of accRoles) {
-              if (ur.Role?.name) {
-                roleNames.add(ur.Role.name.toLowerCase().trim());
-              }
-            }
-          } catch (_) {}
+  // Check UserRole table for this user and any sibling accounts
+  if (userIdsToCheck.size > 0 && UserRole) {
+    try {
+      const uRoles = await UserRole.findAll({
+        where: { user_id: Array.from(userIdsToCheck) },
+        attributes: ['role_id'],
+        skipTenant: true
+      });
+      const roleIds = uRoles.map(ur => ur.role_id).filter(Boolean);
+      if (roleIds.length > 0 && Role) {
+        const foundRoles = await Role.findAll({
+          where: { id: roleIds },
+          attributes: ['name'],
+          skipTenant: true
+        });
+        for (const r of foundRoles) {
+          if (r.name) roleNames.add(r.name.toLowerCase().trim());
         }
       }
     } catch (_) {}
@@ -77,6 +72,10 @@ async function getUserRoleNames(user) {
 
   return Array.from(roleNames);
 }
+
+// Safe boolean helper: handles boolean, integer 1, string '1', 'true', 't'
+const isTrue = v => !!v && (v === true || v === 1 || v === '1' || v === 'true' || v === 't' || v === 'yes');
+const norm = s => (s || '').toString().toLowerCase().trim().replace(/[-_\s]+/g, '');
 
 /**
  * Check if a user has permission for a specific module and action
@@ -91,46 +90,68 @@ async function hasPermissionForModule(user, moduleKey, action = 'read') {
   const roleNames = await getUserRoleNames(user);
   if (roleNames.includes('super_admin') || roleNames.includes('admin')) return true;
 
+  const targetNorm = norm(moduleKey);
+
+  // Map known aliases
+  const moduleAliases = [targetNorm];
+  if (targetNorm === 'memberapplications' || targetNorm === 'applications' || targetNorm === 'memberapplication') {
+    moduleAliases.push('memberapplications', 'applications', 'memberapplication', 'members');
+  } else if (targetNorm === 'members') {
+    moduleAliases.push('members', 'memberapplications');
+  } else if (targetNorm === 'loanapplications' || targetNorm === 'loans') {
+    moduleAliases.push('loanapplications', 'loans');
+  }
+
   try {
     const allRoles = await Role.findAll({ skipTenant: true });
     const matchedRoles = allRoles.filter(r => {
-      const dbNameNorm = (r.name || '').toLowerCase().trim().replace(/[\s-]+/g, '_');
-      return roleNames.some(rn => {
-        const rnNorm = (rn || '').toLowerCase().trim().replace(/[\s-]+/g, '_');
-        return dbNameNorm === rnNorm || (r.name || '').toLowerCase() === (rn || '').toLowerCase();
-      });
+      const rNorm = norm(r.name);
+      return roleNames.some(rn => norm(rn) === rNorm || (r.name || '').toLowerCase() === (rn || '').toLowerCase());
     });
 
     if (!matchedRoles || matchedRoles.length === 0) return false;
     const roleIds = matchedRoles.map(r => r.id);
 
     const allModules = await Module.findAll({ skipTenant: true });
-    const targetModule = allModules.find(m => 
-      (m.key && m.key.toLowerCase() === moduleKey.toLowerCase()) ||
-      (m.name && m.name.toLowerCase().replace(/[\s-]+/g, '_') === moduleKey.toLowerCase())
-    );
-    const targetModuleId = targetModule ? targetModule.id : null;
+    const targetModules = allModules.filter(m => {
+      const kNorm = norm(m.key);
+      const nNorm = norm(m.name);
+      return moduleAliases.includes(kNorm) || moduleAliases.includes(nNorm);
+    });
+    const targetModuleIds = targetModules.map(m => m.id);
 
     const perms = await RolePermission.findAll({
       where: { role_id: roleIds },
       skipTenant: true
     });
 
-    const matchingPerms = perms.filter(p => 
-      (p.module_key && p.module_key.toLowerCase() === moduleKey.toLowerCase()) ||
-      (targetModuleId && p.module_id === targetModuleId)
+    const matchingPerms = perms.filter(p => {
+      const pKeyNorm = norm(p.module_key);
+      return (p.module_id && targetModuleIds.includes(p.module_id)) || moduleAliases.includes(pKeyNorm);
+    });
+
+    if (matchingPerms.length > 0) {
+      const act = (action || 'read').toLowerCase();
+      if (act === 'read') {
+        return matchingPerms.some(p => isTrue(p.can_read));
+      } else if (['write', 'create', 'edit', 'update'].includes(act)) {
+        return matchingPerms.some(p => isTrue(p.can_write) || isTrue(p.can_edit));
+      } else if (act === 'delete') {
+        return matchingPerms.some(p => isTrue(p.can_delete));
+      }
+    }
+
+    // Fallback: If executive officer role has default permissions for secretarial or administrative workflows
+    const isExecutive = roleNames.some(rn => 
+      ['chairman', 'secretary', 'assistant_secretary', 'treasurer', 'financial_secretary', 'auditor', 'pro'].includes(rn)
     );
 
-    if (matchingPerms.length === 0) return false;
-
-    const act = (action || 'read').toLowerCase();
-    if (act === 'read') {
-      return matchingPerms.some(p => p.can_read === true);
-    } else if (['write', 'create', 'edit', 'update'].includes(act)) {
-      return matchingPerms.some(p => p.can_write === true || p.can_edit === true);
-    } else if (act === 'delete') {
-      return matchingPerms.some(p => p.can_delete === true);
+    if (isExecutive && (moduleAliases.includes('memberapplications') || moduleAliases.includes('applications') || moduleAliases.includes('members'))) {
+      if (roleNames.includes('assistant_secretary') || roleNames.includes('secretary') || roleNames.includes('chairman')) {
+        return true;
+      }
     }
+
     return false;
   } catch (err) {
     console.warn(`[hasPermissionForModule] Error checking '${moduleKey}' (${action}):`, err);

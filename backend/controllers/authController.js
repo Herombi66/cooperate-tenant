@@ -53,6 +53,7 @@ const buildProfilePayload = (user, application) => {
     name,
     email,
     role: user.role,
+    additional_role: user.additional_role || null,
     tenant_id: user.tenant_id,
     tenantId: user.tenant_id,
     can_liquidate_loans: user.can_liquidate_loans,
@@ -159,18 +160,31 @@ const login = async (req, res) => {
       });
     }
 
-    // Filter candidates based on requested role
+    // Filter and prioritize candidates based on requested role
     let candidates = users;
     if (targetRole) {
-        // If a specific role was requested via suffix (e.g. _chairman), ONLY check that role
-        candidates = users.filter(u => u.role === targetRole);
+      // If a specific role was requested via suffix (e.g. _chairman), ONLY check that role
+      candidates = users.filter(u => u.role === targetRole);
     } else {
-        // No suffix provided (e.g. "12525" or "admin001")
-        // If the user has a 'member' account, default to that (standard member login)
-        const hasMemberAccount = users.some(u => u.role === 'member');
-        if (hasMemberAccount) {
-            candidates = users.filter(u => u.role === 'member');
-        }
+      // Prioritize executive officer accounts over member accounts
+      const rolePriority = {
+        'super_admin': 100,
+        'admin': 90,
+        'chairman': 80,
+        'secretary': 70,
+        'assistant_secretary': 65,
+        'treasurer': 60,
+        'financial_secretary': 55,
+        'auditor': 50,
+        'pro': 45,
+        'state_auditor': 40,
+        'member': 10
+      };
+      candidates = [...users].sort((a, b) => {
+        const pA = rolePriority[a.role] || (a.role !== 'member' ? 30 : 0);
+        const pB = rolePriority[b.role] || (b.role !== 'member' ? 30 : 0);
+        return pB - pA;
+      });
     }
 
     console.log(`[Auth Login] Candidates after role filter: ${candidates.length} (roles: ${candidates.map(u => u.role).join(', ')})`);

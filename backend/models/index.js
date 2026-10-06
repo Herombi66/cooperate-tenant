@@ -460,6 +460,24 @@ Role.belongsToMany(User, {
   as: 'users'
 });
 
+// Direct associations with UserRole for explicit eager loading and joins
+UserRole.belongsTo(Role, {
+  foreignKey: 'role_id',
+  as: 'Role'
+});
+Role.hasMany(UserRole, {
+  foreignKey: 'role_id',
+  as: 'userRoles'
+});
+UserRole.belongsTo(User, {
+  foreignKey: 'user_id',
+  as: 'user'
+});
+User.hasMany(UserRole, {
+  foreignKey: 'user_id',
+  as: 'userRoles'
+});
+
 Role.belongsToMany(Permission, {
   through: RolePermission,
   foreignKey: 'role_id',

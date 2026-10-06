@@ -952,18 +952,19 @@ const updateApplicationStatus = async (req, res) => {
     }
 
     const fromStatus = application.status;
-    if ((fromStatus === 'approved' || fromStatus === 'rejected') && status !== fromStatus) {
-      return res.status(400).json({
-        success: false,
-        message: 'Finalized applications cannot be changed'
-      });
-    }
 
-    if (status === 'under_review' && fromStatus !== 'pending') {
-      return res.status(400).json({
-        success: false,
-        message: 'Only pending applications can be moved to under review'
-      });
+    // Status transition rules:
+    // If status is unchanged, always allow updating review notes or re-affirming status
+    if (status !== fromStatus) {
+      if (fromStatus === 'approved' && status !== 'approved') {
+        const canRevoke = ['super_admin', 'admin', 'chairman', 'secretary'].includes(req.user?.role);
+        if (!canRevoke) {
+          return res.status(400).json({
+            success: false,
+            message: 'Approved applications cannot be modified without senior executive clearance.'
+          });
+        }
+      }
     }
 
     // Update application
