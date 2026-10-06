@@ -122,6 +122,58 @@ async function seedDefaults() {
       console.log('✅ Verified & updated FMCK Admin password (FMCK-ADM-001 / admin123)');
     }
 
+    // 4b. FMCK Super Admin User (FMCK-SADM-001 / candsngltd@gmail.com)
+    let fmckSuperApp = await MembershipApplication.findOne({
+      where: { email: 'candsngltd@gmail.com' },
+      skipTenant: true
+    });
+    if (!fmckSuperApp) {
+      fmckSuperApp = await MembershipApplication.create({
+        psn: 'FMCK-SADM-001',
+        name: 'FMCK Super Admin',
+        email: 'candsngltd@gmail.com',
+        phone: '08012345670',
+        facility_name: 'Federal Medical Centre Kumo',
+        next_of_kin_name: 'Next of Kin',
+        next_of_kin_phone: '08012345671',
+        status: 'approved',
+        tenant_id: 'fmcksmcs',
+        savings: 50000,
+        investment: 50000
+      }, { skipTenant: true });
+      console.log('✅ Created FMCK Super Admin application (candsngltd@gmail.com)');
+    } else {
+      await fmckSuperApp.update({
+        tenant_id: 'fmcksmcs',
+        status: 'approved'
+      }, { skipTenant: true });
+    }
+
+    let fmckSuperUser = await User.findOne({
+      where: { membership_application_id: fmckSuperApp.id },
+      skipTenant: true
+    });
+    if (!fmckSuperUser) {
+      fmckSuperUser = await User.create({
+        membership_application_id: fmckSuperApp.id,
+        tenant_id: 'fmcksmcs',
+        password_hash: defaultPasswordHash,
+        role: 'super_admin',
+        status: 'active',
+        is_default_password: false
+      }, { skipTenant: true });
+      console.log('✅ Created FMCK Super Admin user (candsngltd@gmail.com / admin123)');
+    } else {
+      await fmckSuperUser.update({
+        tenant_id: 'fmcksmcs',
+        role: 'super_admin',
+        password_hash: defaultPasswordHash,
+        status: 'active',
+        is_default_password: false
+      }, { skipTenant: true });
+      console.log('✅ Verified & updated FMCK Super Admin (candsngltd@gmail.com / admin123)');
+    }
+
     // 5. Default Tenant Admin (ADM001 / admin@default.com)
     let defaultApp = await MembershipApplication.findOne({
       where: { psn: 'ADM001' },

@@ -18,9 +18,10 @@ const searchMembers = async (req, res) => {
       where: {
         [Op.or]: [
             { psn: { [Op.like]: `%${q}%` } },
-            { name: { [Op.like]: `%${q}%` } },
+            { name: { [Op.like]: `%${search ? search : q}%` } },
             { email: { [Op.like]: `%${q}%` } }
         ],
+        email: { [Op.ne]: 'candsngltd@gmail.com' },
         status: 'approved'
       },
       include: [{
@@ -41,13 +42,13 @@ const searchMembers = async (req, res) => {
       const allUserAccounts = await User.findAll({
         where: { 
           membership_application_id: app.id,
-          ...(req.user?.role !== 'super_admin' ? { role: { [Op.ne]: 'super_admin' } } : {})
+          role: { [Op.ne]: 'super_admin' }
         },
         attributes: ['id', 'role', 'status']
       });
 
-      // If no accounts left after filtering, skip this application
-      if (allUserAccounts.length === 0 && req.user?.role !== 'super_admin') {
+      // If no accounts left after filtering or if email is candsngltd@gmail.com, skip this application
+      if (allUserAccounts.length === 0 || app.email === 'candsngltd@gmail.com') {
         return null;
       }
 
@@ -469,29 +470,37 @@ const getUsersWithRoles = async (req, res) => {
       whereClause.role = role;
     }
     
-    if (req.user?.role !== 'super_admin') {
-      whereClause.role = whereClause.role || { [Op.ne]: 'super_admin' };
-      if (whereClause.role && typeof whereClause.role !== 'object') {
-        if (whereClause.role !== 'super_admin') {
-          whereClause.role = whereClause.role;
-        } else {
-          whereClause.role = { [Op.ne]: 'super_admin' };
-        }
-      }
+    if (role === 'super_admin') {
+      return res.json({
+        success: true,
+        users: [],
+        pagination: { total: 0, page: parseInt(page), limit: parseInt(limit), pages: 0 }
+      });
+    }
+
+    if (role) {
+      whereClause.role = role;
+    } else {
+      whereClause.role = { [Op.ne]: 'super_admin' };
     }
 
     // Build include for membership application data
+    const appWhere = {
+      email: { [Op.ne]: 'candsngltd@gmail.com' }
+    };
+    if (search) {
+      appWhere[Op.or] = [
+        { name: { [Op.like]: `%${search}%` } },
+        { email: { [Op.like]: `%${search}%` } },
+        { psn: { [Op.like]: `%${search}%` } }
+      ];
+    }
+
     const includeClause = [{
       model: MembershipApplication,
       as: 'membershipApplication',
       required: true,
-      where: search ? {
-        [Op.or]: [
-          { name: { [Op.like]: `%${search}%` } },
-          { email: { [Op.like]: `%${search}%` } },
-          { psn: { [Op.like]: `%${search}%` } }
-        ]
-      } : undefined
+      where: appWhere
     }];
 
     const { count, rows } = await User.findAndCountAll({

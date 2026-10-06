@@ -19,35 +19,40 @@ const getMembers = async (req, res) => {
       whereClause.status = status;
     }
 
+    // Super admin users are system/platform accounts and must NEVER appear in the members directory for any user (including admin)
+    if (role === 'super_admin') {
+      return res.json({
+        success: true,
+        members: [],
+        pagination: { total: 0, page: parseInt(page), limit: parseInt(limit), pages: 0 }
+      });
+    }
+
     if (role) {
       whereClause.role = role;
-    }
-    
-    if (req.user?.role !== 'super_admin') {
-      whereClause.role = whereClause.role || { [Op.ne]: 'super_admin' };
-      if (whereClause.role && typeof whereClause.role !== 'object') {
-        if (whereClause.role !== 'super_admin') {
-          whereClause.role = whereClause.role;
-        } else {
-          whereClause.role = { [Op.ne]: 'super_admin' };
-        }
-      }
+    } else {
+      whereClause.role = { [Op.ne]: 'super_admin' };
     }
 
     // Build include for membership application data
+    const appWhere = {
+      email: { [Op.ne]: 'candsngltd@gmail.com' }
+    };
+    if (search) {
+      appWhere[Op.or] = [
+        { name: { [Op.like]: `%${search}%` } },
+        { email: { [Op.like]: `%${search}%` } },
+        { psn: { [Op.like]: `%${search}%` } },
+        { phone: { [Op.like]: `%${search}%` } },
+        { facility_name: { [Op.like]: `%${search}%` } }
+      ];
+    }
+
     const includeClause = [{
       model: require('../models/MembershipApplication'),
       as: 'membershipApplication',
       required: true, // Only get users that have membership applications
-      where: search ? {
-        [Op.or]: [
-          { name: { [Op.like]: `%${search}%` } },
-          { email: { [Op.like]: `%${search}%` } },
-          { psn: { [Op.like]: `%${search}%` } },
-          { phone: { [Op.like]: `%${search}%` } },
-          { facility_name: { [Op.like]: `%${search}%` } }
-        ]
-      } : undefined
+      where: appWhere
     }];
 
     const { count, rows } = await User.findAndCountAll({
@@ -156,14 +161,7 @@ const getMemberById = async (req, res) => {
       }]
     });
 
-    if (!member || member.deleted_at) {
-      return res.status(404).json({
-        success: false,
-        message: 'Member not found'
-      });
-    }
-    
-    if (member.role === 'super_admin' && req.user?.role !== 'super_admin') {
+    if (!member || member.deleted_at || member.role === 'super_admin' || member.membershipApplication?.email === 'candsngltd@gmail.com') {
       return res.status(404).json({
         success: false,
         message: 'Member not found'
@@ -412,14 +410,7 @@ const updateMember = async (req, res) => {
       }]
     });
 
-    if (!member || member.deleted_at) {
-      return res.status(404).json({
-        success: false,
-        message: 'Member not found'
-      });
-    }
-    
-    if (member.role === 'super_admin' && req.user?.role !== 'super_admin') {
+    if (!member || member.deleted_at || member.role === 'super_admin' || member.membershipApplication?.email === 'candsngltd@gmail.com') {
       return res.status(404).json({
         success: false,
         message: 'Member not found'
@@ -564,7 +555,7 @@ const suspendMember = async (req, res) => {
       });
     }
     
-    if (member.role === 'super_admin' && req.user?.role !== 'super_admin') {
+    if (member.role === 'super_admin' || member.membershipApplication?.email === 'candsngltd@gmail.com') {
       return res.status(404).json({
         success: false,
         message: 'Member not found'
@@ -613,7 +604,7 @@ const activateMember = async (req, res) => {
       });
     }
     
-    if (member.role === 'super_admin' && req.user?.role !== 'super_admin') {
+    if (member.role === 'super_admin' || member.membershipApplication?.email === 'candsngltd@gmail.com') {
       return res.status(404).json({
         success: false,
         message: 'Member not found'
@@ -662,7 +653,7 @@ const deleteMember = async (req, res) => {
       });
     }
     
-    if (member.role === 'super_admin' && req.user?.role !== 'super_admin') {
+    if (member.role === 'super_admin' || member.membershipApplication?.email === 'candsngltd@gmail.com') {
       return res.status(404).json({
         success: false,
         message: 'Member not found'
@@ -747,7 +738,7 @@ const resetMemberPassword = async (req, res) => {
       });
     }
     
-    if (member.role === 'super_admin' && req.user?.role !== 'super_admin') {
+    if (member.role === 'super_admin' || member.membershipApplication?.email === 'candsngltd@gmail.com') {
       return res.status(404).json({
         success: false,
         message: 'Member not found'
@@ -859,7 +850,7 @@ const resetMemberPassword = async (req, res) => {
 
 const exportMembers = async (req, res) => {
   try {
-    const { status } = req.query;
+    const { status, role } = req.query;
 
     const whereClause = {
       deleted_at: null
@@ -869,15 +860,14 @@ const exportMembers = async (req, res) => {
       whereClause.status = status;
     }
     
-    if (req.user?.role !== 'super_admin') {
-      whereClause.role = whereClause.role || { [Op.ne]: 'super_admin' };
-      if (whereClause.role && typeof whereClause.role !== 'object') {
-        if (whereClause.role !== 'super_admin') {
-          whereClause.role = whereClause.role;
-        } else {
-          whereClause.role = { [Op.ne]: 'super_admin' };
-        }
-      }
+    if (role === 'super_admin') {
+      return res.send('PSN,Name,Email,Phone,Facility,Next of Kin Name,Next of Kin Phone,Savings,Investment,Target Saving,Target Period,Role,Status,Join Date\n');
+    }
+
+    if (role) {
+      whereClause.role = role;
+    } else {
+      whereClause.role = { [Op.ne]: 'super_admin' };
     }
 
     const members = await User.findAll({
@@ -885,7 +875,10 @@ const exportMembers = async (req, res) => {
       include: [{
         model: require('../models/MembershipApplication'),
         as: 'membershipApplication',
-        required: true
+        required: true,
+        where: {
+          email: { [Op.ne]: 'candsngltd@gmail.com' }
+        }
       }],
       order: [['created_at', 'DESC']]
     });
@@ -1509,11 +1502,7 @@ const getMemberFinancialProfile = async (req, res) => {
       attributes: { exclude: ['password_hash'] }
     });
 
-    if (!member || member.deleted_at) {
-      return res.status(404).json({ success: false, message: 'Member not found' });
-    }
-    
-    if (member.role === 'super_admin' && req.user?.role !== 'super_admin') {
+    if (!member || member.deleted_at || member.role === 'super_admin' || member.membershipApplication?.email === 'candsngltd@gmail.com') {
       return res.status(404).json({ success: false, message: 'Member not found' });
     }
 

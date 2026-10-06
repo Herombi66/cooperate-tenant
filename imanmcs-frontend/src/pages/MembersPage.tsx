@@ -98,7 +98,10 @@ export const MembersPage: React.FC = () => {
       });
 
       const response = await api.get(`/members?${params}`);
-      setMembers(response.data.members);
+      const visibleMembers = (response.data.members || []).filter(
+        (m: Member) => m.role !== 'super_admin' && m.email !== 'candsngltd@gmail.com'
+      );
+      setMembers(visibleMembers);
       setTotalPages(response.data.pagination.pages);
     } catch (error) {
       console.error('Error fetching members:', error);
