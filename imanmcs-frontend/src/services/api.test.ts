@@ -13,7 +13,7 @@ beforeEach(() => {
   global.window = {
     ...(originalWindow || {}),
     location: {
-      href: '/',
+      href: 'http://localhost/',
       pathname: '/',
     },
     localStorage: {
@@ -52,10 +52,10 @@ describe('api service interceptors', () => {
     expect(config.headers.Authorization).toBe('Bearer test-token');
   });
 
-  it('blocks write requests for secretary except allowed auth routes', async () => {
+  it('allows write requests for executive officers without client-side interception', async () => {
     mockGetItem.mockImplementation((key: string) => {
       if (key === 'token') return 'test-token';
-      if (key === 'user') return JSON.stringify({ role: 'secretary' });
+      if (key === 'user') return JSON.stringify({ role: 'assistant_secretary' });
       return null;
     });
 
@@ -63,17 +63,14 @@ describe('api service interceptors', () => {
     const handlers = (api as any).interceptors.request.handlers as Array<any>;
     const handler = handlers.filter(Boolean).at(-1).fulfilled;
 
-    await expect(
-      Promise.resolve(handler({ method: 'post', url: '/members' } as any)),
-    ).rejects.toThrow('View-only mode: write actions are disabled for Secretary.');
-    expect(mockGetItem).toHaveBeenCalledWith('user');
-
-    const allowedConfig = await handler({
+    const config = await handler({
+      headers: {},
       method: 'put',
-      url: '/auth/change-password',
+      url: '/applications/1/status',
     } as any);
 
-    expect(allowedConfig.url).toBe('/auth/change-password');
+    expect(config.url).toBe('/applications/1/status');
+    expect(config.headers.Authorization).toBe('Bearer test-token');
   });
 
   it('redirects to /login on 401 error when not already on login page', async () => {

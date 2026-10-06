@@ -230,7 +230,7 @@ export const MemberApplicationsPage: React.FC = () => {
       fetchApplications();
     } catch (err: any) {
       console.error('Error approving application:', err);
-      const msg = err.response?.data?.message || 'Failed to approve application';
+      const msg = err.response?.data?.message || err.message || 'Failed to approve application';
       toast.error(msg);
     } finally {
       setActionLoading(false);
@@ -255,7 +255,7 @@ export const MemberApplicationsPage: React.FC = () => {
       fetchApplications();
     } catch (err: any) {
       console.error('Error updating status:', err);
-      const msg = err.response?.data?.message || 'Failed to update status';
+      const msg = err.response?.data?.message || err.message || 'Failed to update status';
       toast.error(msg);
     } finally {
       setActionLoading(false);
@@ -290,7 +290,7 @@ export const MemberApplicationsPage: React.FC = () => {
       fetchApplications();
     } catch (err: any) {
       console.error('Error rejecting application:', err);
-      const msg = err.response?.data?.message || 'Failed to reject application';
+      const msg = err.response?.data?.message || err.message || 'Failed to reject application';
       toast.error(msg);
     } finally {
       setActionLoading(false);

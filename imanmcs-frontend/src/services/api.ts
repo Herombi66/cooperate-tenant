@@ -22,24 +22,7 @@ api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
     config.headers['x-tenant-id'] = (cleanTid === 'fmcksmcs' || cleanTid === 'fmck') ? 'fmcksmcs' : cleanTid;
   }
 
-  const userRaw = localStorage.getItem('user');
-  if (userRaw) {
-    try {
-      const user = JSON.parse(userRaw) as { role?: string };
-      const role = (user.role || (user as any).user_role || '').toString().trim().toLowerCase();
-      const method = (config.method || 'get').toLowerCase();
-      const isWrite = method !== 'get' && method !== 'head' && method !== 'options';
-      const url = config.url || '';
-      const isAllowedWrite =
-        (method === 'put' && (url.startsWith('/auth/change-password') || url.startsWith('/auth/profile'))) ||
-        (method === 'patch' && url.startsWith('/auth/profile')) ||
-        ((method === 'post' || method === 'delete') && url.includes('/settings/bylaw'));
 
-      if ((role === 'secretary' || role === 'assistant_secretary') && isWrite && !isAllowedWrite) {
-        return Promise.reject(new Error(tSystemStatic('viewOnlyWriteDisabled')));
-      }
-    } catch {}
-  }
 
   return config;
 });
