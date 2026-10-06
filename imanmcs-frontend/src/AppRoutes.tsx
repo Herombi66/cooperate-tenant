@@ -170,6 +170,21 @@ const RolesRouter: React.FC = () => {
   return <RolesPage />;
 };
 
+const LoanApplicationsRouter: React.FC = () => {
+  const { user } = useAuth();
+
+  // If ordinary member accesses /loan-applications, direct them to My Loans & Applications
+  if (user?.role === 'member') {
+    return <Navigate to="/my-loans" replace />;
+  }
+
+  return (
+    <ModuleRouteGuard moduleKey="loan_applications">
+      <LoanApplicationsPage />
+    </ModuleRouteGuard>
+  );
+};
+
 export const AppRoutes: React.FC = () => {
   const { hasFeature } = useTenant();
 
@@ -442,9 +457,7 @@ export const AppRoutes: React.FC = () => {
         element={
           <AppLayout>
             <ProtectedRoute>
-              <ModuleRouteGuard moduleKey="loan_applications">
-                <LoanApplicationsPage />
-              </ModuleRouteGuard>
+              <LoanApplicationsRouter />
             </ProtectedRoute>
           </AppLayout>
         }

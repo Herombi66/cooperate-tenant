@@ -213,6 +213,8 @@ const ApplyForLoan: React.FC = () => {
   const multiplier = parseFloat(tenant?.settings?.investment_loan_multiplier ?? eligibilityData?.multiplier ?? 3);
   const maxEmergencyAbsolute = parseFloat(tenant?.settings?.emergency_loan_limit ?? eligibilityData?.emergency_limit ?? 20000);
   const minMembershipMonths = parseInt(tenant?.settings?.min_membership_months_for_loan ?? eligibilityData?.min_membership_months ?? 6, 10);
+  const membershipMonths = eligibilityData?.membership_months ?? memberData?.membershipDuration ?? 0;
+  const meetsTenure = eligibilityData?.meets_tenure ?? (membershipMonths >= minMembershipMonths);
 
   const totalContributions = memberData ? (memberData.totalSavings + memberData.totalInvestment) : 0;
   const totalSavings = memberData ? memberData.totalSavings : 0;
@@ -629,6 +631,15 @@ const ApplyForLoan: React.FC = () => {
 
     return { score, flags };
   }, [formData.amount, formData.tenure, formData.payslip, loanType, memberData]);
+
+  if (loading && !memberData) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] p-6">
+        <Loader className="w-10 h-10 text-primary-500 animate-spin mb-4" />
+        <p className="text-gray-600 font-medium">Loading loan application details...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6">
