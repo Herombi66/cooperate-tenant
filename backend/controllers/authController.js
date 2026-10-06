@@ -160,31 +160,17 @@ const login = async (req, res) => {
       });
     }
 
-    // Filter and prioritize candidates based on requested role
+    // Filter candidates based on requested role
     let candidates = users;
     if (targetRole) {
-      // If a specific role was requested via suffix (e.g. _chairman), ONLY check that role
+      // If a specific role was requested via suffix (e.g. 630828_assistant_secretary), ONLY check that role
       candidates = users.filter(u => u.role === targetRole);
     } else {
-      // Prioritize executive officer accounts over member accounts
-      const rolePriority = {
-        'super_admin': 100,
-        'admin': 90,
-        'chairman': 80,
-        'secretary': 70,
-        'assistant_secretary': 65,
-        'treasurer': 60,
-        'financial_secretary': 55,
-        'auditor': 50,
-        'pro': 45,
-        'state_auditor': 40,
-        'member': 10
-      };
-      candidates = [...users].sort((a, b) => {
-        const pA = rolePriority[a.role] || (a.role !== 'member' ? 30 : 0);
-        const pB = rolePriority[b.role] || (b.role !== 'member' ? 30 : 0);
-        return pB - pA;
-      });
+      // No suffix provided: standard member login
+      // If user has a 'member' account, check that first so the member logs into their personal member account
+      const memberAccounts = users.filter(u => u.role === 'member');
+      const otherAccounts = users.filter(u => u.role !== 'member');
+      candidates = [...memberAccounts, ...otherAccounts];
     }
 
     console.log(`[Auth Login] Candidates after role filter: ${candidates.length} (roles: ${candidates.map(u => u.role).join(', ')})`);

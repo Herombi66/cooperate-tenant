@@ -22,37 +22,11 @@ async function getUserRoleNames(user) {
     });
   }
 
-  const userIdsToCheck = new Set();
-  if (user.id) userIdsToCheck.add(user.id);
-
-  // CRITICAL: Look up sibling accounts if membership_application_id exists!
-  // In this cooperative system, executive roles (e.g. assistant_secretary, secretary, etc.)
-  // may be created as separate user accounts tied to the same membership_application_id,
-  // or assigned via additional_role.
-  if (user.membership_application_id) {
-    try {
-      const siblingAccounts = await User.findAll({
-        where: { 
-          membership_application_id: user.membership_application_id,
-          status: 'active'
-        },
-        attributes: ['id', 'role', 'additional_role'],
-        skipTenant: true
-      });
-
-      for (const acc of siblingAccounts) {
-        if (acc.id) userIdsToCheck.add(acc.id);
-        if (acc.role) roleNames.add(acc.role.toLowerCase().trim());
-        if (acc.additional_role) roleNames.add(acc.additional_role.toLowerCase().trim());
-      }
-    } catch (_) {}
-  }
-
-  // Check UserRole table for this user and any sibling accounts
-  if (userIdsToCheck.size > 0 && UserRole) {
+  // Check UserRole table for this specific user.id ONLY (do not pull from sibling accounts)
+  if (user.id && UserRole) {
     try {
       const uRoles = await UserRole.findAll({
-        where: { user_id: Array.from(userIdsToCheck) },
+        where: { user_id: user.id },
         attributes: ['role_id'],
         skipTenant: true
       });
