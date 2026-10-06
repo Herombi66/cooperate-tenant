@@ -80,8 +80,6 @@ export const PermissionProvider: React.FC<{ children: ReactNode }> = ({ children
 
     const modPerm = permissions[moduleKey];
     if (!modPerm) {
-      // Members accessing self-service modules (e.g. profile, dashboard, my-loans)
-      if (user.role === 'member') return true;
       return false;
     }
 

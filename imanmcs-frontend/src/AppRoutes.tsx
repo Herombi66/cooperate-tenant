@@ -88,6 +88,41 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
   return <>{children}</>;
 };
 
+const ModuleRouteGuard: React.FC<{
+  moduleKey?: string;
+  allowedRoles?: string[];
+  children: React.ReactNode;
+}> = ({ moduleKey, allowedRoles, children }) => {
+  const { user, isLoading: isAuthLoading } = useAuth();
+  const { canAccess, isAdmin, isLoading: isPermLoading } = usePermissions();
+
+  if (isAuthLoading || isPermLoading) {
+    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  // Admins and Super Admins have unrestricted system access
+  if (isAdmin || user.role === 'admin' || user.role === 'super_admin') {
+    return <>{children}</>;
+  }
+
+  // Specific role exemptions (e.g. chairman, auditor)
+  if (allowedRoles && allowedRoles.includes(user.role)) {
+    return <>{children}</>;
+  }
+
+  // RBAC dynamic module read permission check
+  if (moduleKey && canAccess(moduleKey)) {
+    return <>{children}</>;
+  }
+
+  // Deny access for unauthorized users (redirect to dashboard)
+  return <Navigate to="/dashboard" replace />;
+};
+
 const DashboardRouter: React.FC = () => {
   const { user } = useAuth();
 
@@ -102,13 +137,17 @@ const DashboardRouter: React.FC = () => {
 const WithdrawalsRouter: React.FC = () => {
   const { user } = useAuth();
   const { hasFeature } = useTenant();
+  const { canAccess, isAdmin } = usePermissions();
 
   if (!hasFeature('withdrawals')) {
     return <Navigate to="/dashboard" replace />;
   }
 
   if (user?.role === 'member') return <WithdrawalsPage />;
-  return <WithdrawalsAdminPage />;
+  if (isAdmin || user?.role === 'admin' || user?.role === 'super_admin' || canAccess('savings')) {
+    return <WithdrawalsAdminPage />;
+  }
+  return <Navigate to="/dashboard" replace />;
 };
 
 const RolesRouter: React.FC = () => {
@@ -151,7 +190,9 @@ export const AppRoutes: React.FC = () => {
         element={
           <AppLayout>
             <ProtectedRoute>
-              <AgreementManagementPage />
+              <ModuleRouteGuard moduleKey="documents">
+                <AgreementManagementPage />
+              </ModuleRouteGuard>
             </ProtectedRoute>
           </AppLayout>
         }
@@ -192,7 +233,9 @@ export const AppRoutes: React.FC = () => {
         element={
           <AppLayout>
             <ProtectedRoute>
-              <CommunicationPage />
+              <ModuleRouteGuard moduleKey="notifications">
+                <CommunicationPage />
+              </ModuleRouteGuard>
             </ProtectedRoute>
           </AppLayout>
         }
@@ -226,7 +269,9 @@ export const AppRoutes: React.FC = () => {
         element={
           <AppLayout>
             <ProtectedRoute>
-              <ExpensesPage />
+              <ModuleRouteGuard moduleKey="expenses">
+                <ExpensesPage />
+              </ModuleRouteGuard>
             </ProtectedRoute>
           </AppLayout>
         }
@@ -236,7 +281,9 @@ export const AppRoutes: React.FC = () => {
         element={
           <AppLayout>
             <ProtectedRoute>
-              <MembersPage />
+              <ModuleRouteGuard moduleKey="members">
+                <MembersPage />
+              </ModuleRouteGuard>
             </ProtectedRoute>
           </AppLayout>
         }
@@ -246,7 +293,9 @@ export const AppRoutes: React.FC = () => {
         element={
           <AppLayout>
             <ProtectedRoute>
-              <ContributionsPage />
+              <ModuleRouteGuard moduleKey="contributions">
+                <ContributionsPage />
+              </ModuleRouteGuard>
             </ProtectedRoute>
           </AppLayout>
         }
@@ -256,7 +305,9 @@ export const AppRoutes: React.FC = () => {
         element={
           <AppLayout>
             <ProtectedRoute>
-              <LoansPage />
+              <ModuleRouteGuard moduleKey="loans">
+                <LoansPage />
+              </ModuleRouteGuard>
             </ProtectedRoute>
           </AppLayout>
         }
@@ -266,7 +317,9 @@ export const AppRoutes: React.FC = () => {
         element={
           <AppLayout>
             <ProtectedRoute>
-              <ProfitSharingPage />
+              <ModuleRouteGuard moduleKey="profit_distribution">
+                <ProfitSharingPage />
+              </ModuleRouteGuard>
             </ProtectedRoute>
           </AppLayout>
         }
@@ -276,7 +329,9 @@ export const AppRoutes: React.FC = () => {
         element={
           <AppLayout>
             <ProtectedRoute>
-              <ReportsPage />
+              <ModuleRouteGuard moduleKey="reports">
+                <ReportsPage />
+              </ModuleRouteGuard>
             </ProtectedRoute>
           </AppLayout>
         }
@@ -286,7 +341,9 @@ export const AppRoutes: React.FC = () => {
         element={
           <AppLayout>
             <ProtectedRoute>
-              <SettingsPage />
+              <ModuleRouteGuard moduleKey="settings">
+                <SettingsPage />
+              </ModuleRouteGuard>
             </ProtectedRoute>
           </AppLayout>
         }
@@ -296,7 +353,9 @@ export const AppRoutes: React.FC = () => {
         element={
           <AppLayout>
             <ProtectedRoute>
-              <LoanRepaymentPage />
+              <ModuleRouteGuard moduleKey="repayments">
+                <LoanRepaymentPage />
+              </ModuleRouteGuard>
             </ProtectedRoute>
           </AppLayout>
         }
@@ -306,7 +365,9 @@ export const AppRoutes: React.FC = () => {
         element={
           <AppLayout>
             <ProtectedRoute>
-              <MemberApplicationsPage />
+              <ModuleRouteGuard moduleKey="member_applications">
+                <MemberApplicationsPage />
+              </ModuleRouteGuard>
             </ProtectedRoute>
           </AppLayout>
         }
@@ -376,7 +437,9 @@ export const AppRoutes: React.FC = () => {
         element={
           <AppLayout>
             <ProtectedRoute>
-              <LoanApplicationsPage />
+              <ModuleRouteGuard moduleKey="loan_applications">
+                <LoanApplicationsPage />
+              </ModuleRouteGuard>
             </ProtectedRoute>
           </AppLayout>
         }
@@ -386,7 +449,9 @@ export const AppRoutes: React.FC = () => {
         element={
           <AppLayout>
             <ProtectedRoute>
-              <LoanApprovalsPage />
+              <ModuleRouteGuard moduleKey="loan_applications" allowedRoles={['chairman', 'admin', 'super_admin']}>
+                <LoanApprovalsPage />
+              </ModuleRouteGuard>
             </ProtectedRoute>
           </AppLayout>
         }
@@ -416,7 +481,9 @@ export const AppRoutes: React.FC = () => {
         element={
           <AppLayout>
             <ProtectedRoute>
-              <AdminLayyahManagement />
+              <ModuleRouteGuard moduleKey="investments">
+                <AdminLayyahManagement />
+              </ModuleRouteGuard>
             </ProtectedRoute>
           </AppLayout>
         }
@@ -426,7 +493,9 @@ export const AppRoutes: React.FC = () => {
         element={
           <AppLayout>
             <ProtectedRoute>
-              <AdminAnimalRequestsPage />
+              <ModuleRouteGuard moduleKey="investments">
+                <AdminAnimalRequestsPage />
+              </ModuleRouteGuard>
             </ProtectedRoute>
           </AppLayout>
         }
@@ -466,7 +535,9 @@ export const AppRoutes: React.FC = () => {
         element={
           <AppLayout>
             <ProtectedRoute>
-              <UserManagementPage />
+              <ModuleRouteGuard moduleKey="user_management">
+                <UserManagementPage />
+              </ModuleRouteGuard>
             </ProtectedRoute>
           </AppLayout>
         }
@@ -486,7 +557,9 @@ export const AppRoutes: React.FC = () => {
         element={
           <AppLayout>
             <ProtectedRoute>
-              <ReceiptDesignerPage />
+              <ModuleRouteGuard moduleKey="documents">
+                <ReceiptDesignerPage />
+              </ModuleRouteGuard>
             </ProtectedRoute>
           </AppLayout>
         }
@@ -496,7 +569,9 @@ export const AppRoutes: React.FC = () => {
         element={
           <AppLayout>
             <ProtectedRoute>
-              <ReceiptDesignerPage />
+              <ModuleRouteGuard moduleKey="documents">
+                <ReceiptDesignerPage />
+              </ModuleRouteGuard>
             </ProtectedRoute>
           </AppLayout>
         }
@@ -506,7 +581,9 @@ export const AppRoutes: React.FC = () => {
         element={
           <AppLayout>
             <ProtectedRoute>
-              <DocumentDesignerPage />
+              <ModuleRouteGuard moduleKey="documents">
+                <DocumentDesignerPage />
+              </ModuleRouteGuard>
             </ProtectedRoute>
           </AppLayout>
         }
@@ -516,7 +593,9 @@ export const AppRoutes: React.FC = () => {
         element={
           <AppLayout>
             <ProtectedRoute>
-              <DocumentDesignerPage />
+              <ModuleRouteGuard moduleKey="documents">
+                <DocumentDesignerPage />
+              </ModuleRouteGuard>
             </ProtectedRoute>
           </AppLayout>
         }
@@ -526,7 +605,9 @@ export const AppRoutes: React.FC = () => {
         element={
           <AppLayout>
             <ProtectedRoute>
-              <SecurityCenterPage />
+              <ModuleRouteGuard moduleKey="audit">
+                <SecurityCenterPage />
+              </ModuleRouteGuard>
             </ProtectedRoute>
           </AppLayout>
         }
@@ -536,7 +617,9 @@ export const AppRoutes: React.FC = () => {
         element={
           <AppLayout>
             <ProtectedRoute>
-              <AuditorTransactionsPage />
+              <ModuleRouteGuard moduleKey="audit" allowedRoles={['auditor', 'state_auditor']}>
+                <AuditorTransactionsPage />
+              </ModuleRouteGuard>
             </ProtectedRoute>
           </AppLayout>
         }
@@ -546,7 +629,9 @@ export const AppRoutes: React.FC = () => {
         element={
           <AppLayout>
             <ProtectedRoute>
-              <AuditorMemberAuditPage />
+              <ModuleRouteGuard moduleKey="audit" allowedRoles={['auditor', 'state_auditor']}>
+                <AuditorMemberAuditPage />
+              </ModuleRouteGuard>
             </ProtectedRoute>
           </AppLayout>
         }
@@ -556,7 +641,9 @@ export const AppRoutes: React.FC = () => {
         element={
           <AppLayout>
             <ProtectedRoute>
-              <AuditorMemberAuditPage />
+              <ModuleRouteGuard moduleKey="audit" allowedRoles={['auditor', 'state_auditor']}>
+                <AuditorMemberAuditPage />
+              </ModuleRouteGuard>
             </ProtectedRoute>
           </AppLayout>
         }
@@ -566,7 +653,9 @@ export const AppRoutes: React.FC = () => {
         element={
           <AppLayout>
             <ProtectedRoute>
-              <AuditorLoansPage />
+              <ModuleRouteGuard moduleKey="audit" allowedRoles={['auditor', 'state_auditor']}>
+                <AuditorLoansPage />
+              </ModuleRouteGuard>
             </ProtectedRoute>
           </AppLayout>
         }
@@ -576,7 +665,9 @@ export const AppRoutes: React.FC = () => {
         element={
           <AppLayout>
             <ProtectedRoute>
-              <AuditorContributionsPage />
+              <ModuleRouteGuard moduleKey="audit" allowedRoles={['auditor', 'state_auditor']}>
+                <AuditorContributionsPage />
+              </ModuleRouteGuard>
             </ProtectedRoute>
           </AppLayout>
         }
@@ -586,7 +677,9 @@ export const AppRoutes: React.FC = () => {
         element={
           <AppLayout>
             <ProtectedRoute>
-              <AuditorInvestmentsPage />
+              <ModuleRouteGuard moduleKey="audit" allowedRoles={['auditor', 'state_auditor']}>
+                <AuditorInvestmentsPage />
+              </ModuleRouteGuard>
             </ProtectedRoute>
           </AppLayout>
         }
@@ -596,7 +689,9 @@ export const AppRoutes: React.FC = () => {
         element={
           <AppLayout>
             <ProtectedRoute>
-              <AuditorProfitPage />
+              <ModuleRouteGuard moduleKey="audit" allowedRoles={['auditor', 'state_auditor']}>
+                <AuditorProfitPage />
+              </ModuleRouteGuard>
             </ProtectedRoute>
           </AppLayout>
         }
@@ -606,7 +701,9 @@ export const AppRoutes: React.FC = () => {
         element={
           <AppLayout>
             <ProtectedRoute>
-              <AuditorIncomeExpensesPage />
+              <ModuleRouteGuard moduleKey="audit" allowedRoles={['auditor', 'state_auditor']}>
+                <AuditorIncomeExpensesPage />
+              </ModuleRouteGuard>
             </ProtectedRoute>
           </AppLayout>
         }
@@ -616,7 +713,9 @@ export const AppRoutes: React.FC = () => {
         element={
           <AppLayout>
             <ProtectedRoute>
-              <AuditorReconciliationPage />
+              <ModuleRouteGuard moduleKey="audit" allowedRoles={['auditor', 'state_auditor']}>
+                <AuditorReconciliationPage />
+              </ModuleRouteGuard>
             </ProtectedRoute>
           </AppLayout>
         }
@@ -626,7 +725,9 @@ export const AppRoutes: React.FC = () => {
         element={
           <AppLayout>
             <ProtectedRoute>
-              <AuditorExceptionsPage />
+              <ModuleRouteGuard moduleKey="audit" allowedRoles={['auditor', 'state_auditor']}>
+                <AuditorExceptionsPage />
+              </ModuleRouteGuard>
             </ProtectedRoute>
           </AppLayout>
         }
@@ -636,7 +737,9 @@ export const AppRoutes: React.FC = () => {
         element={
           <AppLayout>
             <ProtectedRoute>
-              <AuditorActivityLogsPage />
+              <ModuleRouteGuard moduleKey="audit" allowedRoles={['auditor', 'state_auditor']}>
+                <AuditorActivityLogsPage />
+              </ModuleRouteGuard>
             </ProtectedRoute>
           </AppLayout>
         }
@@ -646,7 +749,9 @@ export const AppRoutes: React.FC = () => {
         element={
           <AppLayout>
             <ProtectedRoute>
-              <AuditorNotesPage />
+              <ModuleRouteGuard moduleKey="audit" allowedRoles={['auditor', 'state_auditor']}>
+                <AuditorNotesPage />
+              </ModuleRouteGuard>
             </ProtectedRoute>
           </AppLayout>
         }
@@ -656,7 +761,9 @@ export const AppRoutes: React.FC = () => {
         element={
           <AppLayout>
             <ProtectedRoute>
-              <AuditorReportsPage />
+              <ModuleRouteGuard moduleKey="audit" allowedRoles={['auditor', 'state_auditor']}>
+                <AuditorReportsPage />
+              </ModuleRouteGuard>
             </ProtectedRoute>
           </AppLayout>
         }

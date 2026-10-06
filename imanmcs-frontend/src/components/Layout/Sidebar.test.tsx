@@ -30,6 +30,16 @@ let mockLayout = {
   closeSidebar: vi.fn(),
 };
 
+let mockPermissionsContext = {
+  canAccess: (modKey: string) => true,
+  can: (modKey: string, action?: string) => true,
+  isAdmin: true,
+  isLoading: false,
+  permissions: {} as Record<string, any>,
+  roles: ['admin'],
+  refreshPermissions: vi.fn(),
+};
+
 vi.mock('../../contexts/AuthContext', () => ({
   useAuth: () => ({ user: mockUser }),
 }));
@@ -46,21 +56,28 @@ vi.mock('../../contexts/TenantContext', () => ({
 }));
 
 vi.mock('../../contexts/PermissionContext', () => ({
-  usePermissions: () => ({
-    canAccess: () => true,
-    can: () => true,
-    isAdmin: true,
-    isLoading: false,
-    permissions: {},
-    roles: ['admin'],
-    refreshPermissions: vi.fn(),
-  }),
+  usePermissions: () => mockPermissionsContext,
 }));
 
 describe('Sidebar Component Theme', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
+    mockUser = {
+      id: 1,
+      role: 'admin',
+      name: 'Admin User',
+      psn: 'ADM001',
+    };
+    mockPermissionsContext = {
+      canAccess: (modKey: string) => true,
+      can: (modKey: string, action?: string) => true,
+      isAdmin: true,
+      isLoading: false,
+      permissions: {},
+      roles: ['admin'],
+      refreshPermissions: vi.fn(),
+    };
     mockLayout = {
       isSidebarOpen: false,
       isSidebarCollapsed: false,
@@ -234,3 +251,84 @@ describe('Sidebar Component Theme', () => {
     expect(dashboardLink?.className).toContain('dark:text-white');
   });
 });
+
+describe('Sidebar Member Module Access Control', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockUser = {
+      id: 2,
+      role: 'member',
+      name: 'Regular Member',
+      psn: 'MEM001',
+    };
+    mockTenant = {
+      id: 'fmcksmcs',
+      name: 'Federal Medical Centre Kumo Staff MPCS Ltd',
+      theme: { logoUrl: '/fmck-logo.png' },
+      features: {},
+    };
+    mockPermissionsContext = {
+      canAccess: (modKey: string) => false,
+      can: (modKey: string, action?: string) => false,
+      isAdmin: false,
+      isLoading: false,
+      permissions: {
+        members: { read: false, write: false, edit: false, delete: false },
+        loans: { read: false, write: false, edit: false, delete: false },
+        contributions: { read: false, write: false, edit: false, delete: false },
+        expenses: { read: false, write: false, edit: false, delete: false },
+        settings: { read: false, write: false, edit: false, delete: false },
+        reports: { read: false, write: false, edit: false, delete: false },
+        user_management: { read: false, write: false, edit: false, delete: false },
+      },
+      roles: ['member'],
+      refreshPermissions: vi.fn(),
+    };
+  });
+
+  afterEach(() => {
+    cleanup();
+  });
+
+  it('renders only self-service items for regular members and strictly hides administrative modules', () => {
+    render(
+      <MemoryRouter initialEntries={['/dashboard']}>
+        <Sidebar />
+      </MemoryRouter>
+    );
+
+    // Self-service member items MUST be visible
+    expect(screen.getByText('Dashboard')).toBeTruthy();
+    expect(screen.getByText('Profile')).toBeTruthy();
+    expect(screen.getByText('Cooperative Bylaws')).toBeTruthy();
+    expect(screen.getByText('My Contributions')).toBeTruthy();
+    expect(screen.getByText('My Loans')).toBeTruthy();
+    expect(screen.getByText('My Guarantees')).toBeTruthy();
+    expect(screen.getByText('Apply for Loan')).toBeTruthy();
+    expect(screen.getByText('Support')).toBeTruthy();
+    expect(screen.getByText('Notifications')).toBeTruthy();
+    expect(screen.getByText('My Profit Share')).toBeTruthy();
+
+    // Administrative & executive modules MUST NOT be visible to regular member
+    expect(screen.queryByText('Members')).toBeNull();
+    expect(screen.queryByText('Member Applications')).toBeNull();
+    expect(screen.queryByText('User Management')).toBeNull();
+    expect(screen.queryByText('Roles & Permissions')).toBeNull();
+    expect(screen.queryByText('Contributions')).toBeNull();
+    expect(screen.queryByText('Loan Applications')).toBeNull();
+    expect(screen.queryByText('Loans')).toBeNull();
+    expect(screen.queryByText('Loan Repayments')).toBeNull();
+    expect(screen.queryByText('Agreements')).toBeNull();
+    expect(screen.queryByText('Layyah Management')).toBeNull();
+    expect(screen.queryByText('Animal Requests')).toBeNull();
+    expect(screen.queryByText('Expenses')).toBeNull();
+    expect(screen.queryByText('Profit Sharing')).toBeNull();
+    expect(screen.queryByText('Reports')).toBeNull();
+    expect(screen.queryByText('Communication')).toBeNull();
+    expect(screen.queryByText('Security Center')).toBeNull();
+    expect(screen.queryByText('Receipt Designer')).toBeNull();
+    expect(screen.queryByText('Document Designer')).toBeNull();
+    expect(screen.queryByText('Settings')).toBeNull();
+  });
+});
+

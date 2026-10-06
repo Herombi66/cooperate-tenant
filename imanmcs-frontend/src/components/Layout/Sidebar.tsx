@@ -268,10 +268,13 @@ export const Sidebar: React.FC = () => {
       // Base member items
       const baseItems = navigationItems['member'] || [];
       // Plus any executive navigation items where explicit module permission is granted
-      const extraItems = executiveNavigationItems.filter(item => {
-        const modKey = hrefToModuleKey[item.href];
-        return modKey && canAccess(modKey) && !baseItems.some(b => b.href === item.href);
-      });
+      // Only evaluate if permissions have loaded to prevent premature access
+      const extraItems = hasLoadedPermissions
+        ? executiveNavigationItems.filter(item => {
+            const modKey = hrefToModuleKey[item.href];
+            return modKey && canAccess(modKey) && !baseItems.some(b => b.href === item.href);
+          })
+        : [];
       rawItems = [...baseItems, ...extraItems];
     }
   }
@@ -295,8 +298,12 @@ export const Sidebar: React.FC = () => {
     // Cooperative Bylaws is readable by all cooperative members and executive officers
     if (i.href === '/bylaws') return true;
 
-    // Dynamic RBAC Permission Check for Executive Roles
-    if (isExecutive && hasLoadedPermissions) {
+    // Allow member self-service withdrawals if tenant supports it
+    if (i.href === '/withdrawals' && user.role === 'member') return true;
+
+    // Dynamic RBAC Permission Check:
+    // If permissions have loaded and user is not admin/super_admin, ensure any admin module requires read permission
+    if (hasLoadedPermissions && !isAdmin && user.role !== 'admin' && user.role !== 'super_admin') {
       const modKey = hrefToModuleKey[i.href];
       if (modKey && !canAccess(modKey)) {
         return false;
