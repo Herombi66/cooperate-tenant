@@ -439,8 +439,19 @@ const checkDuplicateApplication = async (req, res) => {
 const getApplications = async (req, res) => {
   try {
     // Role check
-    const allowedRoles = ['admin', 'super_admin', 'treasurer', 'chairman', 'secretary', 'assistant_secretary'];
-    if (!allowedRoles.includes(req.user.role)) {
+    const allowedRoles = ['admin', 'super_admin', 'treasurer', 'chairman', 'secretary', 'assistant_secretary', 'financial_secretary', 'auditor', 'state_auditor', 'pro'];
+    const { getUserRoleNames, hasPermissionForModule } = require('../middleware/rbac');
+    const userRoleNames = await getUserRoleNames(req.user);
+    const hasStaticRole = userRoleNames.some(r => {
+      const rNorm = (r || '').toLowerCase().trim().replace(/[\s-]+/g, '_');
+      return allowedRoles.some(sr => {
+        const srNorm = (sr || '').toLowerCase().trim().replace(/[\s-]+/g, '_');
+        return rNorm === srNorm || (r || '').toLowerCase() === (sr || '').toLowerCase();
+      });
+    });
+    const hasDynamicPerm = await hasPermissionForModule(req.user, 'member_applications', 'read');
+
+    if (!hasStaticRole && !hasDynamicPerm) {
       return res.status(403).json({
         success: false,
         message: 'Access denied. Insufficient privileges.'
@@ -959,16 +970,22 @@ const updateApplicationStatus = async (req, res) => {
     const updateData = {
       status,
       review_notes,
-      reviewed_by: req.user.id,
+      reviewed_by: req.user?.id || null,
       review_date: new Date()
     };
 
+    let generatedPassword = null;
+    let memberUser = null;
+
     if (status === 'approved') {
-      updateData.approved_by = req.user?.membershipApplication?.name || req.user?.name || 'Administrator';
-      updateData.approved_at = new Date();
+      const currentMeta = application.metadata || {};
+      updateData.metadata = {
+        ...currentMeta,
+        approved_by: req.user?.membershipApplication?.name || req.user?.name || 'Administrator',
+        approved_at: new Date()
+      };
 
       // Create user account if not already created
-      let memberUser = null;
       try {
         const User = require('../models/User');
         memberUser = await User.findOne({ where: { membership_application_id: application.id } });
@@ -976,12 +993,13 @@ const updateApplicationStatus = async (req, res) => {
         if (!memberUser) {
           const result = await createMemberAccount(application.id);
           memberUser = result?.user;
+          generatedPassword = result?.generatedPassword;
           console.log('✅ User account created successfully for approved application');
         } else {
-          console.log('ℹ️ User account already exists for approved application:', memberUser.id);
+          console.log('ℹ️ User account already exists for approved application:', memberUser?.id);
         }
 
-        console.log(`ℹ️ Application #${application.id} approved for user ${memberUser.id}. Pledged monthly contribution: ₦${application.contribution || 0}. Starting balance remains ₦0.00 until recorded in Contributions Management.`);
+        console.log(`ℹ️ Application #${application.id} approved for user ${memberUser?.id || 'N/A'}. Pledged monthly contribution: ₦${application.contribution || 0}. Starting balance remains ₦0.00 until recorded in Contributions Management.`);
       } catch (userCreationError) {
         console.error('❌ Failed to create user account or initial contribution:', userCreationError);
         return res.status(500).json({
@@ -1041,6 +1059,7 @@ const updateApplicationStatus = async (req, res) => {
     res.json({
       success: true,
       message: 'Application status updated successfully',
+      password: generatedPassword || 'Default Password',
       application
     });
 

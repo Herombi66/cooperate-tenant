@@ -1323,8 +1323,12 @@ const getGuaranteeRequests = async (req, res) => {
 
 const getGuaranteeSummary = async (req, res) => {
     try {
-        const allowedRoles = ['admin', 'super_admin', 'treasurer', 'chairman', 'secretary', 'assistant_secretary'];
-        if (!allowedRoles.includes(req.user.role)) {
+        const allowedRoles = ['admin', 'super_admin', 'treasurer', 'chairman', 'secretary', 'assistant_secretary', 'financial_secretary', 'auditor'];
+        const { getUserRoleNames, hasPermissionForModule } = require('../middleware/rbac');
+        const userRoles = await getUserRoleNames(req.user);
+        const hasStaticRole = userRoles.some(r => allowedRoles.includes(r.toLowerCase().trim().replace(/[\s-]+/g, '_')));
+        const hasDynamicPerm = await hasPermissionForModule(req.user, 'loans', 'read') || await hasPermissionForModule(req.user, 'loan_applications', 'read');
+        if (!hasStaticRole && !hasDynamicPerm) {
             return res.status(403).json({ success: false, message: 'Access denied. Only admins can view guarantee summary.' });
         }
 
@@ -1447,8 +1451,12 @@ const getAgreements = async (req, res) => {
 const getAllAgreements = async (req, res) => {
     try {
         // Role check
-        const allowedRoles = ['admin', 'super_admin', 'treasurer', 'chairman', 'secretary', 'assistant_secretary'];
-        if (!allowedRoles.includes(req.user.role)) {
+        const allowedRoles = ['admin', 'super_admin', 'treasurer', 'chairman', 'secretary', 'assistant_secretary', 'financial_secretary', 'auditor'];
+        const { getUserRoleNames, hasPermissionForModule } = require('../middleware/rbac');
+        const userRoles = await getUserRoleNames(req.user);
+        const hasStaticRole = userRoles.some(r => allowedRoles.includes(r.toLowerCase().trim().replace(/[\s-]+/g, '_')));
+        const hasDynamicPerm = await hasPermissionForModule(req.user, 'loans', 'read') || await hasPermissionForModule(req.user, 'documents', 'read');
+        if (!hasStaticRole && !hasDynamicPerm) {
             return res.status(403).json({ success: false, message: 'Access denied. Insufficient privileges.' });
         }
 
@@ -2084,8 +2092,12 @@ const approveLoan = async (req, res) => {
 
         // Role Check
         const allowedRoles = ['admin', 'super_admin', 'chairman'];
-        if (!allowedRoles.includes(req.user.role)) {
-            return res.status(403).json({ success: false, message: 'Access denied. Only Chairman and Admins can approve loans.' });
+        const { getUserRoleNames, hasPermissionForModule } = require('../middleware/rbac');
+        const userRoles = await getUserRoleNames(req.user);
+        const hasStaticRole = userRoles.some(r => allowedRoles.includes(r.toLowerCase().trim().replace(/[\s-]+/g, '_')));
+        const hasDynamicPerm = await hasPermissionForModule(req.user, 'loans', 'edit') || await hasPermissionForModule(req.user, 'loan_applications', 'edit');
+        if (!hasStaticRole && !hasDynamicPerm) {
+            return res.status(403).json({ success: false, message: 'Access denied. Insufficient privileges to approve loans.' });
         }
 
         const loan = await Loan.findByPk(id);
@@ -2165,8 +2177,12 @@ const rejectLoan = async (req, res) => {
 
         // Role Check
         const allowedRoles = ['admin', 'super_admin', 'chairman'];
-        if (!allowedRoles.includes(req.user.role)) {
-            return res.status(403).json({ success: false, message: 'Access denied. Only Chairman and Admins can reject loans.' });
+        const { getUserRoleNames, hasPermissionForModule } = require('../middleware/rbac');
+        const userRoles = await getUserRoleNames(req.user);
+        const hasStaticRole = userRoles.some(r => allowedRoles.includes(r.toLowerCase().trim().replace(/[\s-]+/g, '_')));
+        const hasDynamicPerm = await hasPermissionForModule(req.user, 'loans', 'edit') || await hasPermissionForModule(req.user, 'loan_applications', 'edit');
+        if (!hasStaticRole && !hasDynamicPerm) {
+            return res.status(403).json({ success: false, message: 'Access denied. Insufficient privileges to reject loans.' });
         }
 
         const loan = await Loan.findByPk(id);

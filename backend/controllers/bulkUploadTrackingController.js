@@ -618,8 +618,12 @@ const downloadBatchErrorsXlsx = async (req, res) => {
 
 const updateErrorCorrection = async (req, res) => {
   try {
-    const allowedRoles = ['admin', 'super_admin', 'chairman', 'treasurer'];
-    if (!allowedRoles.includes(req.user?.role)) return res.status(403).json({ success: false, message: 'Access denied' });
+    const allowedRoles = ['admin', 'super_admin', 'chairman', 'treasurer', 'secretary', 'assistant_secretary', 'financial_secretary'];
+    const { getUserRoleNames, hasPermissionForModule } = require('../middleware/rbac');
+    const userRoles = await getUserRoleNames(req.user);
+    const hasStatic = userRoles.some(r => allowedRoles.includes(r.toLowerCase().trim().replace(/[\s-]+/g, '_')));
+    const hasDynamic = await hasPermissionForModule(req.user, 'members', 'edit') || await hasPermissionForModule(req.user, 'contributions', 'edit');
+    if (!hasStatic && !hasDynamic) return res.status(403).json({ success: false, message: 'Access denied' });
 
     const batchId = parseInt(req.params.id);
     const errorId = parseInt(req.params.errorId);
@@ -654,8 +658,12 @@ const updateErrorCorrection = async (req, res) => {
 
 const reprocessFailed = async (req, res) => {
   try {
-    const allowedRoles = ['admin', 'super_admin', 'chairman', 'treasurer'];
-    if (!allowedRoles.includes(req.user?.role)) return res.status(403).json({ success: false, message: 'Access denied' });
+    const allowedRoles = ['admin', 'super_admin', 'chairman', 'treasurer', 'secretary', 'assistant_secretary', 'financial_secretary'];
+    const { getUserRoleNames, hasPermissionForModule } = require('../middleware/rbac');
+    const userRoles = await getUserRoleNames(req.user);
+    const hasStatic = userRoles.some(r => allowedRoles.includes(r.toLowerCase().trim().replace(/[\s-]+/g, '_')));
+    const hasDynamic = await hasPermissionForModule(req.user, 'members', 'edit') || await hasPermissionForModule(req.user, 'contributions', 'edit');
+    if (!hasStatic && !hasDynamic) return res.status(403).json({ success: false, message: 'Access denied' });
 
     const batchId = parseInt(req.params.id);
     if (isNaN(batchId)) return res.status(400).json({ success: false, message: 'Invalid batch id' });

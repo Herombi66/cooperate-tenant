@@ -79,6 +79,66 @@ async function getUserRoleNames(user) {
 }
 
 /**
+ * Check if a user has permission for a specific module and action
+ * @param {object} user - User object from req.user
+ * @param {string} moduleKey - Unique key of the module (e.g. 'loans', 'members', 'member_applications')
+ * @param {'read'|'write'|'edit'|'update'|'create'|'delete'} action - The operation being performed
+ */
+async function hasPermissionForModule(user, moduleKey, action = 'read') {
+  if (!user) return false;
+  if (user.role === 'super_admin' || user.role === 'admin') return true;
+
+  const roleNames = await getUserRoleNames(user);
+  if (roleNames.includes('super_admin') || roleNames.includes('admin')) return true;
+
+  try {
+    const allRoles = await Role.findAll({ skipTenant: true });
+    const matchedRoles = allRoles.filter(r => {
+      const dbNameNorm = (r.name || '').toLowerCase().trim().replace(/[\s-]+/g, '_');
+      return roleNames.some(rn => {
+        const rnNorm = (rn || '').toLowerCase().trim().replace(/[\s-]+/g, '_');
+        return dbNameNorm === rnNorm || (r.name || '').toLowerCase() === (rn || '').toLowerCase();
+      });
+    });
+
+    if (!matchedRoles || matchedRoles.length === 0) return false;
+    const roleIds = matchedRoles.map(r => r.id);
+
+    const allModules = await Module.findAll({ skipTenant: true });
+    const targetModule = allModules.find(m => 
+      (m.key && m.key.toLowerCase() === moduleKey.toLowerCase()) ||
+      (m.name && m.name.toLowerCase().replace(/[\s-]+/g, '_') === moduleKey.toLowerCase())
+    );
+    const targetModuleId = targetModule ? targetModule.id : null;
+
+    const perms = await RolePermission.findAll({
+      where: { role_id: roleIds },
+      skipTenant: true
+    });
+
+    const matchingPerms = perms.filter(p => 
+      (p.module_key && p.module_key.toLowerCase() === moduleKey.toLowerCase()) ||
+      (targetModuleId && p.module_id === targetModuleId)
+    );
+
+    if (matchingPerms.length === 0) return false;
+
+    const act = (action || 'read').toLowerCase();
+    if (act === 'read') {
+      return matchingPerms.some(p => p.can_read === true);
+    } else if (['write', 'create', 'edit', 'update'].includes(act)) {
+      return matchingPerms.some(p => p.can_write === true || p.can_edit === true);
+    } else if (act === 'delete') {
+      return matchingPerms.some(p => p.can_delete === true);
+    }
+    return false;
+  } catch (err) {
+    console.warn(`[hasPermissionForModule] Error checking '${moduleKey}' (${action}):`, err);
+    return false;
+  }
+}
+
+/**
  * Middleware to check dynamic module permission: Read, Write, Edit, Delete
  * @param {string} moduleKey - Unique key of the module (e.g. 'loans', 'members', 'contributions')
  * @param {'read'|'write'|'edit'|'delete'} action - The operation being performed
@@ -100,57 +160,7 @@ const requireModulePermission = (moduleKey, action = 'read') => {
         return next();
       }
 
-      // Format action column
-      const colMap = {
-        read: 'can_read',
-        write: 'can_write',
-        create: 'can_write',
-        edit: 'can_edit',
-        update: 'can_edit',
-        delete: 'can_delete'
-      };
-
-      const permColumn = colMap[action.toLowerCase()] || 'can_read';
-
-      // Find all roles associated with user (case- and format-insensitive)
-      const allRoles = await Role.findAll({ skipTenant: true });
-      const matchedRoles = allRoles.filter(r => {
-        const dbNameNorm = (r.name || '').toLowerCase().trim().replace(/[\s-]+/g, '_');
-        return roleNames.some(rn => {
-          const rnNorm = (rn || '').toLowerCase().trim().replace(/[\s-]+/g, '_');
-          return dbNameNorm === rnNorm || (r.name || '').toLowerCase() === (rn || '').toLowerCase();
-        });
-      });
-
-      if (!matchedRoles || matchedRoles.length === 0) {
-        return res.status(403).json({
-          success: false,
-          message: `Access denied. No active executive role assigned.`
-        });
-      }
-
-      const roleIds = matchedRoles.map(r => r.id);
-
-      // Find the module
-      const allModules = await Module.findAll({ skipTenant: true });
-      const targetModule = allModules.find(m => 
-        (m.key && m.key.toLowerCase() === moduleKey.toLowerCase()) ||
-        (m.name && m.name.toLowerCase().replace(/[\s-]+/g, '_') === moduleKey.toLowerCase())
-      );
-      const targetModuleId = targetModule ? targetModule.id : null;
-
-      // Check RolePermission
-      const perms = await RolePermission.findAll({
-        where: { role_id: roleIds },
-        skipTenant: true
-      });
-
-      const matchingPerms = perms.filter(p => 
-        (p.module_key && p.module_key.toLowerCase() === moduleKey.toLowerCase()) ||
-        (targetModuleId && p.module_id === targetModuleId)
-      );
-
-      const hasPerm = matchingPerms.some(p => p[permColumn] === true);
+      const hasPerm = await hasPermissionForModule(req.user, moduleKey, action);
 
       if (hasPerm) {
         return next();
@@ -261,5 +271,6 @@ module.exports = {
   canEdit,
   canDelete,
   can,
-  getUserRoleNames
+  getUserRoleNames,
+  hasPermissionForModule
 };

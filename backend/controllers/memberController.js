@@ -1483,8 +1483,12 @@ const updateMemberJoinDate = async (req, res) => {
 
 const getMemberFinancialProfile = async (req, res) => {
   try {
-    const allowedRoles = ['admin', 'super_admin', 'chairman', 'treasurer'];
-    if (!allowedRoles.includes(String(req.user?.role || ''))) {
+    const allowedRoles = ['admin', 'super_admin', 'chairman', 'treasurer', 'financial_secretary', 'secretary', 'assistant_secretary', 'auditor'];
+    const { getUserRoleNames, hasPermissionForModule } = require('../middleware/rbac');
+    const userRoles = await getUserRoleNames(req.user);
+    const hasStatic = userRoles.some(r => allowedRoles.includes(r.toLowerCase().trim().replace(/[\s-]+/g, '_')));
+    const hasDynamic = await hasPermissionForModule(req.user, 'members', 'read');
+    if (!hasStatic && !hasDynamic) {
       return res.status(403).json({ success: false, message: 'Access denied' });
     }
 
@@ -1648,8 +1652,12 @@ const getMemberFinancialProfile = async (req, res) => {
 const transferFunds = async (req, res) => {
   const transaction = await sequelize.transaction();
   try {
-    const allowedRoles = ['admin', 'super_admin', 'chairman', 'treasurer'];
-    if (!allowedRoles.includes(String(req.user?.role || ''))) {
+    const allowedRoles = ['admin', 'super_admin', 'chairman', 'treasurer', 'financial_secretary'];
+    const { getUserRoleNames, hasPermissionForModule } = require('../middleware/rbac');
+    const userRoles = await getUserRoleNames(req.user);
+    const hasStatic = userRoles.some(r => allowedRoles.includes(r.toLowerCase().trim().replace(/[\s-]+/g, '_')));
+    const hasDynamic = await hasPermissionForModule(req.user, 'members', 'edit') || await hasPermissionForModule(req.user, 'contributions', 'edit') || await hasPermissionForModule(req.user, 'savings', 'edit');
+    if (!hasStatic && !hasDynamic) {
       await transaction.rollback();
       return res.status(403).json({ success: false, message: 'Access denied' });
     }

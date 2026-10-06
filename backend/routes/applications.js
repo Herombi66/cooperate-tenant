@@ -52,23 +52,45 @@ router.post('/apply', submitApplication);
 router.post('/check-duplicate', checkDuplicateApplication);
 
 // Protected routes - Require authentication
-router.get('/', authenticateToken, getApplications);
-router.get('/:id', authenticateToken, getApplicationById);
+router.get('/', authenticateToken, authorizeRole(['admin', 'super_admin', 'treasurer', 'chairman', 'secretary', 'assistant_secretary', 'financial_secretary', 'auditor', 'pro', 'state_auditor']), getApplications);
+router.get('/:id', authenticateToken, authorizeRole(['admin', 'super_admin', 'treasurer', 'chairman', 'secretary', 'assistant_secretary', 'financial_secretary', 'auditor', 'pro', 'state_auditor']), getApplicationById);
 
 // Admin routes for member management through applications
-router.post('/admin/create-member', authenticateToken, authorizeRole(['admin', 'super_admin', 'treasurer', 'chairman', 'secretary', 'assistant_secretary']), (req, res) => {
+router.post('/admin/create-member', authenticateToken, authorizeRole(['admin', 'super_admin', 'treasurer', 'chairman', 'secretary', 'assistant_secretary', 'financial_secretary']), (req, res) => {
   // Add auto_approve flag for admin direct creation
   req.body.auto_approve = true;
   return submitApplication(req, res);
 });
 
-router.post('/admin/bulk-import', authenticateToken, authorizeRole(['admin', 'super_admin', 'treasurer', 'chairman', 'secretary', 'assistant_secretary']), uploadMiddleware, bulkImportApplications);
+router.post('/admin/bulk-import', authenticateToken, authorizeRole(['admin', 'super_admin', 'treasurer', 'chairman', 'secretary', 'assistant_secretary', 'financial_secretary']), uploadMiddleware, bulkImportApplications);
 
-// Application status management
-router.put('/:id/status', authenticateToken, authorizeRole(['admin', 'super_admin', 'treasurer', 'chairman', 'secretary', 'assistant_secretary']), updateApplicationStatus);
+// Application status management (supports both PUT and POST)
+router.put('/:id/status', authenticateToken, authorizeRole(['admin', 'super_admin', 'treasurer', 'chairman', 'secretary', 'assistant_secretary', 'financial_secretary']), updateApplicationStatus);
+router.post('/:id/status', authenticateToken, authorizeRole(['admin', 'super_admin', 'treasurer', 'chairman', 'secretary', 'assistant_secretary', 'financial_secretary']), updateApplicationStatus);
 router.delete('/:id', authenticateToken, authorizeRole(['admin', 'super_admin', 'treasurer', 'chairman', 'secretary', 'assistant_secretary']), deleteApplication);
 
-// Legacy route for frontend compatibility
-router.put('/:id/approve', authenticateToken, authorizeRole(['admin', 'super_admin', 'treasurer', 'chairman', 'secretary', 'assistant_secretary']), updateApplicationStatus);
+// Approval & Rejection routes (supports both PUT and POST for full frontend compatibility)
+router.put('/:id/approve', authenticateToken, authorizeRole(['admin', 'super_admin', 'treasurer', 'chairman', 'secretary', 'assistant_secretary', 'financial_secretary']), (req, res) => {
+  req.body = req.body || {};
+  req.body.status = 'approved';
+  return updateApplicationStatus(req, res);
+});
+router.post('/:id/approve', authenticateToken, authorizeRole(['admin', 'super_admin', 'treasurer', 'chairman', 'secretary', 'assistant_secretary', 'financial_secretary']), (req, res) => {
+  req.body = req.body || {};
+  req.body.status = 'approved';
+  return updateApplicationStatus(req, res);
+});
+router.put('/:id/reject', authenticateToken, authorizeRole(['admin', 'super_admin', 'treasurer', 'chairman', 'secretary', 'assistant_secretary', 'financial_secretary']), (req, res) => {
+  req.body = req.body || {};
+  req.body.status = 'rejected';
+  req.body.rejection_reason = req.body.reason || req.body.rejection_reason || 'Rejected by reviewer';
+  return updateApplicationStatus(req, res);
+});
+router.post('/:id/reject', authenticateToken, authorizeRole(['admin', 'super_admin', 'treasurer', 'chairman', 'secretary', 'assistant_secretary', 'financial_secretary']), (req, res) => {
+  req.body = req.body || {};
+  req.body.status = 'rejected';
+  req.body.rejection_reason = req.body.reason || req.body.rejection_reason || 'Rejected by reviewer';
+  return updateApplicationStatus(req, res);
+});
 
 module.exports = router;

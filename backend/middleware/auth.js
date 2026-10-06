@@ -162,7 +162,7 @@ const requireAdmin = async (req, res, next) => {
   }
 
   try {
-    const { getUserRoleNames } = require('./rbac');
+    const { getUserRoleNames, hasPermissionForModule } = require('./rbac');
     const userRoleNames = await getUserRoleNames(req.user);
 
     if (userRoleNames.includes('super_admin') || userRoleNames.includes('admin')) {
@@ -175,55 +175,14 @@ const requireAdmin = async (req, res, next) => {
 
     if (moduleKey) {
       const method = (req.method || '').toUpperCase();
-      const action = (method === 'GET' || method === 'HEAD' || method === 'OPTIONS') ? 'read'
-        : (method === 'POST') ? 'write'
-        : (method === 'DELETE') ? 'delete'
-        : 'edit';
+      const isRead = method === 'GET' || method === 'HEAD' || method === 'OPTIONS';
+      const isDelete = method === 'DELETE';
+      const isWrite = method === 'POST';
+      const action = isRead ? 'read' : isDelete ? 'delete' : (isWrite ? 'write' : 'edit');
 
-      const permCol = action === 'read' ? 'can_read'
-        : action === 'write' ? 'can_write'
-        : action === 'delete' ? 'can_delete'
-        : 'can_edit';
-
-      const allRoles = await Role.findAll({ skipTenant: true });
-      const userRoles = allRoles.filter(r => {
-        const dbNameNorm = (r.name || '').toLowerCase().trim().replace(/[\s-]+/g, '_');
-        return userRoleNames.some(rn => {
-          const rnNorm = (rn || '').toLowerCase().trim().replace(/[\s-]+/g, '_');
-          return dbNameNorm === rnNorm || (r.name || '').toLowerCase() === (rn || '').toLowerCase();
-        });
-      });
-
-      if (userRoles && userRoles.length > 0) {
-        const roleIds = userRoles.map(r => r.id);
-        const allModules = await Module.findAll({ skipTenant: true });
-        const targetModule = allModules.find(m => 
-          (m.key && m.key.toLowerCase() === moduleKey.toLowerCase()) ||
-          (m.name && m.name.toLowerCase().replace(/[\s-]+/g, '_') === moduleKey.toLowerCase())
-        );
-        const targetModuleId = targetModule ? targetModule.id : null;
-
-        const perms = await RolePermission.findAll({
-          where: { role_id: roleIds },
-          skipTenant: true
-        });
-
-        const matchingPerms = perms.filter(p => 
-          (p.module_key && p.module_key.toLowerCase() === moduleKey.toLowerCase()) ||
-          (targetModuleId && p.module_id === targetModuleId)
-        );
-
-        if (matchingPerms.length > 0) {
-          const hasPermission = matchingPerms.some(p => p[permCol] === true);
-          if (hasPermission) {
-            return next();
-          } else {
-            return res.status(403).json({
-              success: false,
-              message: `Access denied. Insufficient permissions for module '${moduleKey}' (${action.toUpperCase()}).`
-            });
-          }
-        }
+      const hasDynamicPerm = await hasPermissionForModule(req.user, moduleKey, action);
+      if (hasDynamicPerm) {
+        return next();
       }
     }
   } catch (err) {
@@ -274,90 +233,55 @@ const authorizeRole = (roles) => {
       return next();
     }
 
-    const { getUserRoleNames } = require('./rbac');
+    const { getUserRoleNames, hasPermissionForModule } = require('./rbac');
     const userRoleNames = await getUserRoleNames(req.user);
 
     if (userRoleNames.includes('super_admin') || userRoleNames.includes('admin')) {
       return next();
     }
 
+    // Check if user has one of the statically allowed roles for this route
+    const staticRolesList = Array.isArray(roles) ? roles : [roles];
+    const hasStaticRole = userRoleNames.some(r => {
+      const rNorm = (r || '').toLowerCase().trim().replace(/[\s-]+/g, '_');
+      return staticRolesList.some(sr => {
+        const srNorm = (sr || '').toLowerCase().trim().replace(/[\s-]+/g, '_');
+        return rNorm === srNorm || (r || '').toLowerCase() === (sr || '').toLowerCase();
+      });
+    });
+
     const pathname = (req.originalUrl || req.baseUrl || req.path || '').split('?')[0];
     const moduleKey = getModuleFromUrl(pathname);
     const method = (req.method || '').toUpperCase();
-    const action = (method === 'GET' || method === 'HEAD' || method === 'OPTIONS') ? 'read'
-      : (method === 'POST') ? 'write'
-      : (method === 'DELETE') ? 'delete'
-      : 'edit';
+    const isRead = method === 'GET' || method === 'HEAD' || method === 'OPTIONS';
+    const isDelete = method === 'DELETE';
+    const isWrite = method === 'POST';
+    const action = isRead ? 'read' : isDelete ? 'delete' : (isWrite ? 'write' : 'edit');
 
-    const permCol = action === 'read' ? 'can_read'
-      : action === 'write' ? 'can_write'
-      : action === 'delete' ? 'can_delete'
-      : 'can_edit';
-
-    // If route maps to a system module, check dynamic permissions in DB
+    // 1. If route maps to a system module, check dynamic permissions in DB
     if (moduleKey) {
       try {
-        const allRoles = await Role.findAll({ skipTenant: true });
-        const userRoles = allRoles.filter(r => {
-          const dbNameNorm = (r.name || '').toLowerCase().trim().replace(/[\s-]+/g, '_');
-          return userRoleNames.some(rn => {
-            const rnNorm = (rn || '').toLowerCase().trim().replace(/[\s-]+/g, '_');
-            return dbNameNorm === rnNorm || (r.name || '').toLowerCase() === (rn || '').toLowerCase();
-          });
-        });
-
-        if (userRoles && userRoles.length > 0) {
-          const roleIds = userRoles.map(r => r.id);
-          const allModules = await Module.findAll({ skipTenant: true });
-          const targetModule = allModules.find(m => 
-            (m.key && m.key.toLowerCase() === moduleKey.toLowerCase()) ||
-            (m.name && m.name.toLowerCase().replace(/[\s-]+/g, '_') === moduleKey.toLowerCase())
-          );
-          const targetModuleId = targetModule ? targetModule.id : null;
-
-          const perms = await RolePermission.findAll({
-            where: { role_id: roleIds },
-            skipTenant: true
-          });
-
-          const matchingPerms = perms.filter(p => 
-            (p.module_key && p.module_key.toLowerCase() === moduleKey.toLowerCase()) ||
-            (targetModuleId && p.module_id === targetModuleId)
-          );
-
-          if (matchingPerms.length > 0) {
-            const hasPermission = matchingPerms.some(p => p[permCol] === true);
-            if (hasPermission) {
-              return next();
-            } else {
-              return res.status(403).json({
-                success: false,
-                message: `Access denied. Insufficient permissions for module '${moduleKey}' (${action.toUpperCase()}).`
-              });
-            }
-          }
+        const hasDynamicPerm = await hasPermissionForModule(req.user, moduleKey, action);
+        if (hasDynamicPerm) {
+          return next();
         }
       } catch (err) {
         console.warn('⚠️ [authorizeRole] Dynamic RBAC check failed, using fallback:', err);
       }
     }
     
-    // Fallback: check if any of user's roles is included in the static roles list
-    const hasStaticRole = userRoleNames.some(r => {
-      const rNorm = (r || '').toLowerCase().trim().replace(/[\s-]+/g, '_');
-      return roles.some(sr => {
-        const srNorm = (sr || '').toLowerCase().trim().replace(/[\s-]+/g, '_');
-        return rNorm === srNorm || (r || '').toLowerCase() === (sr || '').toLowerCase();
-      });
-    });
-
-    if (!hasStaticRole) {
-      return res.status(403).json({
-        success: false,
-        message: 'Access denied. Insufficient privileges.'
-      });
+    // 2. Fallback: check if any of user's roles is included in the static roles list
+    if (hasStaticRole) {
+      return next();
     }
-    next();
+
+    const actionLabel = isRead ? 'READ' : isDelete ? 'DELETE' : isWrite ? 'WRITE' : 'EDIT';
+    return res.status(403).json({
+      success: false,
+      message: moduleKey
+        ? `Access denied. Insufficient permissions for module '${moduleKey}' (${actionLabel}).`
+        : 'Access denied. Insufficient privileges.'
+    });
   };
 };
 
