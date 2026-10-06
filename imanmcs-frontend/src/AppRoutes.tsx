@@ -109,6 +109,11 @@ const ModuleRouteGuard: React.FC<{
     return <>{children}</>;
   }
 
+  // Ordinary members are strictly restricted to personal information and self-service
+  if (user.role === 'member') {
+    return <Navigate to="/dashboard" replace />;
+  }
+
   // Specific role exemptions (e.g. chairman, auditor)
   if (allowedRoles && allowedRoles.includes(user.role)) {
     return <>{children}</>;

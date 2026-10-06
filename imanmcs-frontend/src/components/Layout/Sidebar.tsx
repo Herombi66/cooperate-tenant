@@ -119,7 +119,7 @@ const navigationItems: Record<string, Array<{ name: string; href: string; icon: 
     // { name: 'My Layyah', href: '/my-layyah', icon: Heart },
     // { name: 'Browse Groups', href: '/browse-layyah', icon: Users },
     // { name: 'My Layyah Groups', href: '/my-layyah-groups', icon: Users },
-    { name: 'Withdrawals', href: '/withdrawals', icon: Percent },
+    { name: 'My Withdrawals', href: '/withdrawals', icon: Percent },
     { name: 'Support', href: '/support', icon: MessageSquare },
     { name: 'Notifications', href: '/notifications', icon: Bell },
     { name: 'My Profit Share', href: '/my-profit-share', icon: TrendingUp },
@@ -251,8 +251,9 @@ export const Sidebar: React.FC = () => {
 
   const { canAccess, isAdmin, isLoading: isPermissionsLoading, permissions, roles } = usePermissions();
 
-  const hasExecutiveRole = (roles && roles.some(r => r !== 'member')) || (user && user.role !== 'member');
-  const isExecutive = !isAdmin && !!user && hasExecutiveRole;
+  const isMember = user?.role === 'member';
+  const hasExecutiveRole = !isMember && ((roles && roles.some(r => r !== 'member')) || (user && user.role !== 'member'));
+  const isExecutive = !isAdmin && !isMember && hasExecutiveRole;
 
   // If permissions are still loading and we have no cached permissions, show role static fallback
   const hasLoadedPermissions = Object.keys(permissions).length > 0;
@@ -260,26 +261,39 @@ export const Sidebar: React.FC = () => {
   if (user) {
     if (isAdmin) {
       rawItems = navigationItems[user.role] || navigationItems['admin'] || [];
+    } else if (isMember) {
+      // Ordinary members STRICTLY receive only their personal information and self-service items
+      rawItems = navigationItems['member'] || [];
     } else if (isExecutive) {
       rawItems = (isPermissionsLoading && !hasLoadedPermissions)
         ? (navigationItems[user.role] || executiveNavigationItems)
         : executiveNavigationItems;
     } else {
-      // Base member items
-      const baseItems = navigationItems['member'] || [];
-      // Plus any executive navigation items where explicit module permission is granted
-      // Only evaluate if permissions have loaded to prevent premature access
-      const extraItems = hasLoadedPermissions
-        ? executiveNavigationItems.filter(item => {
-            const modKey = hrefToModuleKey[item.href];
-            return modKey && canAccess(modKey) && !baseItems.some(b => b.href === item.href);
-          })
-        : [];
-      rawItems = [...baseItems, ...extraItems];
+      rawItems = navigationItems[user.role] || [];
     }
   }
 
   const items = rawItems.filter(i => {
+    // For ordinary members, strictly allow only personal self-service routes
+    if (isMember) {
+      const allowedMemberHrefs = new Set([
+        '/dashboard',
+        '/profile',
+        '/bylaws',
+        '/my-contributions',
+        '/my-loans',
+        '/my-guarantees',
+        '/apply-loan',
+        '/withdrawals',
+        '/support',
+        '/notifications',
+        '/my-profit-share'
+      ]);
+      if (!allowedMemberHrefs.has(i.href)) {
+        return false;
+      }
+    }
+
     // Roles & Permissions is available to admin & super_admin or users with user_management permission
     if (i.href === '/roles') {
       return isAdmin || canAccess('user_management') || user.role === 'admin' || user.role === 'super_admin';
@@ -299,7 +313,7 @@ export const Sidebar: React.FC = () => {
     if (i.href === '/bylaws') return true;
 
     // Allow member self-service withdrawals if tenant supports it
-    if (i.href === '/withdrawals' && user.role === 'member') return true;
+    if (i.href === '/withdrawals' && isMember) return true;
 
     // Dynamic RBAC Permission Check:
     // If permissions have loaded and user is not admin/super_admin, ensure any admin module requires read permission
