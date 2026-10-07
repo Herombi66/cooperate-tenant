@@ -88,8 +88,8 @@ router.get('/:id/statement', getMemberStatement);
 // POST /members/:id/transfer-funds - Transfer funds between savings/investment/target accounts (Admin/Treasurer/Chairman/FinSec)
 router.post('/:id/transfer-funds', authorizeRole(['admin', 'super_admin', 'chairman', 'treasurer', 'financial_secretary']), transferFunds);
 
-// PUT /members/:id - Update member (Admin/Chairman)
-router.put('/:id', authorizeRole(['admin', 'super_admin', 'chairman']), updateMember);
+// PUT /members/:id - Update member (Admin/Chairman/Secretary/Assistant Secretary)
+router.put('/:id', authorizeRole(['admin', 'super_admin', 'chairman', 'secretary', 'assistant_secretary']), updateMember);
 
 // PUT /members/:id/join-date - Update member join date (Admin only)
 router.put('/:id/join-date', requireAdmin, updateMemberJoinDate);

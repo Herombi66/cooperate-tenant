@@ -3,7 +3,7 @@ import {
   Search, Filter, Eye, CheckCircle, XCircle, Clock,
   User, FileText, Download, Loader, RefreshCw,
   Building2, Calendar, Phone, Mail, Award, AlertCircle,
-  Check, X, Printer
+  Check, X, Printer, Edit
 } from 'lucide-react';
 import api from '../services/api';
 import toast from 'react-hot-toast';
@@ -37,6 +37,11 @@ export const MemberApplicationsPage: React.FC = () => {
   const [rejectingApp, setRejectingApp] = useState<Application | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
+
+  // IPPIS/PSN Inline Edit State
+  const [editingPsn, setEditingPsn] = useState(false);
+  const [newPsnValue, setNewPsnValue] = useState('');
+  const [savingPsn, setSavingPsn] = useState(false);
 
   // Data & Pagination
   const [applications, setApplications] = useState<Application[]>([]);
@@ -768,6 +773,8 @@ export const MemberApplicationsPage: React.FC = () => {
                           <button
                             onClick={() => {
                               setSelectedApplication(app);
+                              setEditingPsn(false);
+                              setNewPsnValue(app.psn || '');
                               setShowViewModal(true);
                             }}
                             className="p-1.5 text-gray-600 hover:text-[#0F3D3D] hover:bg-gray-100 rounded-lg transition"
@@ -934,8 +941,71 @@ export const MemberApplicationsPage: React.FC = () => {
                     <span className="font-medium text-gray-900">{selectedApplication.name}</span>
                   </div>
                   <div>
-                    <span className="text-xs text-gray-500 block">{idLabel}</span>
-                    <span className="font-medium text-gray-900 font-mono">{selectedApplication.psn}</span>
+                    <div className="flex items-center justify-between mb-0.5">
+                      <span className="text-xs text-gray-500 block">{idLabel}</span>
+                      {!editingPsn && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setNewPsnValue(selectedApplication.psn || '');
+                            setEditingPsn(true);
+                          }}
+                          className="text-[11px] text-teal-700 hover:text-teal-900 font-medium inline-flex items-center gap-0.5 hover:underline"
+                          title={`Edit ${idLabel}`}
+                        >
+                          <Edit className="w-3 h-3" /> Edit
+                        </button>
+                      )}
+                    </div>
+                    {editingPsn ? (
+                      <div className="mt-1 flex items-center gap-1.5">
+                        <input
+                          type="text"
+                          value={newPsnValue}
+                          onChange={(e) => setNewPsnValue(e.target.value)}
+                          placeholder={`Enter ${idLabel}`}
+                          className="w-full text-xs font-mono px-2 py-1 border border-teal-600 rounded focus:ring-1 focus:ring-teal-500 focus:outline-none"
+                          autoFocus
+                        />
+                        <button
+                          type="button"
+                          disabled={savingPsn || !newPsnValue.trim()}
+                          onClick={async () => {
+                            try {
+                              setSavingPsn(true);
+                              const res = await api.put(`/applications/${selectedApplication.id}/psn`, {
+                                psn: newPsnValue.trim()
+                              });
+                              toast.success(res.data.message || `${idLabel} updated successfully!`);
+                              setSelectedApplication({ ...selectedApplication, psn: newPsnValue.trim() });
+                              setApplications(prev =>
+                                prev.map(a =>
+                                  a.id === selectedApplication.id ? { ...a, psn: newPsnValue.trim() } : a
+                                )
+                              );
+                              setEditingPsn(false);
+                            } catch (err: any) {
+                              toast.error(err.response?.data?.message || `Failed to update ${idLabel}`);
+                            } finally {
+                              setSavingPsn(false);
+                            }
+                          }}
+                          className="px-2 py-1 bg-emerald-600 text-white text-xs font-semibold rounded hover:bg-emerald-700 disabled:opacity-50"
+                        >
+                          {savingPsn ? '...' : 'Save'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEditingPsn(false)}
+                          disabled={savingPsn}
+                          className="px-1.5 py-1 bg-gray-200 text-gray-700 text-xs rounded hover:bg-gray-300"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ) : (
+                      <span className="font-medium text-gray-900 font-mono">{selectedApplication.psn}</span>
+                    )}
                   </div>
                   <div>
                     <span className="text-xs text-gray-500 block">Date of Birth</span>

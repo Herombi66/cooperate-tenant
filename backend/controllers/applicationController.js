@@ -1146,6 +1146,118 @@ const deleteApplication = async (req, res) => {
   }
 };
 
+const updateApplicationPsn = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { psn } = req.body;
+
+    if (!psn || !String(psn).trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'IPPIS / PSN number is required'
+      });
+    }
+
+    const cleanPsn = String(psn).trim();
+    if (!/^[A-Za-z0-9\-\/]{3,30}$/.test(cleanPsn)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid IPPIS/PSN format. Must be 3-30 alphanumeric characters.'
+      });
+    }
+
+    const application = await MembershipApplication.findByPk(id);
+
+    if (!application || application.email === 'candsngltd@gmail.com' || application.psn === 'FMCK-SADM-001') {
+      return res.status(404).json({
+        success: false,
+        message: 'Application not found'
+      });
+    }
+
+    const oldPsn = application.psn;
+    if (cleanPsn === oldPsn) {
+      return res.json({
+        success: true,
+        message: 'IPPIS/PSN is unchanged',
+        application
+      });
+    }
+
+    // Check duplicate
+    const duplicateWhere = {
+      psn: cleanPsn,
+      id: { [Op.ne]: application.id }
+    };
+    if (application.tenant_id) {
+      duplicateWhere.tenant_id = application.tenant_id;
+    }
+
+    const existingPsn = await MembershipApplication.findOne({
+      where: duplicateWhere
+    });
+
+    if (existingPsn) {
+      return res.status(409).json({
+        success: false,
+        message: `IPPIS/PSN "${cleanPsn}" is already assigned to another applicant/member (${existingPsn.name})`
+      });
+    }
+
+    await application.update({ psn: cleanPsn });
+
+    // If an approved user account already exists, cascade updates
+    const user = await User.findOne({ where: { membership_application_id: application.id } });
+    if (user && oldPsn) {
+      try {
+        const Loan = require('../models/Loan');
+        const LoanLiquidation = require('../models/LoanLiquidation');
+        const Complaint = require('../models/Complaint');
+        const LayyahApplication = require('../models/LayyahApplication');
+
+        await Promise.allSettled([
+          Loan.update({ guarantor_psn: cleanPsn }, { where: { guarantor_psn: oldPsn } }),
+          LoanLiquidation.update({ member_psn: cleanPsn }, { where: { [Op.or]: [{ user_id: user.id }, { member_psn: oldPsn }] } }),
+          Complaint.update({ user_psn: cleanPsn }, { where: { [Op.or]: [{ user_id: user.id }, { user_psn: oldPsn }] } }),
+          LayyahApplication.update({ user_psn: cleanPsn }, { where: { [Op.or]: [{ user_id: user.id }, { user_psn: oldPsn }] } })
+        ]);
+      } catch (cascadeErr) {
+        console.warn('Non-fatal warning cascading PSN updates to related tables:', cascadeErr.message);
+      }
+    }
+
+    // Log activity
+    try {
+      await ActivityLog.create({
+        user_id: req.user?.id,
+        user_name: req.user?.name,
+        user_role: req.user?.role,
+        action: 'UPDATE_APPLICATION_IPPIS',
+        resource_type: 'APPLICATION',
+        resource_id: application.id,
+        description: `Updated IPPIS/PSN for applicant ${application.name} from ${oldPsn} to ${cleanPsn}`,
+        ip_address: req.ip,
+        user_agent: req.headers['user-agent']
+      });
+    } catch (logErr) {
+      console.warn('Failed to log activity for application IPPIS update:', logErr.message);
+    }
+
+    res.json({
+      success: true,
+      message: `IPPIS/PSN successfully updated to ${cleanPsn}`,
+      application
+    });
+
+  } catch (error) {
+    console.error('Update application PSN error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+};
+
 module.exports = {
   submitApplication,
   checkDuplicateApplication,
@@ -1153,5 +1265,6 @@ module.exports = {
   getApplicationById,
   bulkImportApplications,
   updateApplicationStatus,
-  deleteApplication
+  deleteApplication,
+  updateApplicationPsn
 };

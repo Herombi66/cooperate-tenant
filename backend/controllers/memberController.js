@@ -398,7 +398,7 @@ const updateMember = async (req, res) => {
   try {
     const { id } = req.params;
     const {
-      name, email, phone, facility_name, role, status,
+      name, email, phone, psn, facility_name, role, status,
       next_of_kin_name, next_of_kin_phone, contribution, savings, investment, target_saving, target_period
     } = req.body;
 
@@ -418,6 +418,44 @@ const updateMember = async (req, res) => {
     }
 
     const application = member.membershipApplication;
+    const oldPsn = application.psn;
+    let isPsnChanged = false;
+    let cleanPsn;
+
+    // Check if IPPIS / PSN is being updated
+    if (psn !== undefined && psn !== null && String(psn).trim() !== '') {
+      cleanPsn = String(psn).trim();
+      if (cleanPsn !== oldPsn) {
+        if (!/^[A-Za-z0-9\-\/]{3,30}$/.test(cleanPsn)) {
+          return res.status(400).json({
+            success: false,
+            message: 'Invalid IPPIS/PSN format. Must be 3-30 alphanumeric characters.'
+          });
+        }
+
+        const MembershipApplication = require('../models/MembershipApplication');
+        const duplicateWhere = {
+          psn: cleanPsn,
+          id: { [Op.ne]: application.id }
+        };
+        if (application.tenant_id) {
+          duplicateWhere.tenant_id = application.tenant_id;
+        }
+
+        const existingPsn = await MembershipApplication.findOne({
+          where: duplicateWhere
+        });
+
+        if (existingPsn) {
+          return res.status(409).json({
+            success: false,
+            message: `IPPIS/PSN "${cleanPsn}" is already assigned to another member (${existingPsn.name})`
+          });
+        }
+
+        isPsnChanged = true;
+      }
+    }
 
     // Check if email is being changed and if it's already taken
     if (email && email !== application.email) {
@@ -449,6 +487,10 @@ const updateMember = async (req, res) => {
       target_period: target_period !== undefined ? parseInt(target_period) : application.target_period
     };
 
+    if (isPsnChanged && cleanPsn) {
+      appUpdates.psn = cleanPsn;
+    }
+
     if (contribution !== undefined) {
       const parsedContrib = parseFloat(contribution);
       appUpdates.contribution = parsedContrib;
@@ -471,6 +513,25 @@ const updateMember = async (req, res) => {
     // Update membership application data
     await application.update(appUpdates);
 
+    // If PSN changed, cascade to related records
+    if (isPsnChanged && oldPsn && cleanPsn) {
+      try {
+        const Loan = require('../models/Loan');
+        const LoanLiquidation = require('../models/LoanLiquidation');
+        const Complaint = require('../models/Complaint');
+        const LayyahApplication = require('../models/LayyahApplication');
+
+        await Promise.allSettled([
+          Loan.update({ guarantor_psn: cleanPsn }, { where: { guarantor_psn: oldPsn } }),
+          LoanLiquidation.update({ member_psn: cleanPsn }, { where: { [Op.or]: [{ user_id: member.id }, { member_psn: oldPsn }] } }),
+          Complaint.update({ user_psn: cleanPsn }, { where: { [Op.or]: [{ user_id: member.id }, { user_psn: oldPsn }] } }),
+          LayyahApplication.update({ user_psn: cleanPsn }, { where: { [Op.or]: [{ user_id: member.id }, { user_psn: oldPsn }] } })
+        ]);
+      } catch (cascadeErr) {
+        console.warn('Non-fatal warning cascading PSN updates to related tables:', cascadeErr.message);
+      }
+    }
+
     // Update user role and status if provided
     const userUpdates = {};
     if (role) userUpdates.role = role;
@@ -481,14 +542,18 @@ const updateMember = async (req, res) => {
     }
 
     // Log activity
+    const logDesc = isPsnChanged
+      ? `Updated member details for: ${application.name} (IPPIS changed from ${oldPsn} to ${cleanPsn})`
+      : `Updated member details for: ${application.name} (PSN: ${application.psn})`;
+
     await ActivityLog.create({
       user_id: req.user.id,
       user_name: req.user.name,
       user_role: req.user.role,
-      action: 'UPDATE_MEMBER',
+      action: isPsnChanged ? 'UPDATE_MEMBER_IPPIS' : 'UPDATE_MEMBER',
       resource_type: 'MEMBER',
       resource_id: application.id,
-      description: `Updated member details for: ${application.name} (PSN: ${application.psn})`,
+      description: logDesc,
       ip_address: req.ip,
       user_agent: req.headers['user-agent']
     });

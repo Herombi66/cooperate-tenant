@@ -1270,10 +1270,13 @@ export const MembersPage: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">{idLabel}</label>
                   <input
                     type="text"
+                    name="psn"
                     defaultValue={memberDetails.membershipApplication?.psn || ''}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    disabled
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent font-mono"
+                    placeholder={`Enter ${idLabel}`}
+                    required
                   />
+                  <p className="text-[11px] text-gray-500 mt-0.5">Edit if member registered with an incorrect {idLabel}.</p>
                 </div>
 
                 <div>
@@ -1453,11 +1456,11 @@ export const MembersPage: React.FC = () => {
                       const memberData: any = {};
 
                       // Always include these fields from form
-                      const fields = ['name', 'email', 'phone', 'facility_name', 'next_of_kin_name', 'next_of_kin_phone', 'status'];
+                      const fields = ['psn', 'name', 'email', 'phone', 'facility_name', 'next_of_kin_name', 'next_of_kin_phone', 'status'];
                       fields.forEach(field => {
                         const value = formData.get(field);
                         if (value !== null && value !== undefined && value !== '') {
-                          memberData[field] = value;
+                          memberData[field] = typeof value === 'string' ? value.trim() : value;
                         }
                       });
 

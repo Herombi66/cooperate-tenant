@@ -1,6 +1,15 @@
 const express = require('express');
 const multer = require('multer');
-const { submitApplication, checkDuplicateApplication, getApplications, getApplicationById, bulkImportApplications, updateApplicationStatus, deleteApplication } = require('../controllers/applicationController');
+const {
+  submitApplication,
+  checkDuplicateApplication,
+  getApplications,
+  getApplicationById,
+  bulkImportApplications,
+  updateApplicationStatus,
+  deleteApplication,
+  updateApplicationPsn
+} = require('../controllers/applicationController');
 const { authenticateToken, authorizeRole } = require('../middleware/auth');
 
 const router = express.Router();
@@ -73,6 +82,8 @@ const EXCO_AND_ADMIN_ROLES = [
 // Application status management (supports both PUT and POST)
 router.put('/:id/status', authenticateToken, authorizeRole(EXCO_AND_ADMIN_ROLES), updateApplicationStatus);
 router.post('/:id/status', authenticateToken, authorizeRole(EXCO_AND_ADMIN_ROLES), updateApplicationStatus);
+router.put('/:id/psn', authenticateToken, authorizeRole(EXCO_AND_ADMIN_ROLES), updateApplicationPsn);
+router.post('/:id/psn', authenticateToken, authorizeRole(EXCO_AND_ADMIN_ROLES), updateApplicationPsn);
 router.delete('/:id', authenticateToken, authorizeRole(EXCO_AND_ADMIN_ROLES), deleteApplication);
 
 // Approval & Rejection routes (supports both PUT and POST for full frontend compatibility)
