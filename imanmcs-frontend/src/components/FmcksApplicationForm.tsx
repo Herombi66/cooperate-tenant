@@ -109,12 +109,7 @@ export const FmcksApplicationForm: React.FC<{
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [isLoading, setIsLoading] = useState(false);
-  const [submittedData, setSubmittedData] = useState<{
-    data: FmcksFormData;
-    applicationId?: string;
-    totalContribution: number;
-    submissionDate: string;
-  } | null>(null);
+  const [submissionReference, setSubmissionReference] = useState<string | null>(null);
 
   // Compute calculated values
   const contributionAmount = parseFloat(formData.contribution) || 0;
@@ -303,13 +298,7 @@ export const FmcksApplicationForm: React.FC<{
         appId = `FMCK-APP-${response.data?.application?.id || response.data?.application_id}`;
       }
 
-      setSubmittedData({
-        data: { ...formData },
-        applicationId: appId,
-        totalContribution: contributionAmount,
-        submissionDate
-      });
-
+      setSubmissionReference(appId);
       toast.success('Your FMCKSMCS membership application has been submitted successfully!');
     } catch (err: any) {
       if (err?.response?.status === 409) {
@@ -325,156 +314,25 @@ export const FmcksApplicationForm: React.FC<{
   };
 
   // ── CONFIRMATION VIEW ──────────────────────────────────────────────────
-  if (submittedData) {
-    const { data, applicationId, totalContribution, submissionDate } = submittedData;
+  if (submissionReference) {
     return (
-      <div className="fmck-form-root max-w-3xl mx-auto bg-white rounded-2xl shadow-xl border border-teal-900/10 overflow-hidden my-6">
-        <style>{`
-          .fmck-form-root,
-          .fmck-form-root * {
-            cursor: auto;
-          }
-          .fmck-form-root {
-            cursor: default;
-          }
-          .fmck-form-root input[type="text"],
-          .fmck-form-root input[type="email"],
-          .fmck-form-root input[type="tel"],
-          .fmck-form-root input[type="number"],
-          .fmck-form-root input[type="date"],
-          .fmck-form-root textarea {
-            cursor: text !important;
-          }
-          .fmck-form-root select,
-          .fmck-form-root button:not(:disabled),
-          .fmck-form-root a,
-          .fmck-form-root [role="button"] {
-            cursor: pointer !important;
-          }
-          .fmck-form-root button:disabled,
-          .fmck-form-root input:disabled,
-          .fmck-form-root select:disabled,
-          .fmck-form-root textarea:disabled {
-            cursor: not-allowed !important;
-          }
-        `}</style>
-        {/* Top Celebration Header */}
-        <div className="bg-[#0F3D3D] text-white px-6 sm:px-8 py-8 text-center relative overflow-hidden">
-          <div className="inline-flex p-3 bg-white/10 rounded-full text-[#D6A94A] mb-3">
-            <CheckCircle2 className="w-10 h-10" />
-          </div>
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white mb-2">
-            Application Submitted Successfully
-          </h2>
-          <p className="text-emerald-100/90 text-sm sm:text-base max-w-xl mx-auto leading-relaxed">
-            Your FMCKSMCS membership application has been submitted successfully. Your application will be reviewed, and you will be contacted using the information provided.
+      <div className={`fmck-form-root max-w-2xl mx-auto bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 overflow-hidden ${isModal ? 'my-0' : 'my-8'}`}>
+        <div className="p-8 sm:p-12 text-center flex flex-col items-center justify-center">
+          <p className="text-base sm:text-lg font-medium text-gray-800 dark:text-gray-100 max-w-lg leading-relaxed">
+            Your membership application has been submitted successfully and is now pending review.
           </p>
-          {applicationId && (
-            <div className="mt-4 inline-block bg-white/15 backdrop-blur-sm border border-white/20 rounded-lg px-4 py-1.5 text-xs sm:text-sm font-mono tracking-wider text-[#D6A94A]">
-              REFERENCE NO: {applicationId}
+
+          {onClose && (
+            <div className="mt-8 pt-6 border-t border-gray-100 dark:border-gray-800 w-full flex justify-center">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-6 py-2.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 text-sm font-medium rounded-xl transition cursor-pointer"
+              >
+                Close Window
+              </button>
             </div>
           )}
-        </div>
-
-        {/* Official Printable Registration Slip */}
-        <div className="p-6 sm:p-8 space-y-6">
-          <div 
-            id="fmck-printable-slip" 
-            className="border-2 border-dashed border-slate-300 rounded-xl p-6 sm:p-8 bg-[#FBF9F5] text-slate-800"
-          >
-            <div className="text-center pb-4 border-b border-slate-200">
-              <div className="flex justify-center mb-2">
-                <img src={fmckLogo} alt="FMC Kumo Logo" className="w-14 h-14 object-contain" />
-              </div>
-              <span className="text-[11px] font-mono tracking-widest text-[#B8862F] uppercase block font-semibold">
-                Federal Medical Centre, Kumo, Gombe State
-              </span>
-              <h3 className="text-lg sm:text-xl font-bold text-[#0F3D3D] tracking-tight mt-0.5">
-                FMC KUMO STAFF MULTIPURPOSE COOPERATIVE SOCIETY LTD
-              </h3>
-              <p className="text-xs text-slate-500 font-mono mt-1">
-                Official Membership Enrollment & Payroll Checkoff Slip
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-4 text-sm border-b border-slate-200">
-              <div>
-                <span className="text-xs uppercase text-slate-400 font-mono block">Applicant Full Name</span>
-                <span className="font-semibold text-slate-900 text-base">{data.fullName}</span>
-              </div>
-              <div>
-                <span className="text-xs uppercase text-slate-400 font-mono block">Staff File / IPPIS Number</span>
-                <span className="font-mono font-bold text-[#0F3D3D] text-base">{data.ippisNumber}</span>
-              </div>
-              <div>
-                <span className="text-xs uppercase text-slate-400 font-mono block">Department</span>
-                <span className="font-medium text-slate-800">{data.department}</span>
-              </div>
-              <div>
-                <span className="text-xs uppercase text-slate-400 font-mono block">Unit & Cadre</span>
-                <span className="font-medium text-slate-800">{data.unit} • {data.cadre}</span>
-              </div>
-              <div>
-                <span className="text-xs uppercase text-slate-400 font-mono block">Official Email</span>
-                <span className="font-medium text-slate-800">{data.email}</span>
-              </div>
-              <div>
-                <span className="text-xs uppercase text-slate-400 font-mono block">Phone Number</span>
-                <span className="font-medium text-slate-800">{data.phone}</span>
-              </div>
-            </div>
-
-            {/* Financial Summary */}
-            <div className="py-4 border-b border-slate-200 space-y-2">
-              <span className="text-xs uppercase tracking-wider text-slate-500 font-mono font-semibold block mb-2">
-                Contribution Breakdown
-              </span>
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-600">Contribution:</span>
-                <span className="font-mono font-semibold text-slate-900">{formatNaira(data.contribution)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-600">Entrance Fee (deducted):</span>
-                <span className="font-mono font-medium text-amber-700">-₦2,000.00</span>
-              </div>
-              <div className="flex justify-between text-base font-bold text-[#0F3D3D] pt-2 border-t border-slate-300">
-                <span>Remaining Contribution:</span>
-                <span className="font-mono text-lg text-[#0F3D3D]">
-                  {formatNaira(Math.max(0, (parseFloat(data.contribution) || 0) - 2000))}
-                </span>
-              </div>
-              <div className="bg-amber-50/80 border border-amber-200/80 rounded-lg p-2.5 mt-2 text-xs text-amber-900 flex items-start gap-2">
-                <span className="font-bold text-amber-700">★ Note:</span>
-                <span>The <strong>₦2,000 entrance fee</strong> is deducted from your first contribution.</span>
-              </div>
-              {parseFloat(data.targetMonthlySaving) > 0 && (
-                <div className="flex justify-between text-sm pt-2 text-slate-600">
-                  <span>Target Monthly Saving:</span>
-                  <span className="font-mono font-semibold text-slate-900">{formatNaira(data.targetMonthlySaving)} / month</span>
-                </div>
-              )}
-            </div>
-
-            <div className="pt-4 text-xs text-slate-500 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-              <span>Date Generated: <strong>{submissionDate}</strong></span>
-              <span className="italic">Secretariat Desk: Suite 4, Admin Block, FMC Kumo</span>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex justify-center pt-2">
-            <button
-              type="button"
-              onClick={() => {
-                setSubmittedData(null);
-                setFormData(initialFormValues);
-                if (onClose) onClose();
-              }}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 border border-slate-300 hover:bg-slate-50 text-slate-700 text-sm font-medium rounded-xl transition cursor-pointer"
-            >
-              {onClose ? 'Close Modal' : 'Submit Another Application'}
-            </button>
-          </div>
         </div>
       </div>
     );

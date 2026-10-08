@@ -395,7 +395,6 @@ button,.btn,.tab,.q,.x,.burger{touch-action:manipulation;-webkit-tap-highlight-c
             <div><label for="appUnit">Unit / section <span class="r">*</span></label><input type="text" id="appUnit" placeholder="e.g. ICU, Special Care Baby Unit, Internal Audit" required oninput="validateFieldRealtime('appUnit')"><div class="err" id="err-appUnit">Unit or section is required.</div></div>
             <div><label for="appCadre">Cadre / designation <span class="r">*</span></label><input type="text" id="appCadre" placeholder="e.g. Senior Medical Officer, Nursing Officer II" required oninput="validateFieldRealtime('appCadre')"><div class="err" id="err-appCadre">Cadre or designation is required.</div></div>
           </div>
-          </div>
         </div>
         <div class="fs">
           <h3>2. Initial contribution</h3><div class="d">A ₦2,000 entrance fee is deducted from your first contribution.</div>
@@ -427,30 +426,10 @@ button,.btn,.tab,.q,.x,.burger{touch-action:manipulation;-webkit-tap-highlight-c
       </form>
     </div>
 
-    <div class="ok" id="printSlipView">
-      <div class="tick">✓</div>
-      <h3>Application submitted</h3>
-      <p class="m">Your FMCKSMCS membership application has been submitted. It will be reviewed and you will be contacted using the information provided.</p>
-      <span class="ref" id="slipRefNumber"></span>
-      <div class="rcpt">
-        <div class="h">FEDERAL MEDICAL CENTRE KUMO STAFF MPCS LTD<br><span style="font-weight:400;color:var(--muted)">Membership enrollment and payroll checkoff slip</span></div><hr>
-        <div>Applicant: <strong id="slipName"></strong></div>
-        <div>IPPIS / staff ID: <strong id="slipStaff"></strong></div>
-        <div>Department: <span id="slipDepartment"></span></div>
-        <div>Unit and cadre: <span id="slipUnitCadre"></span></div>
-        <div>Email: <span id="slipEmail"></span></div>
-        <div>Phone: <span id="slipPhone"></span></div><hr>
-        <div>Contribution: <strong id="slipContribution"></strong></div>
-        <div>Entrance fee (deducted): <strong id="slipEntranceFee">-₦2,000.00</strong></div>
-        <div>Remaining contribution: <strong id="slipRemainingContribution" style="color:var(--green)"></strong></div>
-        <div>Target monthly saving: <span id="slipTargetSaving"></span></div>
-        <div>Date: <span id="slipDate"></span></div>
-      </div>
-      <div style="text-align:center;margin-top:20px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
-        <button type="button" class="btn btn-primary" onclick="window.print()">Print enrollment slip</button>
-        <button type="button" class="btn btn-secondary" onclick="handleAnotherApplication()">Submit another application</button>
-        <button type="button" class="btn btn-secondary" onclick="closeModal('applyModal')">Close</button>
-      </div>
+    <div class="ok" id="printSlipView" style="padding:28px 12px;text-align:center">
+      <p style="font-size:1.05rem;font-weight:500;color:var(--black);line-height:1.6;margin:0 auto;max-width:520px">
+        Your membership application has been submitted successfully and is now pending review.
+      </p>
     </div>
   </div>
 </div>
@@ -695,16 +674,13 @@ async function handleApplySubmit(e){
       if(resp.status===404)resp=await send('/applications/apply');
       const data=await resp.json().catch(()=>({}));
       if(!resp.ok){alert(data.message||'An application with this IPPIS Number, email or phone already exists or could not be processed.');return}
-    }catch(err){console.warn('Backend sync failed, continuing to registration slip:',err)}
+    }catch(err){
+      alert('Network error: Unable to submit application. Please verify details and try again.');
+      return;
+    }
 
-    $('slipRefNumber').textContent='Reference no: '+ref;
-    $('slipName').textContent=fullName;$('slipStaff').textContent=ippis;$('slipDepartment').textContent=dept;
-    $('slipUnitCadre').textContent=unit+' • '+cadre;$('slipEmail').textContent=email;$('slipPhone').textContent=phone;
-    $('slipContribution').textContent=fmtNaira(contrib);$('slipEntranceFee').textContent='-₦2,000.00';
-    $('slipRemainingContribution').textContent=fmtNaira(remaining);
-    $('slipTargetSaving').textContent=target>0?fmtNaira(target)+' / month':'Not specified';
-    $('slipDate').textContent=date;
-    $('applicationFormContainer').style.display='none';$('printSlipView').style.display='block';
+    $('applicationFormContainer').style.display='none';
+    $('printSlipView').style.display='block';
     $('applyModal').querySelector('.modal').scrollTop=0;
   }finally{
     btn.disabled=false;btn.innerHTML='<span>Submit application</span>';
