@@ -75,8 +75,10 @@ const logGuarantorPsnValidationAttempt = async ({
 const getLoans = async (req, res) => {
   console.log('DEBUG: getLoans called with:', req.query);
   try {
-    const { page = 1, limit = 10, status, user_id, loan_type, search } = req.query;
-    const offset = (parseInt(page) - 1) * parseInt(limit);
+    const { page = 1, limit = 10, status, user_id, loan_type, search, month, year, all } = req.query;
+    const isAll = all === 'true' || limit === 'all';
+    const parsedLimit = isAll ? null : (parseInt(limit) || 10);
+    const offset = isAll ? null : (parseInt(page) - 1) * parsedLimit;
 
     const whereClause = {};
     
@@ -104,6 +106,57 @@ const getLoans = async (req, res) => {
     
     if (loan_type && loan_type !== 'all') whereClause.loan_type = loan_type;
 
+    // Filter by year and/or month (based on application_date or created_at)
+    if (year && year !== 'all') {
+      const parsedYear = parseInt(year);
+      if (!isNaN(parsedYear)) {
+        let start, end;
+        if (month && month !== 'all') {
+          const parsedMonth = parseInt(month);
+          if (!isNaN(parsedMonth) && parsedMonth >= 1 && parsedMonth <= 12) {
+            start = new Date(Date.UTC(parsedYear, parsedMonth - 1, 1, 0, 0, 0, 0));
+            end = new Date(Date.UTC(parsedYear, parsedMonth, 0, 23, 59, 59, 999));
+          }
+        }
+        if (!start) {
+          start = new Date(Date.UTC(parsedYear, 0, 1, 0, 0, 0, 0));
+          end = new Date(Date.UTC(parsedYear, 11, 31, 23, 59, 59, 999));
+        }
+
+        whereClause[Op.and] = whereClause[Op.and] || [];
+        whereClause[Op.and].push({
+          [Op.or]: [
+            { application_date: { [Op.between]: [start, end] } },
+            {
+              [Op.and]: [
+                { application_date: null },
+                { created_at: { [Op.between]: [start, end] } }
+              ]
+            }
+          ]
+        });
+      }
+    } else if (month && month !== 'all') {
+      const parsedMonth = parseInt(month);
+      if (!isNaN(parsedMonth) && parsedMonth >= 1 && parsedMonth <= 12) {
+        const currentYear = new Date().getFullYear();
+        const start = new Date(Date.UTC(currentYear, parsedMonth - 1, 1, 0, 0, 0, 0));
+        const end = new Date(Date.UTC(currentYear, parsedMonth, 0, 23, 59, 59, 999));
+        whereClause[Op.and] = whereClause[Op.and] || [];
+        whereClause[Op.and].push({
+          [Op.or]: [
+            { application_date: { [Op.between]: [start, end] } },
+            {
+              [Op.and]: [
+                { application_date: null },
+                { created_at: { [Op.between]: [start, end] } }
+              ]
+            }
+          ]
+        });
+      }
+    }
+
     // Search logic
     if (search) {
       const searchOp = sequelize.options.dialect === 'postgres' ? Op.iLike : Op.like;
@@ -128,12 +181,10 @@ const getLoans = async (req, res) => {
       whereClause[Op.or] = searchConditions;
     }
 
-    console.log(`🔍 [LoanController] Fetching loans with params:`, { page, limit, status, user_id, search, role: req.user.role });
+    console.log(`🔍 [LoanController] Fetching loans with params:`, { page, limit, status, user_id, search, month, year, all, role: req.user.role });
 
-    const { count, rows } = await Loan.findAndCountAll({
+    const findOptions = {
       where: whereClause,
-      limit: parseInt(limit),
-      offset: offset,
       order: [['application_date', 'DESC'], ['id', 'DESC']],
       include: [{
         model: User,
@@ -153,7 +204,14 @@ const getLoans = async (req, res) => {
         attributes: ['id']
       }],
       subQuery: false // Required for searching nested associations with limit
-    });
+    };
+
+    if (parsedLimit !== null) {
+      findOptions.limit = parsedLimit;
+      findOptions.offset = offset;
+    }
+
+    const { count, rows } = await Loan.findAndCountAll(findOptions);
 
     // Transform data for frontend
     const uiLoans = rows.map(loan => {
@@ -241,10 +299,10 @@ const getLoans = async (req, res) => {
       success: true,
       loans: uiLoans,
       pagination: {
-        pages: Math.ceil(count / parseInt(limit)),
-        page: parseInt(page),
+        pages: isAll ? 1 : Math.ceil(count / (parsedLimit || 1)),
+        page: isAll ? 1 : parseInt(page),
         total: count,
-        limit: parseInt(limit)
+        limit: isAll ? count : parsedLimit
       }
     });
   } catch (error) {
@@ -255,6 +313,169 @@ const getLoans = async (req, res) => {
         message: 'Server error retrieving loans', 
         error: error.message,
         stack: process.env.NODE_ENV === 'development' ? error.stack : undefined 
+    });
+  }
+};
+
+const exportLoans = async (req, res) => {
+  try {
+    const { status, user_id, loan_type, search, month, year, format = 'json' } = req.query;
+
+    const whereClause = {};
+
+    const canViewAllLoans = ['admin', 'super_admin', 'chairman', 'secretary', 'assistant_secretary', 'treasurer'].includes(req.user.role);
+    if (!canViewAllLoans) {
+      whereClause.user_id = req.user.id;
+    } else if (user_id) {
+      const parsedUserId = parseInt(user_id);
+      if (!isNaN(parsedUserId)) {
+        whereClause.user_id = parsedUserId;
+      }
+    }
+
+    if (status && status !== 'all') {
+      if (status === 'active') {
+        whereClause.status = { [Op.or]: ['active', 'disbursed'] };
+      } else {
+        whereClause.status = status;
+      }
+    }
+
+    if (loan_type && loan_type !== 'all') whereClause.loan_type = loan_type;
+
+    if (year && year !== 'all') {
+      const parsedYear = parseInt(year);
+      if (!isNaN(parsedYear)) {
+        let start, end;
+        if (month && month !== 'all') {
+          const parsedMonth = parseInt(month);
+          if (!isNaN(parsedMonth) && parsedMonth >= 1 && parsedMonth <= 12) {
+            start = new Date(Date.UTC(parsedYear, parsedMonth - 1, 1, 0, 0, 0, 0));
+            end = new Date(Date.UTC(parsedYear, parsedMonth, 0, 23, 59, 59, 999));
+          }
+        }
+        if (!start) {
+          start = new Date(Date.UTC(parsedYear, 0, 1, 0, 0, 0, 0));
+          end = new Date(Date.UTC(parsedYear, 11, 31, 23, 59, 59, 999));
+        }
+
+        whereClause[Op.and] = whereClause[Op.and] || [];
+        whereClause[Op.and].push({
+          [Op.or]: [
+            { application_date: { [Op.between]: [start, end] } },
+            {
+              [Op.and]: [
+                { application_date: null },
+                { created_at: { [Op.between]: [start, end] } }
+              ]
+            }
+          ]
+        });
+      }
+    } else if (month && month !== 'all') {
+      const parsedMonth = parseInt(month);
+      if (!isNaN(parsedMonth) && parsedMonth >= 1 && parsedMonth <= 12) {
+        const currentYear = new Date().getFullYear();
+        const start = new Date(Date.UTC(currentYear, parsedMonth - 1, 1, 0, 0, 0, 0));
+        const end = new Date(Date.UTC(currentYear, parsedMonth, 0, 23, 59, 59, 999));
+        whereClause[Op.and] = whereClause[Op.and] || [];
+        whereClause[Op.and].push({
+          [Op.or]: [
+            { application_date: { [Op.between]: [start, end] } },
+            {
+              [Op.and]: [
+                { application_date: null },
+                { created_at: { [Op.between]: [start, end] } }
+              ]
+            }
+          ]
+        });
+      }
+    }
+
+    if (search) {
+      const searchOp = sequelize.options.dialect === 'postgres' ? Op.iLike : Op.like;
+      const searchConditions = [
+        { '$user.membershipApplication.name$': { [searchOp]: `%${search}%` } },
+        { '$user.membershipApplication.psn$': { [searchOp]: `%${search}%` } },
+        { '$user.membershipApplication.email$': { [searchOp]: `%${search}%` } },
+        sequelize.where(
+          sequelize.cast(sequelize.col('Loan.id'), 'text'),
+          { [searchOp]: `%${search}%` }
+        )
+      ];
+      whereClause[Op.or] = searchConditions;
+    }
+
+    const loans = await Loan.findAll({
+      where: whereClause,
+      order: [['application_date', 'DESC'], ['id', 'DESC']],
+      include: [{
+        model: User,
+        as: 'user',
+        include: [{
+          model: MembershipApplication,
+          as: 'membershipApplication',
+          attributes: ['name', 'psn', 'email', 'phone']
+        }],
+        attributes: ['id', 'role']
+      }]
+    });
+
+    // Exactly requested columns:
+    // S/N, NAME, PSN, AMOUNT, MONTHLY REPAYMENT AMOUNT, TENURE
+    const formattedData = loans.map((loan, index) => {
+      const membership = loan.user?.membershipApplication || {};
+      const memberName = membership.name || loan.user?.name || 'Unknown';
+      const memberPsn = membership.psn || 'Unknown';
+      const amountVal = parseFloat(loan.amount_approved || loan.amount_requested || 0);
+      const tenureVal = parseInt(loan.repayment_period_months || 12);
+      let monthlyRepayment = loan.monthly_repayment ? parseFloat(loan.monthly_repayment) : 0;
+      if (!monthlyRepayment && tenureVal > 0 && amountVal > 0) {
+        monthlyRepayment = Math.round((amountVal / tenureVal) * 100) / 100;
+      }
+
+      return {
+        'S/N': index + 1,
+        'NAME': memberName,
+        'PSN': memberPsn,
+        'AMOUNT': amountVal,
+        'MONTHLY REPAYMENT AMOUNT': monthlyRepayment,
+        'TENURE': `${tenureVal} Months`
+      };
+    });
+
+    if (format === 'csv') {
+      const headers = ['S/N', 'NAME', 'PSN', 'AMOUNT', 'MONTHLY REPAYMENT AMOUNT', 'TENURE'];
+      const csvRows = [
+        headers.join(','),
+        ...formattedData.map(row => [
+          row['S/N'],
+          `"${String(row['NAME']).replace(/"/g, '""')}"`,
+          `"${String(row['PSN']).replace(/"/g, '""')}"`,
+          row['AMOUNT'],
+          row['MONTHLY REPAYMENT AMOUNT'],
+          `"${row['TENURE']}"`
+        ].join(','))
+      ];
+
+      const csvContent = csvRows.join('\n');
+      const filename = `loan_applications_report_${new Date().toISOString().split('T')[0]}.csv`;
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      return res.send(csvContent);
+    }
+
+    res.json({
+      success: true,
+      count: formattedData.length,
+      data: formattedData
+    });
+  } catch (error) {
+    console.error('❌ [LoanController] Error exporting loans:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to export loans'
     });
   }
 };
@@ -2791,5 +3012,6 @@ module.exports = {
   serveEducationalDocument,
   liquidateLoan,
   getLoanLiquidationReceipt,
-  getLoanEligibility
+  getLoanEligibility,
+  exportLoans
 };

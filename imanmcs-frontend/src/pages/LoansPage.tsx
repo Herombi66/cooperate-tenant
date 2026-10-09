@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import {
   CreditCard, Search, Filter, Download, Upload, PlusCircle,
-  DollarSign, Users, AlertCircle, CheckCircle, Clock, Loader
+  DollarSign, Users, AlertCircle, CheckCircle, Clock, Loader,
+  Calendar, FileSpreadsheet, X
 } from 'lucide-react';
 import api from '../services/api';
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
 import { useTenantTerminology } from '../utils/tenantTerminology';
+import { exportToExcel } from '../utils/excel';
 
 interface Loan {
   id: number;
@@ -30,12 +32,24 @@ interface Loan {
   guarantor_psn?: string | null;
 }
 
+const MONTH_NAMES = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
+];
+
 export const LoansPage: React.FC = () => {
   const { user } = useAuth();
   const { isFmck, idLabel, idPlaceholder, loanTypes, formatLoanType } = useTenantTerminology();
   const [showAddModal, setShowAddModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [exportYear, setExportYear] = useState<string>('all');
+  const [exportMonth, setExportMonth] = useState<string>('all');
+  const [exportStatus, setExportStatus] = useState<string>('all');
+  const [exportType, setExportType] = useState<string>('all');
+  const [exportFormat, setExportFormat] = useState<'xlsx' | 'csv'>('xlsx');
+  const [exportLoading, setExportLoading] = useState(false);
   const [selectedLoan, setSelectedLoan] = useState<Loan | null>(null);
   const [repayments, setRepayments] = useState<any[]>([]);
   const [repaymentsLoading, setRepaymentsLoading] = useState(false);
@@ -84,6 +98,85 @@ export const LoansPage: React.FC = () => {
       toast.error('Failed to load loans');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleExportReport = async () => {
+    try {
+      setExportLoading(true);
+      const params: any = {
+        all: 'true',
+        limit: '10000',
+      };
+      if (exportYear !== 'all') params.year = exportYear;
+      if (exportMonth !== 'all') params.month = exportMonth;
+      if (exportStatus !== 'all') params.status = exportStatus;
+      if (exportType !== 'all') params.loan_type = exportType;
+
+      const res = await api.get('/loans', { params });
+      const rawLoans = res.data.loans || [];
+
+      if (rawLoans.length === 0) {
+        toast.error('No loan applications found for the selected criteria');
+        return;
+      }
+
+      // Format exactly with columns: S/N, NAME, PSN, AMOUNT, MONTHLY REPAYMENT AMOUNT, TENURE
+      const exportRows = rawLoans.map((loan: any, index: number) => {
+        const amountVal = Number(loan.amount_approved || loan.amount_requested || loan.amount || 0);
+        const tenureVal = Number(loan.repayment_period_months || loan.repaymentPeriod || 12);
+        let monthlyVal = Number(loan.monthly_repayment || loan.monthlyRepayment || 0);
+        if (!monthlyVal && tenureVal > 0 && amountVal > 0) {
+          monthlyVal = Math.round((amountVal / tenureVal) * 100) / 100;
+        }
+
+        return {
+          'S/N': index + 1,
+          'NAME': loan.memberName || loan.user?.membershipApplication?.name || loan.user?.name || 'Unknown',
+          'PSN': loan.memberPsn || loan.user?.membershipApplication?.psn || 'N/A',
+          'AMOUNT': amountVal,
+          'MONTHLY REPAYMENT AMOUNT': monthlyVal,
+          'TENURE': `${tenureVal} Months`
+        };
+      });
+
+      const monthLabel = exportMonth !== 'all' ? `_${MONTH_NAMES[Number(exportMonth) - 1]}` : '';
+      const yearLabel = exportYear !== 'all' ? `_${exportYear}` : '_all_years';
+      const filename = `loans_report${monthLabel}${yearLabel}_${new Date().toISOString().split('T')[0]}`;
+
+      if (exportFormat === 'xlsx') {
+        exportToExcel(exportRows, filename, 'Loan Applications');
+      } else {
+        const headers = ['S/N', 'NAME', 'PSN', 'AMOUNT', 'MONTHLY REPAYMENT AMOUNT', 'TENURE'];
+        const csvLines = [
+          headers.join(','),
+          ...exportRows.map(row => [
+            row['S/N'],
+            `"${String(row['NAME']).replace(/"/g, '""')}"`,
+            `"${String(row['PSN']).replace(/"/g, '""')}"`,
+            row['AMOUNT'],
+            row['MONTHLY REPAYMENT AMOUNT'],
+            `"${row['TENURE']}"`
+          ].join(','))
+        ];
+        const blob = new Blob([csvLines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${filename}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      }
+
+      toast.success(`Exported ${exportRows.length} loan applications successfully!`);
+      setShowExportModal(false);
+    } catch (err: any) {
+      console.error('Failed to export loans report:', err);
+      toast.error(err.response?.data?.message || 'Failed to export loan applications report');
+    } finally {
+      setExportLoading(false);
     }
   };
 
@@ -302,34 +395,8 @@ export const LoansPage: React.FC = () => {
             Import Data
           </button>
           <button
-            onClick={() => {
-              // Create CSV content
-              const csvContent = [
-                ['PSN', 'Member Name', 'Type', 'Amount', 'Purpose', 'Status', 'Application Date', 'Remaining Balance'].join(','),
-                ...loans.map(loan => [
-                  loan.memberPsn,
-                  `"${loan.memberName}"`,
-                  loan.type,
-                  loan.amount,
-                  `"${loan.purpose}"`,
-                  loan.status,
-                  loan.applicationDate,
-                  loan.remainingBalance
-                ].join(','))
-              ].join('\n');
-
-              // Create and download file
-              const blob = new Blob([csvContent], { type: 'text/csv' });
-              const url = window.URL.createObjectURL(blob);
-              const a = document.createElement('a');
-              a.href = url;
-              a.download = `loans_export_${new Date().toISOString().split('T')[0]}.csv`;
-              document.body.appendChild(a);
-              a.click();
-              document.body.removeChild(a);
-              window.URL.revokeObjectURL(url);
-            }}
-            className="flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+            onClick={() => setShowExportModal(true)}
+            className="flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 transition shadow-xs"
           >
             <Download className="w-4 h-4 mr-2" />
             Export Report
@@ -1025,6 +1092,188 @@ export const LoansPage: React.FC = () => {
                 className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
               >
                 Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Export Report Modal */}
+      {showExportModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between pb-4 border-b border-gray-100">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center font-bold">
+                  <Download className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900">Export Loan Report</h3>
+                  <p className="text-xs text-gray-500">Export loan applications by month, year, and status</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowExportModal(false)}
+                className="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="mt-5 space-y-4">
+              {/* Year & Month Selection */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    Filter by Year
+                  </label>
+                  <select
+                    value={exportYear}
+                    onChange={(e) => setExportYear(e.target.value)}
+                    className="w-full text-xs border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-teal-500 focus:outline-none bg-white"
+                  >
+                    <option value="all">All Years (All Time)</option>
+                    {[2027, 2026, 2025, 2024, 2023, 2022, 2021, 2020].map((yr) => (
+                      <option key={yr} value={yr.toString()}>{yr}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    Filter by Month
+                  </label>
+                  <select
+                    value={exportMonth}
+                    onChange={(e) => setExportMonth(e.target.value)}
+                    className="w-full text-xs border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-teal-500 focus:outline-none bg-white"
+                  >
+                    <option value="all">All Months</option>
+                    {MONTH_NAMES.map((name, idx) => (
+                      <option key={idx + 1} value={(idx + 1).toString()}>
+                        {name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Status & Loan Type */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    Application Status
+                  </label>
+                  <select
+                    value={exportStatus}
+                    onChange={(e) => setExportStatus(e.target.value)}
+                    className="w-full text-xs border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-teal-500 focus:outline-none bg-white"
+                  >
+                    <option value="all">All Statuses</option>
+                    <option value="pending">Pending</option>
+                    <option value="waiting_disbursement">Waiting Disbursement</option>
+                    <option value="approved">Approved</option>
+                    <option value="active">Active / Disbursed</option>
+                    <option value="completed">Completed</option>
+                    <option value="rejected">Rejected</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    Loan Type
+                  </label>
+                  <select
+                    value={exportType}
+                    onChange={(e) => setExportType(e.target.value)}
+                    className="w-full text-xs border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-teal-500 focus:outline-none bg-white"
+                  >
+                    <option value="all">All Types</option>
+                    {loanTypes.map((t) => (
+                      <option key={t} value={t}>{formatLoanType(t)}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Export Format */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                  Export Format
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setExportFormat('xlsx')}
+                    className={`flex items-center justify-center gap-2 p-2.5 rounded-xl border text-xs font-medium transition ${
+                      exportFormat === 'xlsx'
+                        ? 'border-emerald-500 bg-emerald-50/50 text-emerald-800 ring-2 ring-emerald-500/20'
+                        : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+                    Excel Spreadsheet (.xlsx)
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setExportFormat('csv')}
+                    className={`flex items-center justify-center gap-2 p-2.5 rounded-xl border text-xs font-medium transition ${
+                      exportFormat === 'csv'
+                        ? 'border-teal-500 bg-teal-50/50 text-teal-800 ring-2 ring-teal-500/20'
+                        : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    <Download className="w-4 h-4 text-teal-600" />
+                    CSV File (.csv)
+                  </button>
+                </div>
+              </div>
+
+              {/* Included Columns Preview Banner */}
+              <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 text-xs text-gray-600 space-y-1">
+                <div className="font-semibold text-gray-800 flex items-center gap-1.5">
+                  <CheckCircle className="w-3.5 h-3.5 text-emerald-600" />
+                  Exported Information Columns:
+                </div>
+                <div className="font-mono text-[11px] text-gray-700 flex flex-wrap gap-1.5 pt-1">
+                  <span className="bg-white border border-gray-200 px-1.5 py-0.5 rounded font-semibold text-gray-900">S/N</span>
+                  <span className="bg-white border border-gray-200 px-1.5 py-0.5 rounded font-semibold text-gray-900">NAME</span>
+                  <span className="bg-white border border-gray-200 px-1.5 py-0.5 rounded font-semibold text-gray-900">PSN</span>
+                  <span className="bg-white border border-gray-200 px-1.5 py-0.5 rounded font-semibold text-gray-900">AMOUNT</span>
+                  <span className="bg-white border border-gray-200 px-1.5 py-0.5 rounded font-semibold text-gray-900">MONTHLY REPAYMENT AMOUNT</span>
+                  <span className="bg-white border border-gray-200 px-1.5 py-0.5 rounded font-semibold text-gray-900">TENURE</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-gray-100">
+              <button
+                type="button"
+                onClick={() => setShowExportModal(false)}
+                disabled={exportLoading}
+                className="px-4 py-2 border border-gray-300 rounded-lg text-xs font-medium text-gray-700 hover:bg-gray-50 transition"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleExportReport}
+                disabled={exportLoading}
+                className="inline-flex items-center px-4 py-2 bg-teal-700 hover:bg-teal-800 text-white rounded-lg text-xs font-semibold transition shadow-xs disabled:opacity-50"
+              >
+                {exportLoading ? (
+                  <>
+                    <Loader className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                    Exporting...
+                  </>
+                ) : (
+                  <>
+                    <Download className="w-3.5 h-3.5 mr-1.5" />
+                    Download Export Report
+                  </>
+                )}
               </button>
             </div>
           </div>

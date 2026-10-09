@@ -9,7 +9,7 @@ const {
   submitAgreement, getAgreements, getAllAgreements,
   bulkImportLoans, bulkUpdateLoans,
   getPayslipDocuments, servePayslip, serveEducationalDocument,
-  getLoanEligibility
+  getLoanEligibility, exportLoans
 } = require('../../../controllers/loanController');
 
 // --- Modular imports ---
@@ -61,6 +61,9 @@ const payslipUpload = multer({
 
 // GET /loans - Get all loans
 router.get('/', authenticateToken, getLoans);
+
+// GET /loans/export - Export loans report by month/year with custom columns
+router.get('/export', authenticateToken, exportLoans);
 
 // POST /loans/bulk-import - Bulk import loans (admin)
 router.post('/bulk-import', authenticateToken, bulkUpload.single('file'), bulkImportLoans);
