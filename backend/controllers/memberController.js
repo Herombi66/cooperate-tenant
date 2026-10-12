@@ -128,9 +128,62 @@ const getMembers = async (req, res) => {
       };
     }));
 
+    // Calculate overall stats across ALL members (not just the current page)
+    const allValidUsers = await User.findAll({
+      where: {
+        deleted_at: null,
+        role: { [Op.ne]: 'super_admin' }
+      },
+      include: [{
+        model: require('../models/MembershipApplication'),
+        as: 'membershipApplication',
+        required: true,
+        where: {
+          email: { [Op.ne]: 'candsngltd@gmail.com' }
+        },
+        attributes: ['id']
+      }],
+      attributes: ['id', 'status']
+    });
+
+    const allMemberIds = allValidUsers.map(u => u.id);
+    const overallTotalMembers = allValidUsers.length;
+    const overallActiveMembers = allValidUsers.filter(u => u.status === 'active').length;
+
+    let overallTotalContributions = 0;
+    let overallMembersWithLoans = 0;
+
+    if (allMemberIds.length > 0) {
+      const Contribution = require('../models/Contribution');
+      const totalContribSum = await Contribution.sum('total_amount', {
+        where: {
+          user_id: { [Op.in]: allMemberIds },
+          status: 'approved'
+        }
+      });
+      overallTotalContributions = parseFloat(totalContribSum || 0);
+
+      const Loan = require('../models/Loan');
+      const activeLoanUsers = await Loan.findAll({
+        where: {
+          user_id: { [Op.in]: allMemberIds },
+          status: 'active'
+        },
+        attributes: ['user_id'],
+        group: ['user_id']
+      });
+      overallMembersWithLoans = activeLoanUsers.length;
+    }
+
     res.json({
       success: true,
       members: members,
+      stats: {
+        totalMembers: overallTotalMembers,
+        activeMembers: overallActiveMembers,
+        totalContributions: overallTotalContributions,
+        membersWithLoans: overallMembersWithLoans
+      },
       pagination: {
         total: count,
         page: parseInt(page),

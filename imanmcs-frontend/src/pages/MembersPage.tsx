@@ -82,6 +82,12 @@ export const MembersPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [overallStats, setOverallStats] = useState<{
+    totalMembers: number;
+    activeMembers: number;
+    totalContributions: number;
+    membersWithLoans: number;
+  } | null>(null);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -103,6 +109,16 @@ export const MembersPage: React.FC = () => {
       );
       setMembers(visibleMembers);
       setTotalPages(response.data.pagination.pages);
+      if (response.data.stats) {
+        setOverallStats(response.data.stats);
+      } else if (response.data.pagination?.total !== undefined) {
+        setOverallStats({
+          totalMembers: response.data.pagination.total,
+          activeMembers: visibleMembers.filter((m: Member) => m.status === 'active').length,
+          totalContributions: visibleMembers.reduce((sum: number, member: Member) => sum + (member.totalContributions || 0), 0),
+          membersWithLoans: visibleMembers.filter((m: Member) => (m.activeLoans || 0) > 0).length
+        });
+      }
     } catch (error) {
       console.error('Error fetching members:', error);
       toast.error('Failed to load members');
@@ -277,10 +293,10 @@ export const MembersPage: React.FC = () => {
 
   const filteredMembers = members; // API already handles filtering
 
-  const totalMembers = members.length;
-  const activeMembers = members.filter(m => m.status === 'active').length;
-  const totalContributions = members.reduce((sum, member) => sum + (member.totalContributions || 0), 0);
-  const membersWithLoans = members.filter(m => (m.activeLoans || 0) > 0).length;
+  const totalMembers = overallStats ? overallStats.totalMembers : members.length;
+  const activeMembers = overallStats ? overallStats.activeMembers : members.filter(m => m.status === 'active').length;
+  const totalContributions = overallStats ? overallStats.totalContributions : members.reduce((sum, member) => sum + (member.totalContributions || 0), 0);
+  const membersWithLoans = overallStats ? overallStats.membersWithLoans : members.filter(m => (m.activeLoans || 0) > 0).length;
 
   // Calculate stats from API response if available
   const stats = {

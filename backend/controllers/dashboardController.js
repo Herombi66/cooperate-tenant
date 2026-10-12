@@ -58,8 +58,16 @@ const checkWhatsappGroupInviteHealth = async (inviteUrl) => {
 
 // Helper to calculate system-wide stats (for Admin, Chairman, Treasurer)
 const calculateSystemStats = async () => {
-    // Get total active members (excluding super admin accounts)
-    const totalMembers = await User.count({ where: { status: 'active', role: { [Op.ne]: 'super_admin' }, deleted_at: null } });
+    // Get total members (excluding super admin and ghost accounts)
+    const totalMembers = await User.count({
+      where: { role: { [Op.ne]: 'super_admin' }, deleted_at: null },
+      include: [{
+        model: MembershipApplication,
+        as: 'membershipApplication',
+        required: true,
+        where: { email: { [Op.ne]: 'candsngltd@gmail.com' } }
+      }]
+    });
 
     // Get active membership applications (excluding ghost accounts)
     const activeApplications = await MembershipApplication.count({ where: { status: 'pending', email: { [Op.ne]: 'candsngltd@gmail.com' } } });
