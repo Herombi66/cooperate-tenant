@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import { RefreshCw, CheckCircle, XCircle, DollarSign } from 'lucide-react';
+import { RefreshCw, CheckCircle, XCircle } from 'lucide-react';
+import { NairaSign } from '../components/Common/NairaSign';
 import api from '../services/api';
 import toast from 'react-hot-toast';
 import { useTenantTerminology } from '../utils/tenantTerminology';
@@ -181,7 +182,7 @@ export const WithdrawalsAdminPage: React.FC = () => {
                             disabled={loading}
                             title="Disburse"
                           >
-                            <DollarSign className="w-4 h-4 mr-1" />
+                            <NairaSign className="w-4 h-4 mr-1" />
                             Disburse
                           </button>
                         )}

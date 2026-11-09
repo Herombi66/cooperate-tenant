@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
-  DollarSign, CreditCard, TrendingUp, Calendar,
+  CreditCard, TrendingUp, Calendar,
   AlertTriangle, CheckCircle, Clock, Target, User, AlertCircle,
   PiggyBank, Banknote, Trophy, Receipt, Eye, Heart, Plus, Info, ChevronDown, ChevronRight, MessageCircle, ExternalLink,
   FileText, Download
 } from 'lucide-react';
+import { NairaSign } from '../components/Common/NairaSign';
 import { useAuth } from '../contexts/AuthContext';
 import { DashboardService } from '../services/dashboardService';
 import { settingsService, BylawInfo } from '../services/settingsService';
@@ -578,7 +579,7 @@ export const MemberDashboard: React.FC = () => {
         {/* Recent Contributions Activity */}
         <div className="bg-card text-card-foreground border border-border p-6 rounded-xl shadow-sm">
           <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
-            <DollarSign className="w-5 h-5 mr-2 text-primary-600 dark:text-primary-400" />
+            <NairaSign className="w-5 h-5 mr-2 text-primary-600 dark:text-primary-400" />
             CONTRIBUTIONS
           </h3>
           <div className="space-y-3">
@@ -586,7 +587,7 @@ export const MemberDashboard: React.FC = () => {
               <div key={contribution.id} className="flex items-center justify-between p-3 bg-muted/40 dark:bg-muted/20 rounded-lg border border-border">
                 <div className="flex items-center">
                   <div className="w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-950/60 flex items-center justify-center mr-3">
-                    <DollarSign className="w-4 h-4 text-primary-700 dark:text-primary-300" />
+                    <NairaSign className="w-4 h-4 text-primary-700 dark:text-primary-300" />
                   </div>
                   <div>
                     <p className="text-sm font-medium text-foreground capitalize">

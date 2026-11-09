@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Users, DollarSign, TrendingUp, FileText, Plus, Download, Upload, Receipt } from 'lucide-react';
+import { Users, TrendingUp, FileText, Plus, Download, Upload, Receipt } from 'lucide-react';
+import { NairaSign } from '../Common/NairaSign';
 import { DataTable } from '../Common/DataTable';
 import { ContributionForm } from '../Forms/ContributionForm';
 import { BulkContributionUpload } from '../Forms/BulkContributionUpload';
@@ -108,7 +109,7 @@ export const TreasurerDashboard: React.FC = () => {
         <StatCard
           title="Total Savings"
           value={`₦${stats.totalSavings.toLocaleString()}`}
-          icon={DollarSign}
+          icon={NairaSign}
           color="bg-green-500"
           change={12}
         />
@@ -624,7 +625,7 @@ const ExpensesTab = ({ onShowExpenseForm }: { onShowExpenseForm: (show: boolean)
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center">
             <div className="p-3 rounded-full bg-green-100">
-              <DollarSign className="w-6 h-6 text-green-600" />
+              <NairaSign className="w-6 h-6 text-green-600" />
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">This Month</p>

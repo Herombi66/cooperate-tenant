@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { X, Search, DollarSign } from 'lucide-react';
+import { X, Search } from 'lucide-react';
+import { NairaSign } from '../Common/NairaSign';
 import toast from 'react-hot-toast';
 import api from '../../services/api';
 import { useTenantTerminology } from '../../utils/tenantTerminology';
@@ -176,7 +177,7 @@ export const ContributionForm: React.FC<ContributionFormProps> = ({ onClose }) =
           {/* Contribution Amounts */}
           <div className="space-y-4">
             <h3 className="text-lg font-medium text-gray-900 flex items-center">
-              <DollarSign className="w-5 h-5 mr-2 text-primary-500" />
+              <NairaSign className="w-5 h-5 mr-2 text-primary-500" />
               Contribution Amounts
             </h3>
             

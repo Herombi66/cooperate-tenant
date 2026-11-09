@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Users, User, DollarSign, Calendar, MessageCircle, Check, X, Eye } from 'lucide-react';
+import { Users, User, Calendar, MessageCircle, Check, X, Eye } from 'lucide-react';
+import { NairaSign } from '../components/Common/NairaSign';
 import toast from 'react-hot-toast';
 import { LayyahService } from '../services/layyahService';
 import { LayyahApplication } from '../types';
@@ -194,7 +195,7 @@ export const MyLayyahGroups: React.FC = () => {
                 {/* Price Range */}
                 <div className="mb-4">
                   <div className="flex items-center space-x-2 text-sm text-gray-600 mb-1">
-                    <DollarSign className="h-4 w-4" />
+                    <NairaSign className="h-4 w-4" />
                     <span>Price Range</span>
                   </div>
                   <div className="font-medium text-green-600">

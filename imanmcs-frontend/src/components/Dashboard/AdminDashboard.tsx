@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Users, DollarSign, CreditCard, TrendingUp, AlertCircle, CheckCircle,
+  Users, CreditCard, TrendingUp, AlertCircle, CheckCircle,
   FileText, Settings, Upload, Download, PlusCircle, Receipt,
   BarChart3, Calculator, UserPlus, FileSpreadsheet, Heart, Loader,
   Activity, Eye, Filter, RefreshCw, ChevronLeft, ChevronRight, Shield
 } from 'lucide-react';
+import { NairaSign } from '../Common/NairaSign';
 import { StatsCard } from '../UI/StatsCard';
 import { RecentActivity } from '../UI/RecentActivity';
 import { DashboardService, DashboardStats, ActivityLog, ActivityLogsResponse, ExpenseData } from '../../services/dashboardService';
@@ -260,7 +261,7 @@ export const AdminDashboard: React.FC = () => {
             <StatsCard
               title="Total Contributions"
               value={`₦${(currentStats.totalContributions / 1000000).toFixed(1)}M`}
-              icon={isFmck ? undefined : DollarSign}
+              icon={isFmck ? undefined : NairaSign}
               color="green"
               trend={{ value: 8.5, isPositive: true }}
               description="Cumulative savings & funds"
@@ -824,7 +825,7 @@ export const AdminDashboard: React.FC = () => {
               onClick={() => navigate('/reports')}
               className="p-4 border border-gray-200 dark:border-border rounded-lg hover:bg-gray-50 dark:hover:bg-white/5 text-left transition-colors"
             >
-              <DollarSign className="w-6 h-6 text-primary-600 dark:text-primary-400 mb-2" />
+              <NairaSign className="w-6 h-6 text-primary-600 dark:text-primary-400 mb-2" />
               <div className="font-medium text-foreground">Financial Reports</div>
               <div className="text-sm text-muted-foreground">Contributions, loans, profits</div>
             </button>
@@ -865,7 +866,7 @@ export const AdminDashboard: React.FC = () => {
               onClick={() => navigate('/settings')}
               className="p-4 border border-gray-200 dark:border-border rounded-lg hover:bg-gray-50 dark:hover:bg-white/5 text-left transition-colors"
             >
-              <DollarSign className="w-6 h-6 text-primary-600 dark:text-primary-400 mb-2" />
+              <NairaSign className="w-6 h-6 text-primary-600 dark:text-primary-400 mb-2" />
               <div className="font-medium text-foreground">Contribution Settings</div>
               <div className="text-sm text-muted-foreground">Minimum amounts and ratios</div>
             </button>

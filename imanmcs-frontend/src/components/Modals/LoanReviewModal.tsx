@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { X, DollarSign, Calendar, User, FileText, Check, XIcon } from 'lucide-react';
+import { X, Calendar, User, FileText, Check, XIcon } from 'lucide-react';
+import { NairaSign } from '../Common/NairaSign';
 import toast from 'react-hot-toast';
 import api from '../../services/api';
 import { useTenantTerminology } from '../../utils/tenantTerminology';
@@ -102,7 +103,7 @@ export const LoanReviewModal: React.FC<LoanReviewModalProps> = ({ loan, onClose 
           {/* Loan Details */}
           <div className="space-y-4">
             <h3 className="text-lg font-medium text-gray-900 flex items-center">
-              <DollarSign className="w-5 h-5 mr-2 text-primary-500" />
+              <NairaSign className="w-5 h-5 mr-2 text-primary-500" />
               Loan Details
             </h3>
             

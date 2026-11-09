@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   ShieldCheck, AlertTriangle, CheckCircle, Clock,
-  DollarSign, FileText, ArrowLeft, Printer, Lock, Info, Building2
+  FileText, ArrowLeft, Printer, Lock, Info, Building2
 } from 'lucide-react';
 import receiptTemplateService, { VerificationResult } from '../services/receiptTemplateService';
 

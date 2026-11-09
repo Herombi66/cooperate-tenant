@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Receipt, DollarSign, Calendar, Filter, TrendingUp, Eye, Shield } from 'lucide-react';
+import { Receipt, Calendar, Filter, TrendingUp, Eye, Shield } from 'lucide-react';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
 import { InvestmentProfitsModal } from '../../components/auditor/InvestmentProfitsModal';

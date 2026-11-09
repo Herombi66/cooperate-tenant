@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   Search, Filter, Eye, CheckCircle, XCircle, Clock,
-  User, DollarSign, Calendar, FileText, Download, CreditCard, Shield
+  User, Calendar, FileText, Download, CreditCard, Shield
 } from 'lucide-react';
+import { NairaSign } from '../components/Common/NairaSign';
 import { useTenantTerminology } from '../utils/tenantTerminology';
 
 interface LoanApproval {
@@ -181,7 +182,7 @@ export const LoanApprovalsPage: React.FC = () => {
       case 'approved_chairman': return <CheckCircle className="w-4 h-4" />;
       case 'rejected_chairman': return <XCircle className="w-4 h-4" />;
       case 'pending_chairman': return <Clock className="w-4 h-4" />;
-      case 'disbursed': return <DollarSign className="w-4 h-4" />;
+      case 'disbursed': return <NairaSign className="w-4 h-4" />;
       default: return <FileText className="w-4 h-4" />;
     }
   };
@@ -260,7 +261,7 @@ export const LoanApprovalsPage: React.FC = () => {
         
         <div className="bg-white p-6 rounded-lg shadow">
           <div className="flex items-center">
-            <DollarSign className="w-8 h-8 text-purple-500" />
+            <NairaSign className="w-8 h-8 text-purple-500" />
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Approved</p>
               <p className="text-2xl font-bold text-gray-900">₦{totalApprovedAmount.toLocaleString()}</p>

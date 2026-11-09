@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { Eye, CheckCircle, XCircle, Clock, AlertCircle, DollarSign, Calendar, FileText, FileCheck } from 'lucide-react';
+import { Eye, CheckCircle, XCircle, Clock, AlertCircle, Calendar, FileText, FileCheck } from 'lucide-react';
+import { NairaSign } from '../components/Common/NairaSign';
 import api from '../services/api';
 import toast from 'react-hot-toast';
 import AgentAgreementModal from '../components/AgentAgreementModal';
@@ -313,7 +314,7 @@ export const MyLoans: React.FC = () => {
           {repayments.length === 0 ? (
             <div className="text-center py-12">
               <div className="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                <DollarSign className="w-12 h-12 text-gray-400" />
+                <NairaSign className="w-12 h-12 text-gray-400" />
               </div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">No Repayment History</h3>
               <p className="text-gray-500">You haven't made any loan repayments yet.</p>
@@ -394,7 +395,7 @@ export const MyLoans: React.FC = () => {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center">
                         <div className="flex-shrink-0">
-                          <DollarSign className="h-8 w-8 text-green-500" />
+                          <NairaSign className="h-8 w-8 text-green-500" />
                         </div>
                         <div className="ml-4">
                           <div className="flex items-center space-x-2">

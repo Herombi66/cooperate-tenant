@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { TrendingUp, Search, DollarSign, Calendar } from 'lucide-react';
+import { TrendingUp, Search, Calendar } from 'lucide-react';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
 

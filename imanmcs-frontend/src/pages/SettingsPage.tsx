@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import {
-  Settings, Save, RefreshCw, DollarSign,
+  Settings, Save, RefreshCw,
   Percent, CreditCard, Loader, FileText,
   Building2, Image as ImageIcon, MapPin, Mail, Phone,
   Globe, Shield, Calendar, Layers, Bot, Upload,
@@ -13,6 +13,7 @@ import {
 import { Settings as SystemSettings, EnabledModules, AISettings, BylawInfo } from '../services/settingsService';
 import settingsService from '../services/settingsService';
 import api from '../services/api';
+import { NairaSign } from '../components/Common/NairaSign';
 import { useAuth } from '../contexts/AuthContext';
 import { useTenant } from '../contexts/TenantContext';
 import { setGlobalCurrencySymbol } from '../utils/safe';
@@ -615,7 +616,7 @@ export const SettingsPage: React.FC = () => {
   const tabs = [
     { id: 'general', name: 'General & Identity', icon: Building2, count: '1-5' },
     { id: 'fees', name: 'Fees', icon: CreditCard, count: '10-11' },
-    { id: 'contributions', name: 'Contribution Rules', icon: DollarSign, count: '6' },
+    { id: 'contributions', name: 'Contribution Rules', icon: NairaSign, count: '6' },
     { id: 'loans', name: 'Loan Rules', icon: CreditCard, count: '7' },
     { id: 'investments', name: 'Investment Rules', icon: TrendingUp, count: '8' },
     { id: 'profit', name: 'Profit Distribution', icon: Percent, count: '9' },
@@ -1046,7 +1047,7 @@ export const SettingsPage: React.FC = () => {
                 <div className="flex items-center justify-between mb-3">
                   <div>
                     <h3 className="text-base font-semibold text-gray-900 flex items-center gap-2">
-                      <DollarSign className="w-5 h-5 text-emerald-600" />
+                      <NairaSign className="w-5 h-5 text-emerald-600" />
                       Currency Settings
                     </h3>
                     <p className="text-xs text-gray-500">Configure default accounting and member transaction currency</p>
@@ -1231,7 +1232,7 @@ export const SettingsPage: React.FC = () => {
           <div className="space-y-8">
             <div>
               <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                <DollarSign className="w-5 h-5 text-emerald-600" />
+                <NairaSign className="w-5 h-5 text-emerald-600" />
                 Contribution Rules
               </h2>
               <p className="text-sm text-gray-500">Rules governing regular monthly savings, target savings, voluntary deposits, and withdrawals</p>
@@ -2545,12 +2546,12 @@ export const SettingsPage: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {[
                 { key: 'loans' as keyof EnabledModules, title: 'Loans Module', desc: 'Loan applications, multi-stage approval workflows, and amortization schedules.', icon: CreditCard, color: 'text-indigo-600 bg-indigo-50' },
-                { key: 'contributions' as keyof EnabledModules, title: 'Contributions Module', desc: 'Monthly member savings, target savings goals, and deposits tracking.', icon: DollarSign, color: 'text-emerald-600 bg-emerald-50' },
+                { key: 'contributions' as keyof EnabledModules, title: 'Contributions Module', desc: 'Monthly member savings, target savings goals, and deposits tracking.', icon: NairaSign, color: 'text-emerald-600 bg-emerald-50' },
                 { key: 'investments' as keyof EnabledModules, title: 'Investments Module', desc: 'Fixed-yield cooperative investments, capital tracking, and ROI portfolios.', icon: TrendingUp, color: 'text-purple-600 bg-purple-50' },
                 { key: 'layyah' as keyof EnabledModules, title: 'Layyah Livestock Booking', desc: 'Livestock purchase pooling, member shares, and sacrificial distribution.', icon: Sparkles, color: 'text-rose-600 bg-rose-50' },
                 { key: 'expenses' as keyof EnabledModules, title: 'Expenses & Vendor Management', desc: 'Operational expenditures, budget tracking, and vendor disbursements.', icon: CreditCard, color: 'text-amber-600 bg-amber-50' },
                 { key: 'profit_sharing' as keyof EnabledModules, title: 'Profit Sharing Engine', desc: 'Automated periodic dividend calculation and distribution to member wallets.', icon: Percent, color: 'text-teal-600 bg-teal-50' },
-                { key: 'withdrawals' as keyof EnabledModules, title: 'Member Withdrawals', desc: 'Self-service withdrawal requests, policy checks, and treasury payouts.', icon: DollarSign, color: 'text-blue-600 bg-blue-50' },
+                { key: 'withdrawals' as keyof EnabledModules, title: 'Member Withdrawals', desc: 'Self-service withdrawal requests, policy checks, and treasury payouts.', icon: NairaSign, color: 'text-blue-600 bg-blue-50' },
                 { key: 'receipt_designer' as keyof EnabledModules, title: 'Receipt Designer', desc: 'Custom receipt templates, typography, barcodes, and printable vouchers.', icon: FileText, color: 'text-orange-600 bg-orange-50' },
                 { key: 'document_designer' as keyof EnabledModules, title: 'Document & Contract Designer', desc: 'Automated generation of loan contracts, agreements, and certificates.', icon: FileText, color: 'text-sky-600 bg-sky-50' },
                 { key: 'member_portal' as keyof EnabledModules, title: 'Member Self-Service Portal', desc: 'Dedicated mobile & web dashboard for members to view passbooks & apply online.', icon: Building2, color: 'text-violet-600 bg-violet-50' },

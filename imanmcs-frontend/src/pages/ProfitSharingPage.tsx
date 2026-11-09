@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import {
   TrendingUp,
   Calculator,
-  DollarSign,
   Users,
   Calendar,
   Download,
@@ -12,6 +11,7 @@ import {
   Percent,
   Loader
 } from "lucide-react";
+import { NairaSign } from "../components/Common/NairaSign";
 import { ProfitShareService, ProfitShare, ProfitShareStats } from "../services/profitShareService";
 import toast from "react-hot-toast";
 
@@ -295,11 +295,11 @@ export const ProfitSharingPage: React.FC = () => {
         <div className="bg-white p-6 rounded-lg shadow">
           <div className="flex items-center">
             <div className="p-2 bg-primary-100 rounded-lg">
-              <DollarSign className="w-6 h-6 text-primary-600" />
+              <NairaSign className="w-6 h-6 text-primary-600" />
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Investment</p>
-              <p className="text-2xl font-bold text-gray-900">${totalInvestment.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-gray-900">₦{totalInvestment.toLocaleString()}</p>
             </div>
           </div>
         </div>
@@ -310,7 +310,7 @@ export const ProfitSharingPage: React.FC = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Profit</p>
-              <p className="text-2xl font-bold text-gray-900">${totalProfit.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-gray-900">₦{totalProfit.toLocaleString()}</p>
             </div>
           </div>
         </div>
@@ -321,7 +321,7 @@ export const ProfitSharingPage: React.FC = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Paid Out</p>
-              <p className="text-2xl font-bold text-gray-900">${paidAmount.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-gray-900">₦{paidAmount.toLocaleString()}</p>
             </div>
           </div>
         </div>
@@ -332,7 +332,7 @@ export const ProfitSharingPage: React.FC = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Pending</p>
-              <p className="text-2xl font-bold text-gray-900">${pendingAmount.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-gray-900">₦{pendingAmount.toLocaleString()}</p>
             </div>
           </div>
         </div>
@@ -393,7 +393,7 @@ export const ProfitSharingPage: React.FC = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        ${(share.investmentContribution || 0).toLocaleString()}
+                        ₦{(share.investmentContribution || 0).toLocaleString()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
@@ -402,7 +402,7 @@ export const ProfitSharingPage: React.FC = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-600">
-                        ${(share.profitAmount || 0).toLocaleString()}
+                        ₦{(share.profitAmount || 0).toLocaleString()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
@@ -473,11 +473,11 @@ export const ProfitSharingPage: React.FC = () => {
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Period Summary - {mainPagePeriod}</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="text-center">
-            <div className="text-2xl font-bold text-primary-600">${totalInvestment.toLocaleString()}</div>
+            <div className="text-2xl font-bold text-primary-600">₦{totalInvestment.toLocaleString()}</div>
             <div className="text-sm text-gray-600">Total Investment Pool</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-green-600">${totalProfit.toLocaleString()}</div>
+            <div className="text-2xl font-bold text-green-600">₦{totalProfit.toLocaleString()}</div>
             <div className="text-sm text-gray-600">Total Profit Generated</div>
           </div>
           <div className="text-center">
@@ -578,7 +578,7 @@ export const ProfitSharingPage: React.FC = () => {
                               <span className="text-xs text-gray-500 ml-2">({member.psn || "No PSN"})</span>
                             </div>
                             <div className="text-sm font-semibold text-green-600 text-right">
-                              ${(member.amount || 0).toLocaleString()}
+                              ₦{(member.amount || 0).toLocaleString()}
                               <span className="text-xs text-gray-500 block">
                                 ({(((member.amount || 0) / (periodData.totalInvestmentPool || 1)) * 100).toFixed(1)}%)</span>
                             </div>
@@ -597,19 +597,19 @@ export const ProfitSharingPage: React.FC = () => {
                         <div>
                           <span className="text-gray-600">Total Contributions:</span>
                           <div className="font-semibold text-green-600">
-                            ${(periodData.calculations?.totalContributions || 0).toLocaleString()}
+                            ₦{(periodData.calculations?.totalContributions || 0).toLocaleString()}
                           </div>
                         </div>
                         <div>
                           <span className="text-gray-600">Total Expenses:</span>
                           <div className="font-semibold text-red-600">
-                            ${(periodData.calculations?.totalExpenses || 0).toLocaleString()}
+                            ₦{(periodData.calculations?.totalExpenses || 0).toLocaleString()}
                           </div>
                         </div>
                         <div>
                           <span className="text-gray-600">Net Profit for Sharing:</span>
                           <div className="font-semibold text-primary-600">
-                            ${(periodData.totalProfit || 0).toLocaleString()} (after 24.3% deductions)
+                            ₦{(periodData.totalProfit || 0).toLocaleString()} (after 24.3% deductions)
                           </div>
                         </div>
                         <div>
@@ -764,7 +764,7 @@ export const ProfitSharingPage: React.FC = () => {
                     </div>
                     <div className="flex justify-between">
                       <span>Investment Amount:</span>
-                      <span className="font-medium">${Number(selectedShare.member_investment || 0).toLocaleString()}</span>
+                      <span className="font-medium">₦{Number(selectedShare.member_investment || 0).toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Share Percentage:</span>
@@ -772,7 +772,7 @@ export const ProfitSharingPage: React.FC = () => {
                     </div>
                     <div className="flex justify-between">
                       <span>Profit Amount Paid:</span>
-                      <span className="font-bold text-green-600 text-lg">${Number(selectedShare.profitAmount || 0).toLocaleString()}</span>
+                      <span className="font-bold text-green-600 text-lg">₦{Number(selectedShare.profitAmount || 0).toLocaleString()}</span>
                     </div>
                   </div>
                 </div>

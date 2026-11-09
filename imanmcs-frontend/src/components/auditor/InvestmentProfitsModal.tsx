@@ -7,7 +7,6 @@ import {
   Filter,
   TrendingUp,
   CreditCard,
-  DollarSign,
   Shield,
   FileText,
   CheckCircle2,

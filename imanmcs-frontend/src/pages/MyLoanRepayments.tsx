@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Calendar, DollarSign, CheckCircle, AlertCircle,
+  Calendar, CheckCircle, AlertCircle,
   Clock, FileText, CreditCard, Eye
 } from 'lucide-react';
+import { NairaSign } from '../components/Common/NairaSign';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 import toast from 'react-hot-toast';
@@ -98,7 +99,7 @@ export const MyLoanRepayments: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
         <div className="bg-white p-6 rounded-lg shadow">
           <div className="flex items-center">
-            <DollarSign className="w-8 h-8 text-primary-500" />
+            <NairaSign className="w-8 h-8 text-primary-500" />
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Repaid</p>
               <p className="text-2xl font-bold text-gray-900">₦{totalRepayments.toLocaleString()}</p>
@@ -234,7 +235,7 @@ export const MyLoanRepayments: React.FC = () => {
                 {/* Repayment Information */}
                 <div className="bg-green-50 p-4 rounded-lg">
                   <h4 className="text-sm font-semibold text-green-900 mb-3 flex items-center">
-                    <DollarSign className="w-4 h-4 mr-2" />
+                    <NairaSign className="w-4 h-4 mr-2" />
                     Repayment Information
                   </h4>
                   <div className="space-y-2 text-sm">

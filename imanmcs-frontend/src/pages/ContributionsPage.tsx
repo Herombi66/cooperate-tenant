@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
-  DollarSign, Search, Filter, Download, Upload, PlusCircle,
+  Search, Filter, Download, Upload, PlusCircle,
   Calendar, TrendingUp, Users, Target, Wallet, Loader, Check, X, FileText
 } from 'lucide-react';
+import { NairaSign } from '../components/Common/NairaSign';
 import api from '../services/api';
 import toast from 'react-hot-toast';
 import { exportToExcel } from '../utils/excel';
@@ -545,7 +546,7 @@ ${sample2},target_savings,1500,12,2025,salary deduction`;
       case 'savings': return <Wallet className="w-4 h-4" />;
       case 'investment': return <TrendingUp className="w-4 h-4" />;
       case 'target_savings': return <Target className="w-4 h-4" />;
-      default: return <DollarSign className="w-4 h-4" />;
+      default: return <NairaSign className="w-4 h-4" />;
     }
   };
 
@@ -926,7 +927,7 @@ ${sample2},target_savings,1500,12,2025,salary deduction`;
         <div className="bg-card text-card-foreground border border-border p-6 rounded-xl shadow-sm">
           <div className="flex items-center">
             <div className="p-3 rounded-lg bg-primary-50 dark:bg-primary-950/40 text-primary-600 dark:text-primary-400">
-              <DollarSign className="w-6 h-6" />
+              <NairaSign className="w-6 h-6" />
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-muted-foreground">Total Contributions</p>

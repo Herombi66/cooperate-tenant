@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   X, Building2, Image as ImageIcon, MapPin, Mail, Phone,
-  Globe, DollarSign, CreditCard, TrendingUp, Percent,
+  Globe, CreditCard, TrendingUp, Percent,
   Shield, Layers, Bot, Save, Loader, Upload, CheckCircle2,
   Calendar, Key, Sparkles, Eye, EyeOff, FileText, AlertCircle,
   Clock, Tag, Check, Hash, AlertTriangle, Receipt, Landmark,
   ExternalLink, Copy, Lock, UserCheck, RefreshCw, User
 } from 'lucide-react';
 import axios from 'axios';
+import { NairaSign } from './Common/NairaSign';
 import { API_URL } from '../config';
 import toast from 'react-hot-toast';
 
@@ -521,7 +522,7 @@ export const SuperAdminCooperativeSettingsModal: React.FC<SuperAdminCoopSettings
     { id: 'domain', name: 'Domain & Routing', icon: Globe },
     ...(tenant ? [{ id: 'admin_security', name: 'Admin Security', icon: Key }] : []),
     { id: 'fees', name: 'Fees', icon: CreditCard },
-    { id: 'contributions', name: 'Contribution Rules', icon: DollarSign },
+    { id: 'contributions', name: 'Contribution Rules', icon: NairaSign },
     { id: 'loans', name: 'Loan Rules', icon: CreditCard },
     { id: 'investments', name: 'Investment Rules', icon: TrendingUp },
     { id: 'profit', name: 'Profit Distribution', icon: Percent },
@@ -784,7 +785,7 @@ export const SuperAdminCooperativeSettingsModal: React.FC<SuperAdminCoopSettings
                     <div className="md:col-span-2 pt-3 border-t border-gray-200">
                       <div className="flex items-center justify-between mb-2">
                         <label className="text-xs font-bold text-gray-800 flex items-center gap-1">
-                          <DollarSign className="w-4 h-4 text-emerald-600" />
+                          <NairaSign className="w-4 h-4 text-emerald-600" />
                           5. Accounting Currency
                         </label>
                         <div className="flex gap-1">

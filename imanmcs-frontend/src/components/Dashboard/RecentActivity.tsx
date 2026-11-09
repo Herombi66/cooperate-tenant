@@ -1,7 +1,8 @@
 // src/components/Dashboard/RecentActivity.tsx
 import React from 'react';
 import { motion } from 'framer-motion';
-import { User, DollarSign, CreditCard, FileText, CheckCircle } from 'lucide-react';
+import { User, CreditCard, FileText, CheckCircle } from 'lucide-react';
+import { NairaSign } from '../Common/NairaSign';
 import { format } from 'date-fns';
 
 interface Activity {
@@ -21,7 +22,7 @@ interface RecentActivityProps {
 
 const activityIcons: { [key: string]: React.ElementType } = {
   USER_REGISTRATION: User,
-  CONTRIBUTION: DollarSign,
+  CONTRIBUTION: NairaSign,
   LOAN_APPLICATION: CreditCard,
   LOAN_REPAYMENT: CheckCircle,
   DOCUMENT_UPLOAD: FileText,

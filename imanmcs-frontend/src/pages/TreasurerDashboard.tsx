@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { 
-  DollarSign, CreditCard, TrendingUp, Users, 
+  CreditCard, TrendingUp, Users, 
   AlertCircle, CheckCircle, Clock, Target, 
   PiggyBank, Banknote, Trophy, Receipt
 } from 'lucide-react';
+import { NairaSign } from '../components/Common/NairaSign';
 import { useAuth } from '../contexts/AuthContext';
 
 export const TreasurerDashboard: React.FC = () => {
@@ -163,7 +164,7 @@ export const TreasurerDashboard: React.FC = () => {
             {treasurerData.recentContributions.map((contribution) => (
               <div key={contribution.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <div className="flex items-center">
-                  <DollarSign className="w-4 h-4 text-green-500 mr-2" />
+                  <NairaSign className="w-4 h-4 text-green-500 mr-2" />
                   <div>
                     <p className="text-sm font-medium text-gray-900">{contribution.member}</p>
                     <p className="text-xs text-gray-500">{contribution.type} - {contribution.date}</p>
@@ -211,7 +212,7 @@ export const TreasurerDashboard: React.FC = () => {
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
-            <DollarSign className="w-6 h-6 text-primary-500 mb-2" />
+            <NairaSign className="w-6 h-6 text-primary-500 mb-2" />
             <div className="font-medium">Record Contribution</div>
             <div className="text-sm text-gray-500">Add member contribution</div>
           </button>

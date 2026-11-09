@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Search, Filter, Eye, CheckCircle, XCircle, Clock,
-  User, DollarSign, FileText, Download, CreditCard, AlertTriangle,
+  User, FileText, Download, CreditCard, AlertTriangle,
   FileSpreadsheet, Loader, X
 } from 'lucide-react';
+import { NairaSign } from '../components/Common/NairaSign';
 import api from '../services/api';
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
@@ -247,7 +248,7 @@ const LoanApplicationsPage: React.FC = () => {
       case 'waiting_disbursement': return <CheckCircle className="w-4 h-4" />;
       case 'approved': return <CheckCircle className="w-4 h-4" />;
       case 'rejected': return <XCircle className="w-4 h-4" />;
-      case 'disbursed': return <DollarSign className="w-4 h-4" />;
+      case 'disbursed': return <NairaSign className="w-4 h-4" />;
       case 'pending': return <Clock className="w-4 h-4" />;
       case 'awaiting_admin_review': return <AlertTriangle className="w-4 h-4" />;
       default: return <FileText className="w-4 h-4" />;
@@ -439,7 +440,7 @@ const LoanApplicationsPage: React.FC = () => {
 
         <div className="bg-white p-6 rounded-lg shadow">
           <div className="flex items-center">
-            <DollarSign className="w-8 h-8 text-purple-500" />
+            <NairaSign className="w-8 h-8 text-purple-500" />
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Approved</p>
               <p className="text-2xl font-bold text-gray-900">₦{totalAmount.toLocaleString()}</p>
@@ -650,7 +651,7 @@ const LoanApplicationsPage: React.FC = () => {
                             className="text-primary-600 hover:text-primary-900"
                             title="Disburse Funds"
                           >
-                            <DollarSign className="w-4 h-4" />
+                            <NairaSign className="w-4 h-4" />
                           </button>
                         )}
                       </div>

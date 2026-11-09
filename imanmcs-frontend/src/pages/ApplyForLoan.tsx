@@ -1,9 +1,10 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import {
-  CreditCard, Upload, User, DollarSign, Calendar,
+  CreditCard, Upload, User, Calendar,
   FileText, AlertCircle, CheckCircle, Info, Loader, ArrowRight,
   GraduationCap, TrendingUp
 } from 'lucide-react';
+import { NairaSign } from '../components/Common/NairaSign';
 import { useAuth } from '../contexts/AuthContext';
 import { useTenant } from '../contexts/TenantContext';
 import { useNavigate } from 'react-router-dom';
@@ -846,7 +847,7 @@ const ApplyForLoan: React.FC = () => {
                             aria-pressed={isSelected}
                           >
                             <div className="flex items-center">
-                              {lt.id === 'cash' && <DollarSign className="w-6 h-6 text-green-500 mr-3 flex-shrink-0" aria-hidden="true" />}
+                              {lt.id === 'cash' && <NairaSign className="w-6 h-6 text-green-500 mr-3 flex-shrink-0" aria-hidden="true" />}
                               {lt.id === 'venture' && <CreditCard className="w-6 h-6 text-purple-500 mr-3 flex-shrink-0" aria-hidden="true" />}
                               {lt.id === 'investment' && <TrendingUp className="w-6 h-6 text-blue-500 mr-3 flex-shrink-0" aria-hidden="true" />}
                               {lt.id === 'educational' && <GraduationCap className="w-6 h-6 text-indigo-500 mr-3 flex-shrink-0" aria-hidden="true" />}

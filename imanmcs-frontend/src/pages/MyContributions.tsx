@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import {
-  DollarSign, Calendar, TrendingUp, Download, Filter,
+  Calendar, TrendingUp, Download, Filter,
   CheckCircle, Clock, Target, PiggyBank, BarChart3, Upload, X, FileText
 } from 'lucide-react';
+import { NairaSign } from '../components/Common/NairaSign';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 import toast from 'react-hot-toast';
@@ -263,7 +264,7 @@ export const MyContributions: React.FC = () => {
         
         <div className="bg-white p-6 rounded-lg shadow">
           <div className="flex items-center">
-            <DollarSign className="w-8 h-8 text-orange-500" />
+            <NairaSign className="w-8 h-8 text-orange-500" />
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Grand Total</p>
               <p className="text-2xl font-bold text-gray-900">₦{grandTotal.toLocaleString()}</p>

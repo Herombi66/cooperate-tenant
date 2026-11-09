@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Bell, Clock, CheckCircle, XCircle, DollarSign, MessageSquare, Megaphone, FileText } from 'lucide-react';
+import { Bell, Clock, CheckCircle, XCircle, MessageSquare, Megaphone, FileText } from 'lucide-react';
+import { NairaSign } from '@/components/Common/NairaSign';
 import toast from 'react-hot-toast';
 import api from '@/services/api';
 import { useAuth } from '@/contexts/AuthContext';
@@ -121,7 +122,7 @@ export const NotificationDropdown: React.FC = () => {
       case 'loan_rejected':
         return <XCircle className="w-4 h-4 text-red-500" />;
       case 'loan_disbursed':
-        return <DollarSign className="w-4 h-4 text-primary-500" />;
+        return <NairaSign className="w-4 h-4 text-primary-500" />;
       case 'guarantor_request':
         return <Clock className="w-4 h-4 text-yellow-500" />;
       case 'direct_message':

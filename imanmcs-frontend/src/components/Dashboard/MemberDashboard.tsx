@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { DollarSign, CreditCard, TrendingUp, User, AlertTriangle, Loader } from 'lucide-react';
+import { CreditCard, TrendingUp, User, AlertTriangle, Loader } from 'lucide-react';
+import { NairaSign } from '../Common/NairaSign';
 import { StatsCard } from '../UI/StatsCard';
 import { useAuth } from '../../contexts/AuthContext';
 import { DashboardService, MemberStats } from '../../services/dashboardService';
@@ -107,7 +108,7 @@ export const MemberDashboard: React.FC = () => {
           <StatsCard
             title="Total Savings"
             value={`₦${totalSavings.toLocaleString()}`}
-            icon={DollarSign}
+            icon={NairaSign}
             color="green"
           />
           <StatsCard
@@ -146,7 +147,7 @@ export const MemberDashboard: React.FC = () => {
             <div className="text-sm text-gray-500">Manage your personal information</div>
           </button>
           <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
-            <DollarSign className="w-6 h-6 text-primary-500 mb-2" />
+            <NairaSign className="w-6 h-6 text-primary-500 mb-2" />
             <div className="font-medium">View Contributions</div>
             <div className="text-sm text-gray-500">Check your contribution history</div>
           </button>

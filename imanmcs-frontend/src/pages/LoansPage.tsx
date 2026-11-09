@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import {
   CreditCard, Search, Filter, Download, Upload, PlusCircle,
-  DollarSign, Users, AlertCircle, CheckCircle, Clock, Loader,
+  Users, AlertCircle, CheckCircle, Clock, Loader,
   Calendar, FileSpreadsheet, X
 } from 'lucide-react';
+import { NairaSign } from '../components/Common/NairaSign';
 import api from '../services/api';
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
@@ -203,7 +204,7 @@ export const LoansPage: React.FC = () => {
       case 'pending': return <Clock className="w-4 h-4" />;
       case 'approved': return <CheckCircle className="w-4 h-4" />;
       case 'rejected': return <AlertCircle className="w-4 h-4" />;
-      case 'disbursed': return <DollarSign className="w-4 h-4" />;
+      case 'disbursed': return <NairaSign className="w-4 h-4" />;
       case 'completed': return <CheckCircle className="w-4 h-4" />;
       default: return <CreditCard className="w-4 h-4" />;
     }
@@ -427,7 +428,7 @@ export const LoansPage: React.FC = () => {
         <div className="bg-white p-6 rounded-lg shadow">
           <div className="flex items-center">
             <div className="p-2 bg-green-100 rounded-lg">
-              <DollarSign className="w-6 h-6 text-green-600" />
+              <NairaSign className="w-6 h-6 text-green-600" />
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Amount</p>

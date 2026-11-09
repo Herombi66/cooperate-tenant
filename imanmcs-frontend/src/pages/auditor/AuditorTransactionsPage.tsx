@@ -5,7 +5,6 @@ import {
   Receipt,
   FileText,
   Calendar,
-  DollarSign,
   Download,
   Eye,
   CheckCircle,

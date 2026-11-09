@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { DollarSign, Search, Filter, AlertTriangle, CheckCircle, Calendar } from 'lucide-react';
+import { Search, Filter, AlertTriangle, CheckCircle, Calendar } from 'lucide-react';
+import { NairaSign } from '../../components/Common/NairaSign';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
 
@@ -41,7 +42,7 @@ export const AuditorContributionsPage: React.FC = () => {
       <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <DollarSign className="w-6 h-6 text-lime-700" /> Contribution Audit & Arrears Tracker
+            <NairaSign className="w-6 h-6 text-lime-700" /> Contribution Audit & Arrears Tracker
           </h1>
           <p className="text-gray-600 text-sm mt-1">
             Audit expected monthly commitments against actual receipts, identify arrears, partial payments, and unusual patterns.

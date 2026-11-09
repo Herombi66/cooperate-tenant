@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import {
-  TrendingUp, Trophy, DollarSign, Calendar, Download,
+  TrendingUp, Trophy, Calendar, Download,
   PieChart, BarChart3, Target, CheckCircle, Loader, AlertTriangle
 } from 'lucide-react';
+import { NairaSign } from '../components/Common/NairaSign';
 import { useAuth } from '../contexts/AuthContext';
 import { ProfitShareService } from '../services/profitShareService';
 import toast from 'react-hot-toast';
@@ -136,7 +137,7 @@ export const MyProfitShare: React.FC = () => {
 
         <div className="bg-white p-6 rounded-lg shadow">
           <div className="flex items-center">
-            <DollarSign className="w-8 h-8 text-primary-500" />
+            <NairaSign className="w-8 h-8 text-primary-500" />
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Pending</p>
               <p className="text-2xl font-bold text-gray-900">₦{pendingAmount.toLocaleString()}</p>

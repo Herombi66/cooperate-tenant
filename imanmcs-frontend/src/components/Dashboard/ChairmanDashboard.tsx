@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Users, DollarSign, TrendingUp, FileText, CheckCircle, AlertCircle, Loader } from 'lucide-react';
+import { Users, TrendingUp, FileText, CheckCircle, AlertCircle, Loader } from 'lucide-react';
+import { NairaSign } from '../Common/NairaSign';
 import { StatsCard } from '../UI/StatsCard';
 import { RecentActivity } from '../UI/RecentActivity';
 import { DashboardService, DashboardStats } from '../../services/dashboardService';
@@ -97,7 +98,7 @@ export const ChairmanDashboard: React.FC = () => {
           <StatsCard
             title="Total Contributions"
             value={`₦${currentStats.totalContributions.toLocaleString()}`}
-            icon={DollarSign}
+            icon={NairaSign}
             trend={{ value: 8.5, isPositive: true }}
             color="green"
           />
@@ -166,7 +167,7 @@ export const ChairmanDashboard: React.FC = () => {
             Review Loan Applications
           </button>
           <button className="flex items-center justify-center p-4 bg-primary-50 text-primary-700 rounded-lg hover:bg-primary-100 transition-colors">
-            <DollarSign className="w-5 h-5 mr-2" />
+            <NairaSign className="w-5 h-5 mr-2" />
             Authorize Payments
           </button>
           <button className="flex items-center justify-center p-4 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors">

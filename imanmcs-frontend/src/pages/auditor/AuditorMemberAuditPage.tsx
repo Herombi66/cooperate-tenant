@@ -5,7 +5,6 @@ import {
   FileText,
   Download,
   Printer,
-  DollarSign,
   CreditCard,
   TrendingUp,
   Calendar,

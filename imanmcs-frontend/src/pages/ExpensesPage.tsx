@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
   Search, Filter, Plus, Eye, CheckCircle, XCircle, Clock,
-  Receipt, DollarSign, Calendar, Download, Upload, User, CreditCard, Loader
+  Receipt, Calendar, Download, Upload, User, CreditCard, Loader
 } from 'lucide-react';
+import { NairaSign } from '../components/Common/NairaSign';
 import { ExpenseForm } from '../components/Forms/ExpenseForm';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
@@ -288,7 +289,7 @@ export const ExpensesPage: React.FC = () => {
           whileHover="hover"
         >
           <div className="flex items-center">
-            <DollarSign className="w-8 h-8 text-purple-500" />
+            <NairaSign className="w-8 h-8 text-purple-500" />
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Approved</p>
               <p className="text-2xl font-bold text-gray-900">₦{approvedExpenses.toLocaleString()}</p>
@@ -476,7 +477,7 @@ export const ExpensesPage: React.FC = () => {
                           className="text-purple-600 hover:text-purple-900"
                           title="Process Payment"
                         >
-                          <DollarSign className="w-4 h-4" />
+                          <NairaSign className="w-4 h-4" />
                         </button>
                       )}
                     </div>
@@ -697,7 +698,7 @@ export const ExpensesPage: React.FC = () => {
                     }}
                     className="flex items-center px-3 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 text-sm"
                   >
-                    <DollarSign className="w-4 h-4 mr-2" />
+                    <NairaSign className="w-4 h-4 mr-2" />
                     Process Payment
                   </button>
                 )}

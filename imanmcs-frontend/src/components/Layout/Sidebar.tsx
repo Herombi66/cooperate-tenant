@@ -1,9 +1,10 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import {
-  Home, Users, DollarSign, CreditCard, TrendingUp,
+  Home, Users, CreditCard, TrendingUp,
   Settings, FileText, ChevronLeft, ChevronRight, Receipt, Upload, UserPlus, Heart, Shield, Bell, X, CheckCircle, Percent, MessageSquare, ShoppingCart, ShieldAlert, Palette, FileSignature
 } from 'lucide-react';
+import { NairaSign } from '../Common/NairaSign';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePermissions } from '../../contexts/PermissionContext';
 import { useLayout } from '../../contexts/LayoutContext';
@@ -66,7 +67,7 @@ const navigationItems: Record<string, Array<{ name: string; href: string; icon: 
     { name: 'Members', href: '/members', icon: Users },
     { name: 'User Management', href: '/user-management', icon: Shield },
     { name: 'Roles & Permissions', href: '/roles', icon: Shield },
-    { name: 'Contributions', href: '/contributions', icon: DollarSign },
+    { name: 'Contributions', href: '/contributions', icon: NairaSign },
     { name: 'Loan Applications', href: '/loan-applications', icon: CreditCard },
     { name: 'Loans', href: '/loans', icon: CreditCard },
     { name: 'Loan Repayments', href: '/loan-repayments', icon: Upload },
@@ -90,7 +91,7 @@ const navigationItems: Record<string, Array<{ name: string; href: string; icon: 
     { name: 'Members', href: '/members', icon: Users },
     { name: 'User Management', href: '/user-management', icon: Shield },
     { name: 'Roles & Permissions', href: '/roles', icon: Shield },
-    { name: 'Contributions', href: '/contributions', icon: DollarSign },
+    { name: 'Contributions', href: '/contributions', icon: NairaSign },
     { name: 'Loan Applications', href: '/loan-applications', icon: CreditCard },
     { name: 'Loans', href: '/loans', icon: CreditCard },
     { name: 'Loan Repayments', href: '/loan-repayments', icon: Upload },
@@ -112,7 +113,7 @@ const navigationItems: Record<string, Array<{ name: string; href: string; icon: 
     { name: 'Dashboard', href: '/dashboard', icon: Home },
     { name: 'Profile', href: '/profile', icon: Users },
     { name: 'Cooperative Bylaws', href: '/bylaws', icon: FileText },
-    { name: 'My Contributions', href: '/my-contributions', icon: DollarSign },
+    { name: 'My Contributions', href: '/my-contributions', icon: NairaSign },
     { name: 'My Loans', href: '/my-loans', icon: CreditCard },
     { name: 'My Guarantees', href: '/my-guarantees', icon: Shield },
     { name: 'Apply for Loan', href: '/apply-loan', icon: CreditCard },
@@ -126,7 +127,7 @@ const navigationItems: Record<string, Array<{ name: string; href: string; icon: 
   ],
   treasurer: [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
-    { name: 'Contributions', href: '/contributions', icon: DollarSign },
+    { name: 'Contributions', href: '/contributions', icon: NairaSign },
     { name: 'Loan Applications', href: '/loan-applications', icon: CreditCard },
     { name: 'Loans', href: '/loans', icon: CreditCard },
     // { name: 'Layyah Management', href: '/admin-layyah', icon: Heart },
@@ -169,7 +170,7 @@ const navigationItems: Record<string, Array<{ name: string; href: string; icon: 
   financial_secretary: [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
     { name: 'Members', href: '/members', icon: Users },
-    { name: 'Contributions', href: '/contributions', icon: DollarSign },
+    { name: 'Contributions', href: '/contributions', icon: NairaSign },
     { name: 'Loan Applications', href: '/loan-applications', icon: CreditCard },
     { name: 'Loans', href: '/loans', icon: CreditCard },
     { name: 'Loan Repayments', href: '/loan-repayments', icon: Upload },
@@ -183,7 +184,7 @@ const navigationItems: Record<string, Array<{ name: string; href: string; icon: 
   auditor: [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
     { name: 'Members', href: '/members', icon: Users },
-    { name: 'Contributions', href: '/contributions', icon: DollarSign },
+    { name: 'Contributions', href: '/contributions', icon: NairaSign },
     { name: 'Loans', href: '/loans', icon: CreditCard },
     { name: 'Loan Repayments', href: '/loan-repayments', icon: Upload },
     { name: 'Expenses', href: '/expenses', icon: Receipt },
@@ -203,7 +204,7 @@ const navigationItems: Record<string, Array<{ name: string; href: string; icon: 
   state_auditor: [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
     { name: 'Members', href: '/members', icon: Users },
-    { name: 'Contributions', href: '/contributions', icon: DollarSign },
+    { name: 'Contributions', href: '/contributions', icon: NairaSign },
     { name: 'Loans', href: '/loans', icon: CreditCard },
     { name: 'Loan Repayments', href: '/loan-repayments', icon: Upload },
     { name: 'Expenses', href: '/expenses', icon: Receipt },
@@ -219,7 +220,7 @@ const executiveNavigationItems: Array<{ name: string; href: string; icon: any }>
   { name: 'Member Applications', href: '/member-applications', icon: UserPlus },
   { name: 'Members', href: '/members', icon: Users },
   { name: 'User Management', href: '/user-management', icon: Shield },
-  { name: 'Contributions', href: '/contributions', icon: DollarSign },
+  { name: 'Contributions', href: '/contributions', icon: NairaSign },
   { name: 'Loan Applications', href: '/loan-applications', icon: CreditCard },
   { name: 'Loans', href: '/loans', icon: CreditCard },
   { name: 'Loan Repayments', href: '/loan-repayments', icon: Upload },

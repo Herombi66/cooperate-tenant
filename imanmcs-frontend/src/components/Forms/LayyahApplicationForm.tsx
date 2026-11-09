@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Users, User, DollarSign, Calendar, Heart } from 'lucide-react';
+import { Users, User, Calendar, Heart } from 'lucide-react';
+import { NairaSign } from '../Common/NairaSign';
 import toast from 'react-hot-toast';
 import { LayyahService } from '../../services/layyahService';
 import { LayyahKind, AnimalCategory } from '../../types';
@@ -198,7 +199,7 @@ export const LayyahApplicationForm: React.FC<LayyahApplicationFormProps> = ({
                   Minimum Price (₦)
                 </label>
                 <div className="relative">
-                  <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <NairaSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                   <input
                     type="number"
                     {...register('price_min', { valueAsNumber: true })}
@@ -217,7 +218,7 @@ export const LayyahApplicationForm: React.FC<LayyahApplicationFormProps> = ({
                   Maximum Price (₦)
                 </label>
                 <div className="relative">
-                  <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <NairaSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                   <input
                     type="number"
                     {...register('price_max', { valueAsNumber: true })}
