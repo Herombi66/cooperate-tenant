@@ -13,17 +13,23 @@ const searchMembers = async (req, res) => {
       });
     }
 
+    const appWhere = {
+      [Op.or]: [
+          { psn: { [Op.like]: `%${q}%` } },
+          { name: { [Op.like]: `%${q}%` } },
+          { email: { [Op.like]: `%${q}%` } }
+      ],
+      email: { [Op.ne]: 'candsngltd@gmail.com' },
+      status: 'approved'
+    };
+
+    if (req.user && req.user.role !== 'super_admin') {
+      appWhere.tenant_id = req.user.tenant_id;
+    }
+
     // Find membership applications that match the search
     const applications = await MembershipApplication.findAll({
-      where: {
-        [Op.or]: [
-            { psn: { [Op.like]: `%${q}%` } },
-            { name: { [Op.like]: `%${q}%` } },
-            { email: { [Op.like]: `%${q}%` } }
-        ],
-        email: { [Op.ne]: 'candsngltd@gmail.com' },
-        status: 'approved'
-      },
+      where: appWhere,
       include: [{
         model: User,
         as: 'user',
@@ -131,6 +137,15 @@ const assignMemberRole = async (req, res) => {
       });
     }
 
+    if (req.user && req.user.role !== 'super_admin') {
+      if (application.tenant_id && application.tenant_id !== req.user.tenant_id) {
+        return res.status(403).json({
+          success: false,
+          message: 'Access denied: Cross-tenant role assignment is not permitted'
+        });
+      }
+    }
+
     if (application.status !== 'approved') {
       return res.status(400).json({
         success: false,
@@ -156,10 +171,11 @@ const assignMemberRole = async (req, res) => {
       const crypto = require('crypto');
       const bcrypt = require('bcryptjs');
 
-      const passwordToHash = Math.floor(1000 + Math.random() * 9000).toString();
+      const passwordToHash = crypto.randomBytes(5).toString('hex');
       const hashedPassword = await bcrypt.hash(passwordToHash, 10);
 
       user = await User.create({
+        tenant_id: application.tenant_id || req.user?.tenant_id || 'fmcksmcs',
         membership_application_id: membershipApplicationId,
         password_hash: hashedPassword,
         role: role,
@@ -267,6 +283,22 @@ const assignAdditionalRole = async (req, res) => {
       });
     }
 
+    if (req.user && req.user.role !== 'super_admin') {
+      const activeTenant = req.user.tenant_id;
+      if (existingUser.tenant_id && existingUser.tenant_id !== activeTenant) {
+        return res.status(403).json({
+          success: false,
+          message: 'Access denied: Cross-tenant role assignment is not permitted'
+        });
+      }
+      if (existingUser.membershipApplication && existingUser.membershipApplication.tenant_id && existingUser.membershipApplication.tenant_id !== activeTenant) {
+        return res.status(403).json({
+          success: false,
+          message: 'Access denied: Cross-tenant role assignment is not permitted'
+        });
+      }
+    }
+
     // Check if user is a member first
     if (existingUser.role !== 'member') {
       return res.status(400).json({
@@ -300,13 +332,12 @@ const assignAdditionalRole = async (req, res) => {
       const crypto = require('crypto');
       const bcrypt = require('bcryptjs');
 
-      password = Math.floor(1000 + Math.random() * 9000).toString();
+      password = crypto.randomBytes(5).toString('hex');
       const hashedPassword = await bcrypt.hash(password, 10);
-
-      console.log('🔐 [ROLE ASSIGNMENT] Generated password for new account:', password);
 
       // Create new user account for the leadership role (SAME membership application, different role and password)
       newUser = await User.create({
+        tenant_id: existingUser.tenant_id || existingUser.membershipApplication?.tenant_id || req.user?.tenant_id || 'fmcksmcs',
         membership_application_id: existingUser.membership_application_id, // SAME membership application
         password_hash: hashedPassword, // DIFFERENT password
         role: additionalRole, // DIFFERENT role
@@ -466,6 +497,10 @@ const getUsersWithRoles = async (req, res) => {
 
     const whereClause = {};
 
+    if (req.user && req.user.role !== 'super_admin') {
+      whereClause.tenant_id = req.user.tenant_id;
+    }
+
     if (role) {
       whereClause.role = role;
     }
@@ -488,6 +523,9 @@ const getUsersWithRoles = async (req, res) => {
     const appWhere = {
       email: { [Op.ne]: 'candsngltd@gmail.com' }
     };
+    if (req.user && req.user.role !== 'super_admin') {
+      appWhere.tenant_id = req.user.tenant_id;
+    }
     if (search) {
       appWhere[Op.or] = [
         { name: { [Op.like]: `%${search}%` } },
@@ -577,6 +615,22 @@ const removeUserRole = async (req, res) => {
       });
     }
 
+    if (req.user && req.user.role !== 'super_admin') {
+      const activeTenant = req.user.tenant_id;
+      if (user.tenant_id && user.tenant_id !== activeTenant) {
+        return res.status(403).json({
+          success: false,
+          message: 'Access denied: Cross-tenant operation not permitted'
+        });
+      }
+      if (user.membershipApplication && user.membershipApplication.tenant_id && user.membershipApplication.tenant_id !== activeTenant) {
+        return res.status(403).json({
+          success: false,
+          message: 'Access denied: Cross-tenant operation not permitted'
+        });
+      }
+    }
+
     // Don't allow removing the primary member role if leadership roles exist
     if (user.role === 'member') {
       const otherAccounts = await User.count({
@@ -638,10 +692,26 @@ const adminResetPassword = async (req, res) => {
       });
     }
 
-    // Generate new 4-digit default password
+    if (req.user && req.user.role !== 'super_admin') {
+      const activeTenant = req.user.tenant_id;
+      if (user.tenant_id && user.tenant_id !== activeTenant) {
+        return res.status(403).json({
+          success: false,
+          message: 'Access denied: Cross-tenant operation not permitted'
+        });
+      }
+      if (user.membershipApplication && user.membershipApplication.tenant_id && user.membershipApplication.tenant_id !== activeTenant) {
+        return res.status(403).json({
+          success: false,
+          message: 'Access denied: Cross-tenant operation not permitted'
+        });
+      }
+    }
+
+    // Generate new secure default password
     const crypto = require('crypto');
     const bcrypt = require('bcryptjs');
-    const newPassword = Math.floor(1000 + Math.random() * 9000).toString();
+    const newPassword = crypto.randomBytes(5).toString('hex');
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
     // Update user
@@ -687,6 +757,7 @@ const adminResetPassword = async (req, res) => {
           user_id: req.user.id,
           user_name: req.user.name || 'Admin',
           user_role: req.user.role,
+          tenant_id: user.tenant_id || req.user.tenant_id,
           action: 'RESET_PASSWORD',
           resource_type: 'USER',
           resource_id: user.id,

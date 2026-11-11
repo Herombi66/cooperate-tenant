@@ -118,7 +118,7 @@ const isAllowedOrigin = (origin) => {
     if (lowerHost.endsWith('.fmcksmcs.com') || lowerHost.includes('fmcksmcs')) return true;
     if (lowerHost.endsWith('.duckdns.org') && lowerHost.includes('imanmcs')) return true;
     if (lowerHost.endsWith('.vercel.app')) return true;
-    return true; // Allow tenant custom domains
+    return false; // Reject unknown origins in production
   } catch {
     return false;
   }
@@ -127,14 +127,19 @@ const isAllowedOrigin = (origin) => {
 // Add unique debug route to identify server version
 app.get('/debug-check', (req, res) => {
   res.json({ 
-    message: 'Backend is running correctly (v5 - CORS PATCH Fix)', 
-    timestamp: new Date().toISOString(),
-    pid: process.pid 
+    message: 'Backend is running correctly', 
+    timestamp: new Date().toISOString()
   });
 });
 
-// Manual trigger for DB repair
+// Manual trigger for DB repair (restricted to non-production or authenticated maintenance)
 app.get('/debug-repair', async (req, res) => {
+  const isDev = process.env.NODE_ENV !== 'production';
+  const hasMaintenanceKey = process.env.MAINTENANCE_KEY && req.headers['x-maintenance-key'] === process.env.MAINTENANCE_KEY;
+  if (!isDev && !hasMaintenanceKey) {
+    return res.status(403).json({ success: false, message: 'Forbidden: Maintenance route disabled in production' });
+  }
+
   try {
     const result = await repairDatabase();
     res.json({

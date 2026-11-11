@@ -54,6 +54,23 @@ const authenticateToken = async (req, res, next) => {
     // Attach user to request
     req.user = user;
 
+    // Strict Multi-Tenant Boundary Enforcement
+    const isSuperAdmin = user.role === 'super_admin';
+    if (!isSuperAdmin && user.tenant_id) {
+      if (req.tenantId && req.tenantId !== user.tenant_id && req.tenantId !== 'default') {
+        console.warn(`🚨 [SECURITY] Blocked cross-tenant access attempt by user ${user.id} (${user.tenant_id}) to tenant '${req.tenantId}'`);
+        return res.status(403).json({
+          success: false,
+          message: 'Access denied: Cross-tenant operation not permitted.'
+        });
+      }
+      req.tenantId = user.tenant_id;
+      const tenantStorage = require('../src/middleware/tenant-storage');
+      if (typeof tenantStorage.enterWith === 'function') {
+        tenantStorage.enterWith(user.tenant_id);
+      }
+    }
+
     const method = (req.method || '').toUpperCase();
     const isReadMethod = method === 'GET' || method === 'HEAD' || method === 'OPTIONS';
 

@@ -52,24 +52,19 @@ const tenantContext = async (req, res, next) => {
       }
     }
 
-    // 3. Fallback to Header or Query param (used for local testing and preview)
-    if (!tenant) {
-      const headerTenantId = req.headers['x-tenant-id'] || req.headers['X-Tenant-Id'] || req.query?.tenant;
-      if (headerTenantId) {
-        tenant = await Tenant.findOne({ where: { id: headerTenantId, status: 'active' } });
-      }
-    }
-
-    // 3b. Fallback to JWT Authorization token if user is logged in
-    if (!tenant && req.headers['authorization']) {
+    // 3. Check JWT Authorization token if user is logged in
+    let tokenUser = null;
+    if (req.headers['authorization']) {
       try {
         const parts = req.headers['authorization'].split(' ');
         const token = parts.length === 2 ? parts[1] : null;
         if (token && process.env.JWT_SECRET) {
           const decoded = jwt.verify(token, process.env.JWT_SECRET);
-          if (decoded?.tenant_id) {
+          tokenUser = decoded;
+          // For authenticated non-super-admins, lock tenant to their assigned tenant_id
+          if (decoded?.role !== 'super_admin' && decoded?.tenant_id) {
             tenant = await Tenant.findOne({ where: { id: decoded.tenant_id, status: 'active' } });
-          } else if (decoded?.id) {
+          } else if (decoded?.role !== 'super_admin' && decoded?.id) {
             const authUser = await User.findByPk(decoded.id);
             if (authUser?.tenant_id) {
               tenant = await Tenant.findOne({ where: { id: authUser.tenant_id, status: 'active' } });
@@ -78,6 +73,14 @@ const tenantContext = async (req, res, next) => {
         }
       } catch (jwtErr) {
         // Auth middleware will handle invalid tokens later
+      }
+    }
+
+    // 4. Header or Query param fallback (only allowed if unauthenticated or for platform super-admin)
+    if (!tenant && (!tokenUser || tokenUser.role === 'super_admin')) {
+      const headerTenantId = req.headers['x-tenant-id'] || req.headers['X-Tenant-Id'] || req.query?.tenant;
+      if (headerTenantId) {
+        tenant = await Tenant.findOne({ where: { id: headerTenantId, status: 'active' } });
       }
     }
 

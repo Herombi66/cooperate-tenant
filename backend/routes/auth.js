@@ -6,20 +6,17 @@ const { authenticateToken } = require('../middleware/auth');
 
 const router = express.Router();
 
-// Rate limiting for login attempts - COMPLETELY DISABLED FOR TESTING
-// const loginLimiter = rateLimit({
-//   windowMs: 15 * 60 * 1000, // 15 minutes
-//   max: 1000, // Very high limit for testing
-//   message: {
-//     success: false,
-//     message: 'Too many login attempts, please try again later'
-//   },
-//   standardHeaders: true,
-//   legacyHeaders: false,
-// });
-
-// Skip rate limiting for now
-const loginLimiter = (req, res, next) => next();
+// Rate limiting for login attempts (protection against credential stuffing / brute-force)
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20, // Max 20 attempts per 15 minutes per IP
+  message: {
+    success: false,
+    message: 'Too many login attempts from this network. Please try again after 15 minutes.'
+  },
+  standardHeaders: true,
+  legacyHeaders: false
+});
 
 // Configure multer for profile image uploads
 const storage = multer.memoryStorage();

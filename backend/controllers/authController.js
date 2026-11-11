@@ -69,9 +69,9 @@ const buildProfilePayload = (user, application) => {
 
 const login = async (req, res) => {
   try {
-    console.log('Login Body:', req.body);
     const rawId = req.body.psn || req.body.ippis || req.body.ippisNumber || req.body.ippis_number || req.body.username;
     const psn = rawId ? String(rawId).trim() : '';
+    console.log('[Auth] Login attempt for identifier:', psn ? `${psn.slice(0, 3)}***` : 'missing');
     const { password } = req.body;
 
     // Validate input

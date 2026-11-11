@@ -109,17 +109,15 @@ async function seedDefaults() {
         password_hash: defaultPasswordHash,
         role: 'admin',
         status: 'active',
-        is_default_password: false
+        is_default_password: true
       }, { skipTenant: true });
-      console.log('✅ Created FMCK Admin user (FMCK-ADM-001 / admin123)');
+      console.log('✅ Created initial FMCK Admin user (FMCK-ADM-001)');
     } else {
       await fmckUser.update({
         tenant_id: 'fmcksmcs',
-        password_hash: defaultPasswordHash,
-        status: 'active',
-        is_default_password: false
+        status: 'active'
       }, { skipTenant: true });
-      console.log('✅ Verified & updated FMCK Admin password (FMCK-ADM-001 / admin123)');
+      console.log('✅ Verified FMCK Admin account');
     }
 
     // 4b. FMCK Super Admin User (FMCK-SADM-001 / candsngltd@gmail.com)
@@ -160,18 +158,16 @@ async function seedDefaults() {
         password_hash: defaultPasswordHash,
         role: 'super_admin',
         status: 'active',
-        is_default_password: false
+        is_default_password: true
       }, { skipTenant: true });
-      console.log('✅ Created FMCK Super Admin user (candsngltd@gmail.com / admin123)');
+      console.log('✅ Created initial FMCK Super Admin user (candsngltd@gmail.com)');
     } else {
       await fmckSuperUser.update({
         tenant_id: 'fmcksmcs',
         role: 'super_admin',
-        password_hash: defaultPasswordHash,
-        status: 'active',
-        is_default_password: false
+        status: 'active'
       }, { skipTenant: true });
-      console.log('✅ Verified & updated FMCK Super Admin (candsngltd@gmail.com / admin123)');
+      console.log('✅ Verified FMCK Super Admin account');
     }
 
     // 5. Default Tenant Admin (ADM001 / admin@default.com)
@@ -207,15 +203,13 @@ async function seedDefaults() {
         password_hash: defaultPasswordHash,
         role: 'super_admin',
         status: 'active',
-        is_default_password: false
+        is_default_password: true
       }, { skipTenant: true });
-      console.log('✅ Created Default Admin user (ADM001 / admin123)');
+      console.log('✅ Created initial Default Admin user (ADM001)');
     } else {
       await defaultUser.update({
         tenant_id: 'default',
-        password_hash: defaultPasswordHash,
-        status: 'active',
-        is_default_password: false
+        status: 'active'
       }, { skipTenant: true });
     }
 

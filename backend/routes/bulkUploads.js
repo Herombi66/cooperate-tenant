@@ -1,5 +1,5 @@
 const express = require('express');
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateToken, authorizeRole } = require('../middleware/auth');
 const {
   listBatches,
   getBatchById,
@@ -18,6 +18,7 @@ const {
 const router = express.Router();
 
 router.use(authenticateToken);
+router.use(authorizeRole(['admin', 'super_admin', 'chairman', 'treasurer', 'financial_secretary', 'secretary', 'assistant_secretary', 'state_auditor']));
 
 router.get('/', listBatches);
 router.get('/metrics', getMetrics);

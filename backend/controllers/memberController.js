@@ -15,6 +15,12 @@ const getMembers = async (req, res) => {
       deleted_at: null // Only get non-deleted users
     };
 
+    // Multi-tenant isolation: non-super_admin users are restricted to their tenant
+    const activeTenant = req.user?.tenant_id || req.tenantId || 'fmcksmcs';
+    if (req.user?.role !== 'super_admin') {
+      whereClause.tenant_id = activeTenant;
+    }
+
     if (status) {
       whereClause.status = status;
     }
@@ -38,6 +44,9 @@ const getMembers = async (req, res) => {
     const appWhere = {
       email: { [Op.ne]: 'candsngltd@gmail.com' }
     };
+    if (req.user?.role !== 'super_admin') {
+      appWhere.tenant_id = activeTenant;
+    }
     if (search) {
       appWhere[Op.or] = [
         { name: { [Op.like]: `%${search}%` } },
@@ -855,6 +864,14 @@ const resetMemberPassword = async (req, res) => {
         message: 'Member user account not found'
       });
     }
+
+    // Multi-tenant boundary check: admins cannot reset accounts of other tenants
+    if (req.user?.role !== 'super_admin' && member.tenant_id && req.user?.tenant_id && member.tenant_id !== req.user.tenant_id) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied: You cannot reset passwords for members of another cooperative'
+      });
+    }
     
     if (member.role === 'super_admin' || member.membershipApplication?.email === 'candsngltd@gmail.com') {
       return res.status(404).json({
@@ -876,8 +893,8 @@ const resetMemberPassword = async (req, res) => {
       });
     }
 
-    // Generate new 4-digit default password
-    const newPassword = Math.floor(1000 + Math.random() * 9000).toString();
+    // Generate secure high-entropy temporary password (10 alphanumeric chars)
+    const newPassword = crypto.randomBytes(5).toString('hex');
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
 
@@ -904,7 +921,7 @@ const resetMemberPassword = async (req, res) => {
         tenantId
       );
       emailSent = true;
-      console.log(`✅ [PASSWORD RESET] Sent new password to member's registered email: ${memberEmail}`);
+      console.log(`✅ [PASSWORD RESET] Sent new temporary password to member's registered email: ${memberEmail}`);
     } catch (emailError) {
       emailErrorMsg = emailError?.message;
       console.error(`❌ [PASSWORD RESET] Failed to send email to ${memberEmail}:`, emailError);
@@ -950,11 +967,10 @@ const resetMemberPassword = async (req, res) => {
     res.json({
       success: true,
       message: emailSent
-        ? `Password reset successfully. New password has been sent to ${memberEmail}.`
+        ? `Password reset successfully. A temporary password has been sent to the member's registered email (${memberEmail}).`
         : `Password reset successfully. (Email notification status: ${emailErrorMsg || 'pending'}).`,
       emailSent,
-      memberEmail,
-      newPassword: newPassword
+      memberEmail
     });
 
   } catch (error) {
@@ -973,6 +989,12 @@ const exportMembers = async (req, res) => {
     const whereClause = {
       deleted_at: null
     };
+
+    // Multi-tenant isolation: non-super_admin users are restricted to their tenant
+    const activeTenant = req.user?.tenant_id || req.tenantId || 'fmcksmcs';
+    if (req.user?.role !== 'super_admin') {
+      whereClause.tenant_id = activeTenant;
+    }
 
     if (status) {
       whereClause.status = status;
@@ -995,7 +1017,8 @@ const exportMembers = async (req, res) => {
         as: 'membershipApplication',
         required: true,
         where: {
-          email: { [Op.ne]: 'candsngltd@gmail.com' }
+          email: { [Op.ne]: 'candsngltd@gmail.com' },
+          ...(req.user?.role !== 'super_admin' ? { tenant_id: activeTenant } : {})
         }
       }],
       order: [['created_at', 'DESC']]
@@ -1937,6 +1960,16 @@ const getMemberStatement = async (req, res) => {
 
     if (!isStaff && !isSelf) {
       return res.status(403).json({ success: false, message: 'Access denied to member statement' });
+    }
+
+    const targetUser = await User.findByPk(requestedUserId);
+    if (!targetUser) {
+      return res.status(404).json({ success: false, message: 'Member not found' });
+    }
+
+    // Multi-tenant isolation: staff can only view statements of members within their cooperative
+    if (currentUser?.role !== 'super_admin' && targetUser.tenant_id && currentUser?.tenant_id && targetUser.tenant_id !== currentUser.tenant_id) {
+      return res.status(404).json({ success: false, message: 'Member not found' });
     }
 
     const { getMemberStatementData } = require('../utils/statementHelper');

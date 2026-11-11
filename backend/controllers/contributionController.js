@@ -152,6 +152,12 @@ const getContributions = async (req, res) => {
 
     const whereClause = {};
     if (status) whereClause.status = status;
+
+    // Multi-tenant isolation: non-super_admin users are restricted to their tenant
+    if (req.user?.role !== 'super_admin') {
+      whereClause.tenant_id = req.user?.tenant_id || req.tenantId || 'fmcksmcs';
+    }
+
     const requesterRole = String(req.user?.role || '').toLowerCase().trim();
     if (requesterRole === 'member') {
       whereClause.user_id = req.user?.id;
@@ -224,6 +230,23 @@ const getContributionById = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: 'Contribution not found'
+      });
+    }
+
+    // Multi-tenant isolation
+    if (req.user?.role !== 'super_admin' && contribution.tenant_id && req.user?.tenant_id && contribution.tenant_id !== req.user.tenant_id) {
+      return res.status(404).json({
+        success: false,
+        message: 'Contribution not found'
+      });
+    }
+
+    // Authorization: standard members can only inspect their own contributions
+    const canViewAny = ['admin', 'super_admin', 'chairman', 'secretary', 'assistant_secretary', 'treasurer', 'financial_secretary', 'state_auditor', 'auditor'].includes(req.user?.role);
+    if (!canViewAny && contribution.user_id !== req.user?.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied: You can only view your own contributions'
       });
     }
 

@@ -81,6 +81,11 @@ const getLoans = async (req, res) => {
     const offset = isAll ? null : (parseInt(page) - 1) * parsedLimit;
 
     const whereClause = {};
+
+    // Multi-tenant isolation: non-super_admin users are restricted to their tenant
+    if (req.user?.role !== 'super_admin') {
+      whereClause.tenant_id = req.user?.tenant_id || req.tenantId || 'fmcksmcs';
+    }
     
     // Security: Non-admins can only see their own loans
     const canViewAllLoans = ['admin', 'super_admin', 'chairman', 'secretary', 'assistant_secretary', 'treasurer'].includes(req.user.role);
@@ -323,6 +328,11 @@ const exportLoans = async (req, res) => {
 
     const whereClause = {};
 
+    // Multi-tenant isolation: non-super_admin users are restricted to their tenant
+    if (req.user?.role !== 'super_admin') {
+      whereClause.tenant_id = req.user?.tenant_id || req.tenantId || 'fmcksmcs';
+    }
+
     const canViewAllLoans = ['admin', 'super_admin', 'chairman', 'secretary', 'assistant_secretary', 'treasurer'].includes(req.user.role);
     if (!canViewAllLoans) {
       whereClause.user_id = req.user.id;
@@ -491,6 +501,17 @@ const getLoanById = async (req, res) => {
 
         const loan = await Loan.findByPk(id);
     if (!loan) return res.status(404).json({ success: false, message: 'Loan not found' });
+
+    // Multi-tenant isolation: prevent cross-tenant loan access
+    if (req.user?.role !== 'super_admin' && loan.tenant_id && req.user?.tenant_id && loan.tenant_id !== req.user.tenant_id) {
+        return res.status(404).json({ success: false, message: 'Loan not found' });
+    }
+
+    // Authorization: standard members can only inspect their own loan records
+    const canViewAny = ['admin', 'super_admin', 'chairman', 'secretary', 'assistant_secretary', 'treasurer', 'state_auditor', 'auditor'].includes(req.user?.role);
+    if (!canViewAny && loan.user_id !== req.user?.id) {
+        return res.status(403).json({ success: false, message: 'Access denied: You can only view your own loan details' });
+    }
     
     const loanData = loan.toJSON();
     
@@ -2241,9 +2262,13 @@ const validateGrantor = async (req, res) => {
       return res.status(400).json({ success: false, message: 'You cannot be your own guarantor.', code: 'SELF_GRANTOR' });
     }
 
-    // 2. Database Verification against active (approved) members
+    // 2. Database Verification against active (approved) members in same tenant
+    const grantorWhere = buildApprovedMemberPsnWhere(psn);
+    if (req.user?.tenant_id && req.user.role !== 'super_admin') {
+      grantorWhere.tenant_id = req.user.tenant_id;
+    }
     const grantorApplication = await MembershipApplication.findOne({
-      where: buildApprovedMemberPsnWhere(psn)
+      where: grantorWhere
     });
 
     if (!grantorApplication) {
@@ -2323,6 +2348,10 @@ const approveLoan = async (req, res) => {
 
         const loan = await Loan.findByPk(id);
         if (!loan) return res.status(404).json({ success: false, message: 'Loan not found' });
+
+        if (req.user?.role !== 'super_admin' && loan.tenant_id && req.user?.tenant_id && loan.tenant_id !== req.user.tenant_id) {
+            return res.status(404).json({ success: false, message: 'Loan not found' });
+        }
 
         // Status Transition Validation
         if (!['pending', 'awaiting_admin_review'].includes(loan.status)) {
@@ -2408,6 +2437,10 @@ const rejectLoan = async (req, res) => {
 
         const loan = await Loan.findByPk(id);
         if (!loan) return res.status(404).json({ success: false, message: 'Loan not found' });
+
+        if (req.user?.role !== 'super_admin' && loan.tenant_id && req.user?.tenant_id && loan.tenant_id !== req.user.tenant_id) {
+            return res.status(404).json({ success: false, message: 'Loan not found' });
+        }
 
         // Status Transition Validation
         // Prevent rejecting active/disbursed loans without reversal first

@@ -140,7 +140,11 @@ const getSecurityOverview = async (req, res) => {
     const config = await getSecurityConfig();
     const blockedIps = await getBlockedIpsList();
 
-    const dateClause = dateFilter ? { created_at: dateFilter } : {};
+    const tenantWhere = req.user?.role !== 'super_admin' ? { tenant_id: req.user.tenant_id } : {};
+    const dateClause = {
+      ...tenantWhere,
+      ...(dateFilter ? { created_at: dateFilter } : {})
+    };
 
     // 1. Failed Logins (live count)
     const failedLoginsCount = await ActivityLog.count({
@@ -191,6 +195,7 @@ const getSecurityOverview = async (req, res) => {
     const largeContribsCount = await Contribution.count({
       where: {
         total_amount: { [Op.gte]: threshold },
+        ...tenantWhere,
         ...(dateFilter ? { created_at: dateFilter } : {})
       }
     }).catch(() => 0);
@@ -198,6 +203,7 @@ const getSecurityOverview = async (req, res) => {
     const largeLoansCount = await Loan.count({
       where: {
         amount_approved: { [Op.gte]: threshold },
+        ...tenantWhere,
         ...(dateFilter ? { created_at: dateFilter } : {})
       }
     }).catch(() => 0);
@@ -205,6 +211,7 @@ const getSecurityOverview = async (req, res) => {
     const largeWithdrawalsCount = await ContributionWithdrawal.count({
       where: {
         amount: { [Op.gte]: threshold },
+        ...tenantWhere,
         ...(dateFilter ? { created_at: dateFilter } : {})
       }
     }).catch(() => 0);
@@ -314,7 +321,11 @@ const getSecurityIncidents = async (req, res) => {
     } = req.query;
 
     const dateFilter = parseTimeRange(timeRange);
-    const dateClause = dateFilter ? { created_at: dateFilter } : {};
+    const tenantWhere = req.user?.role !== 'super_admin' ? { tenant_id: req.user.tenant_id } : {};
+    const dateClause = {
+      ...tenantWhere,
+      ...(dateFilter ? { created_at: dateFilter } : {})
+    };
 
     // 1. Fetch live activity logs from database
     const dbLogs = await ActivityLog.findAll({
@@ -371,6 +382,7 @@ const getSecurityIncidents = async (req, res) => {
         const largeLoans = await Loan.findAll({
           where: {
             amount_approved: { [Op.gte]: threshold },
+            ...tenantWhere,
             ...(dateFilter ? { created_at: dateFilter } : {})
           },
           include: [{ model: User, as: 'user', include: [{ model: MembershipApplication, as: 'membershipApplication' }] }],
@@ -402,6 +414,7 @@ const getSecurityIncidents = async (req, res) => {
         const largeContribs = await Contribution.findAll({
           where: {
             total_amount: { [Op.gte]: threshold },
+            ...tenantWhere,
             ...(dateFilter ? { created_at: dateFilter } : {})
           },
           include: [{ model: User, as: 'user', include: [{ model: MembershipApplication, as: 'membershipApplication' }] }],
@@ -433,6 +446,7 @@ const getSecurityIncidents = async (req, res) => {
         const largeWithdrawals = await ContributionWithdrawal.findAll({
           where: {
             amount: { [Op.gte]: threshold },
+            ...tenantWhere,
             ...(dateFilter ? { created_at: dateFilter } : {})
           },
           include: [{ model: User, as: 'user', include: [{ model: MembershipApplication, as: 'membershipApplication' }] }],
@@ -589,6 +603,9 @@ const takeSecurityAction = async (req, res) => {
         }
 
         if (userToLock) {
+          if (adminUser?.role !== 'super_admin' && userToLock.tenant_id && userToLock.tenant_id !== adminUser?.tenant_id) {
+            return res.status(403).json({ success: false, message: 'Access denied: Cross-tenant operation not permitted' });
+          }
           await userToLock.update({ status: 'suspended' });
           message = `User account #${userToLock.id} has been suspended/locked for security reasons`;
           actionDetails = { userId: userToLock.id, newStatus: 'suspended' };
@@ -610,6 +627,9 @@ const takeSecurityAction = async (req, res) => {
         }
 
         if (userToUnlock) {
+          if (adminUser?.role !== 'super_admin' && userToUnlock.tenant_id && userToUnlock.tenant_id !== adminUser?.tenant_id) {
+            return res.status(403).json({ success: false, message: 'Access denied: Cross-tenant operation not permitted' });
+          }
           await userToUnlock.update({ status: 'active' });
           message = `User account #${userToUnlock.id} status restored to active`;
           actionDetails = { userId: userToUnlock.id, newStatus: 'active' };
@@ -631,6 +651,9 @@ const takeSecurityAction = async (req, res) => {
         }
 
         if (userToReset) {
+          if (adminUser?.role !== 'super_admin' && userToReset.tenant_id && userToReset.tenant_id !== adminUser?.tenant_id) {
+            return res.status(403).json({ success: false, message: 'Access denied: Cross-tenant operation not permitted' });
+          }
           await userToReset.update({ is_default_password: true });
           message = `User #${userToReset.id} must change password on their next login`;
           actionDetails = { userId: userToReset.id, is_default_password: true };

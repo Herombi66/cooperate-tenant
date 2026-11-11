@@ -13,6 +13,13 @@ const requireStaff = (user) => {
   return allowedRoles.includes(role);
 };
 
+const checkBatchTenant = (batch, user) => {
+  if (!batch) return false;
+  if (!user || user.role === 'super_admin') return true;
+  if (!batch.tenant_id) return true; // Legacy unpartitioned records
+  return batch.tenant_id === user.tenant_id;
+};
+
 const listBatches = async (req, res) => {
   try {
     if (!requireStaff(req.user)) return res.status(403).json({ success: false, message: 'Access denied' });
@@ -22,6 +29,9 @@ const listBatches = async (req, res) => {
     const likeOp = sequelize.getDialect() === 'postgres' ? Op.iLike : Op.like;
 
     const where = {};
+    if (req.user?.role !== 'super_admin') {
+      where.tenant_id = req.user.tenant_id;
+    }
     if (type) where.type = type;
     if (status) where.status = status.toString().toUpperCase();
     if (created_by) where.created_by = parseInt(created_by);
@@ -105,6 +115,9 @@ const getBatchReport = async (req, res) => {
       }]
     });
     if (!batch) return res.status(404).json({ success: false, message: 'Batch not found' });
+    if (!checkBatchTenant(batch, req.user)) {
+      return res.status(403).json({ success: false, message: 'Access denied: Cross-tenant operation not permitted' });
+    }
 
     const createdAt = batch.created_at ? new Date(batch.created_at).getTime() : null;
     const completedAt = batch.completed_at ? new Date(batch.completed_at).getTime() : null;
@@ -192,6 +205,9 @@ const downloadBatchReportCsv = async (req, res) => {
 
     const batch = await UploadBatch.findByPk(batchId);
     if (!batch) return res.status(404).json({ success: false, message: 'Batch not found' });
+    if (!checkBatchTenant(batch, req.user)) {
+      return res.status(403).json({ success: false, message: 'Access denied: Cross-tenant operation not permitted' });
+    }
 
     const errors = await UploadRecordError.findAll({
       where: { batch_id: batchId },
@@ -267,6 +283,9 @@ const downloadBatchReportPdf = async (req, res) => {
 
     const batch = await UploadBatch.findByPk(batchId);
     if (!batch) return res.status(404).json({ success: false, message: 'Batch not found' });
+    if (!checkBatchTenant(batch, req.user)) {
+      return res.status(403).json({ success: false, message: 'Access denied: Cross-tenant operation not permitted' });
+    }
 
     const errors = await UploadRecordError.findAll({
       where: { batch_id: batchId },
@@ -367,6 +386,9 @@ const getMetrics = async (req, res) => {
     if (!requireStaff(req.user)) return res.status(403).json({ success: false, message: 'Access denied' });
     const { type, date_from, date_to } = req.query;
     const where = {};
+    if (req.user?.role !== 'super_admin') {
+      where.tenant_id = req.user.tenant_id;
+    }
     if (type) where.type = type;
     if (date_from || date_to) {
       where.created_at = {};
@@ -444,6 +466,12 @@ const streamBatch = async (req, res) => {
           res.end();
           return;
         }
+        if (!checkBatchTenant(batch, req.user)) {
+          send({ type: 'error', message: 'Access denied: Cross-tenant operation not permitted' });
+          clearInterval(interval);
+          res.end();
+          return;
+        }
         send({ type: 'batch', batch });
         if (batch.status !== 'PROCESSING') {
           clearInterval(interval);
@@ -473,6 +501,9 @@ const getBatchById = async (req, res) => {
       }]
     });
     if (!batch) return res.status(404).json({ success: false, message: 'Batch not found' });
+    if (!checkBatchTenant(batch, req.user)) {
+      return res.status(403).json({ success: false, message: 'Access denied: Cross-tenant operation not permitted' });
+    }
     res.json({ success: true, batch });
   } catch (error) {
     console.error('Get upload batch error:', error);
@@ -485,6 +516,12 @@ const listBatchErrors = async (req, res) => {
     if (!requireStaff(req.user)) return res.status(403).json({ success: false, message: 'Access denied' });
     const batchId = parseInt(req.params.id);
     if (isNaN(batchId)) return res.status(400).json({ success: false, message: 'Invalid batch id' });
+
+    const batch = await UploadBatch.findByPk(batchId);
+    if (!batch) return res.status(404).json({ success: false, message: 'Batch not found' });
+    if (!checkBatchTenant(batch, req.user)) {
+      return res.status(403).json({ success: false, message: 'Access denied: Cross-tenant operation not permitted' });
+    }
 
     const { status, page = 1, limit = 50 } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
@@ -523,6 +560,9 @@ const downloadBatchErrorsCsv = async (req, res) => {
 
     const batch = await UploadBatch.findByPk(batchId);
     if (!batch) return res.status(404).json({ success: false, message: 'Batch not found' });
+    if (!checkBatchTenant(batch, req.user)) {
+      return res.status(403).json({ success: false, message: 'Access denied: Cross-tenant operation not permitted' });
+    }
 
     const errors = await UploadRecordError.findAll({
       where: { batch_id: batchId },
@@ -573,6 +613,9 @@ const downloadBatchErrorsXlsx = async (req, res) => {
 
     const batch = await UploadBatch.findByPk(batchId);
     if (!batch) return res.status(404).json({ success: false, message: 'Batch not found' });
+    if (!checkBatchTenant(batch, req.user)) {
+      return res.status(403).json({ success: false, message: 'Access denied: Cross-tenant operation not permitted' });
+    }
 
     const errors = await UploadRecordError.findAll({
       where: { batch_id: batchId, status: 'FAILED' },
@@ -629,6 +672,12 @@ const updateErrorCorrection = async (req, res) => {
     const errorId = parseInt(req.params.errorId);
     if (isNaN(batchId) || isNaN(errorId)) return res.status(400).json({ success: false, message: 'Invalid id' });
 
+    const batch = await UploadBatch.findByPk(batchId);
+    if (!batch) return res.status(404).json({ success: false, message: 'Batch not found' });
+    if (!checkBatchTenant(batch, req.user)) {
+      return res.status(403).json({ success: false, message: 'Access denied: Cross-tenant operation not permitted' });
+    }
+
     const correctedRecord = req.body?.corrected_record;
     if (!correctedRecord || typeof correctedRecord !== 'object') {
       return res.status(400).json({ success: false, message: 'corrected_record must be an object' });
@@ -670,6 +719,9 @@ const reprocessFailed = async (req, res) => {
 
     const batch = await UploadBatch.findByPk(batchId);
     if (!batch) return res.status(404).json({ success: false, message: 'Batch not found' });
+    if (!checkBatchTenant(batch, req.user)) {
+      return res.status(403).json({ success: false, message: 'Access denied: Cross-tenant operation not permitted' });
+    }
 
     const errors = await UploadRecordError.findAll({
       where: { batch_id: batchId, status: 'FAILED' },
